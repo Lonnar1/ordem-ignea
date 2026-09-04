@@ -1,0 +1,160 @@
+/* ==========================================================================
+   FICHA ÍGNEA — TEMA OP DARK
+   Ajuste visual: carvão, preto, vinho escuro, osso e dourado envelhecido.
+   Estrutura, seletores, grids e comportamento original preservados.
+   ========================================================================== */
+
+:root {
+  --op-bg: #070707;
+  --op-bg-deep: #030303;
+  --op-surface: #111111;
+  --op-surface-2: #181717;
+  --op-surface-3: #211f1f;
+  --op-line: rgba(176, 154, 107, 0.18);
+  --op-line-strong: rgba(176, 154, 107, 0.34);
+  --op-gold: #b7a06a;
+  --op-gold-soft: #8e7b52;
+  --op-bone: #eee8de;
+  --op-muted: #918b83;
+  --op-red: #8f2d2d;
+  --op-red-bright: #b7473f;
+  --op-red-dark: #3a0c0c;
+}
+
+/* ================= LOGIN ================= */
+
+.login-box {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.login-box input {
+  margin-bottom: 10px;
+}
+
+.login-botoes {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn-login {
+  background: #9f854f;
+  color: #090909;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.btn-login:hover {
+  background: #b59a61;
+  transform: scale(1.04);
+}
+
+.btn-login-secundario {
+  background: #2b2727;
+  color: #f1ede6;
+}
+
+.btn-sair-conta {
+  background: #7f1d1d;
+  color: #f1ede6;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.btn-sair-conta:hover {
+  background: #991b1b;
+  transform: scale(1.05);
+}
+
+.login-botoes {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 10px;
+  flex-wrap: nowrap !important;
+  margin-top: 10px;
+}
+
+.btn-login {
+  min-width: 110px;
+  height: 38px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-login-recuperar {
+  min-width: 150px;
+  height: 38px;
+  background: transparent;
+  color: #f1ede6;
+  border: 1px solid #9f854f;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-login-recuperar {
+  min-width: 150px;
+  height: 38px;
+  background: transparent;
+  color: #ef4444; /* vermelho */
+  border: 1px solid #ef4444;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+
+.btn-login-recuperar:hover {
+  background: #ef4444;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.login-erro {
+  min-height: 18px;
+  margin: 6px 0 10px;
+  color: #ef4444;
+  font-size: 13px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* ========================= OP DARK — LOGIN ========================= */
+.login-box {
+  color: var(--op-bone);
+}
+.login-box input {
+  background: #121212 !important;
+  color: #eee8de !important;
+  border: 1px solid rgba(183,160,106,.20) !important;
+}
+.btn-login {
+  background: linear-gradient(180deg, #9f8754, #675632) !important;
+  color: #090909 !important;
+  border: 1px solid rgba(214,191,133,.30) !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,.32) !important;
+}
+.btn-login-secundario {
+  background: linear-gradient(180deg, #242222, #121111) !important;
+  color: #ece6dc !important;
+}
+.btn-login-recuperar {
+  background: transparent !important;
+  color: #b7473f !important;
+  border-color: rgba(183,71,63,.70) !important;
+}
+.btn-login-recuperar:hover {
+  background: #7d2926 !important;
+  color: #fff !important;
+}

@@ -1,0 +1,234 @@
+/* ==========================================================================
+   FICHA ÍGNEA — TEMA OP DARK
+   Ajuste visual: carvão, preto, vinho escuro, osso e dourado envelhecido.
+   Estrutura, seletores, grids e comportamento original preservados.
+   ========================================================================== */
+
+:root {
+  --op-bg: #070707;
+  --op-bg-deep: #030303;
+  --op-surface: #111111;
+  --op-surface-2: #181717;
+  --op-surface-3: #211f1f;
+  --op-line: rgba(176, 154, 107, 0.18);
+  --op-line-strong: rgba(176, 154, 107, 0.34);
+  --op-gold: #b7a06a;
+  --op-gold-soft: #8e7b52;
+  --op-bone: #eee8de;
+  --op-muted: #918b83;
+  --op-red: #8f2d2d;
+  --op-red-bright: #b7473f;
+  --op-red-dark: #3a0c0c;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Arial;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  background: #090909;
+  color: #e9e4dc;
+  padding-bottom: 0;
+}
+
+h1 {
+  font-family: "Cinzel", serif;
+  text-align: center;
+}
+
+/* ================= HEADER ================= */
+.header-rpg {
+  position: sticky;
+  top: 20;
+  background: transparent !important;
+  padding: 50px 0 20px 0; /* aumentei aqui */
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ================= TÍTULO ================= */
+.header-rpg {
+  position: relative;
+  background: #090909;
+  padding: 30px 0 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.titulo-rpg {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  padding-top: 100px; /* cria espaço pra espada ficar em cima */
+  text-align: center;
+}
+
+.titulo-rpg span {
+  position: relative;
+  z-index: 10;
+  display: inline-block;
+
+  font-family: "Cinzel Decorative", serif;
+
+  font-weight: 700;
+
+  font-size: 38px;
+
+  letter-spacing: 0px;
+
+  color: #f1ede6;
+
+  text-shadow:
+    0 0 8px rgba(255,140,0,0.8),
+    0 0 18px rgba(255,80,0,0.7),
+    0 0 40px rgba(255,40,0,0.45),
+    0 2px 8px rgba(0,0,0,0.9);
+
+    -webkit-text-stroke: 0.2px rgba(255, 255, 255, 0.85);
+}
+
+@keyframes fogoTexto {
+  0% {
+    filter: brightness(1);
+    transform: translateY(0px);
+  }
+  50% {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+  }
+  100% {
+    filter: brightness(1);
+    transform: translateY(0px);
+  }
+}
+
+.titulo-rpg span {
+  animation: fogoTexto 2.5s ease-in-out infinite;
+}
+
+.espada-titulo {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+  filter:
+  drop-shadow(0 0 12px rgba(255,120,0,0.4));
+  left: 50%;
+
+  width: 500px;
+
+  top: -169px;
+
+  transform: translateX(-55%);
+
+  transform-origin: top center; /* 🔥 ISSO RESOLVE */
+}
+
+/* texto na frente */
+.header-rpg {
+  position: relative;
+  text-align: center;
+  padding-top: 40px; /* pode ajustar leve se quiser */
+  overflow: visible !important;
+}
+
+/* TEXTO */
+.titulo-rpg span {
+  background: linear-gradient(
+    to bottom,
+    #fff3c4 0%,
+    #ffcc70 20%,
+    #ff7a00 50%,
+    #ff3c00 80%,
+    #7a1a00 100%
+  );
+
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.espada-titulo {
+  filter: drop-shadow(0 0 8px orange);
+}
+
+@keyframes brilhoFogo {
+  0% {
+    filter: drop-shadow(0 0 5px rgba(255, 120, 0, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(255, 80, 0, 0.8));
+  }
+  100% {
+    filter: drop-shadow(0 0 5px rgba(255, 120, 0, 0.4));
+  }
+}
+
+.espada-titulo {
+  animation: brilhoFogo 2s infinite ease-in-out;
+}
+
+/* ================= CONTAINER ================= */
+.container {
+  max-width: 500px;
+  margin: auto;
+  padding: 10px;
+}
+
+/* ================= INPUTS ================= */
+input,
+textarea {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 8px;
+  border: none;
+  background: #211d1d;
+  color: #e9e4dc;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ========================= OP DARK — BASE ========================= */
+html, body {
+  background: var(--op-bg) !important;
+  color: var(--op-bone) !important;
+}
+body {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(143,45,45,.08), transparent 26%),
+    linear-gradient(180deg, #090909 0%, #050505 100%) !important;
+}
+input, textarea, select {
+  background: #171616 !important;
+  color: var(--op-bone) !important;
+  border: 1px solid var(--op-line) !important;
+  box-shadow: inset 0 1px 5px rgba(0,0,0,.34) !important;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--op-line-strong) !important;
+  outline: none !important;
+}
+.titulo-rpg span {
+  background: linear-gradient(to bottom, #f0e9da 0%, #cabd9f 24%, #a58a57 52%, #84402f 78%, #41100d 100%) !important;
+  -webkit-background-clip: text !important;
+  color: transparent !important;
+  text-shadow: 0 0 10px rgba(143,45,45,.28), 0 2px 8px rgba(0,0,0,.95) !important;
+}
+.espada-titulo {
+  filter: grayscale(.35) brightness(.72) drop-shadow(0 0 12px rgba(143,45,45,.32)) !important;
+}

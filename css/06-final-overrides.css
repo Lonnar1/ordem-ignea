@@ -1,0 +1,3623 @@
+/* ==========================================================================
+   FICHA ÍGNEA — TEMA OP DARK
+   Ajuste visual: carvão, preto, vinho escuro, osso e dourado envelhecido.
+   Estrutura, seletores, grids e comportamento original preservados.
+   ========================================================================== */
+
+:root {
+  --op-bg: #070707;
+  --op-bg-deep: #030303;
+  --op-surface: #111111;
+  --op-surface-2: #181717;
+  --op-surface-3: #211f1f;
+  --op-line: rgba(176, 154, 107, 0.18);
+  --op-line-strong: rgba(176, 154, 107, 0.34);
+  --op-gold: #b7a06a;
+  --op-gold-soft: #8e7b52;
+  --op-bone: #eee8de;
+  --op-muted: #918b83;
+  --op-red: #8f2d2d;
+  --op-red-bright: #b7473f;
+  --op-red-dark: #3a0c0c;
+}
+
+/* ========================================================================== */
+/* ========================================================================== */
+/*  ORGANIZAÇÃO FINAL — FICHA ÍGNEA / GRIMÓRIO ÍGNEO                           */
+/*  Cola este arquivo como style.css.                                           */
+/*  Esta seção fica no final para sobrescrever duplicatas antigas sem quebrar.  */
+/* ========================================================================== */
+/* ========================================================================== */
+
+/* ========================= 00. VARIÁVEIS GERAIS ========================= */
+:root {
+  --ignea-bg: #090909;
+  --ignea-bg-deep: #050505;
+  --ignea-card: #151313;
+  --ignea-card-soft: #211d1d;
+  --ignea-gold: #b9a36f;
+  --ignea-gold-soft: #a99b82;
+  --ignea-text: #f1ede6;
+
+  --grim-bg: #070606;
+  --grim-bg-2: #120d0d;
+  --grim-panel: rgba(28, 22, 21, 0.88);
+  --grim-panel-2: rgba(12, 10, 10, 0.96);
+  --grim-red: #b83a2f;
+  --grim-red-bright: #d64a3b;
+  --grim-red-dark: #4b0d0b;
+  --grim-gold: #b39a65;
+  --grim-muted: #a8937d;
+  --grim-text: #e8e2d8;
+  --grim-line: rgba(185, 58, 47, 0.24);
+}
+
+/* ========================= 01. BASE / CAMADAS ========================= */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--ignea-bg);
+  color: var(--ignea-text);
+  padding-bottom: 0;
+}
+
+.container {
+  max-width: 500px;
+  margin: auto;
+  padding: 10px;
+}
+
+.header-rpg,
+.container,
+#loginBox,
+#tela-modo,
+#masterIgnea,
+#tela-inicial,
+#ficha {
+  position: relative;
+  z-index: 1;
+}
+
+/* ========================= 02. FUNDO DA FICHA / FOLHAS ========================= */
+.folhas-bg {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+
+.folhas-bg::before,
+.folhas-bg::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: -600px !important;
+  background-image: url("../img/folhas-bg.png") !important;
+  background-repeat: repeat !important;
+  pointer-events: none !important;
+  will-change: transform !important;
+}
+
+.folhas-bg::before {
+  background-size: 520px auto;
+  opacity: 0.06 !important;
+
+  animation: folhas1 65s linear infinite;
+}
+
+.folhas-bg::after {
+  background-size: 760px auto;
+
+  opacity: 0.04 !important;
+  animation: folhas2 140s linear infinite;
+}
+
+@keyframes folhasFicha1 {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-520px, 260px, 0); }
+}
+
+@keyframes folhasFicha2 {
+  from { transform: translate3d(0, 300px, 0); }
+  to   { transform: translate3d(-760px, 620px, 0); }
+}
+
+/* ========================= 03. TOPO / LOGO FICHA ÍGNEA ========================= */
+.header-rpg {
+  position: relative;
+  background: transparent !important;
+  padding: 30px 0 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: visible !important;
+}
+
+.titulo-rpg {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  padding-top: 100px;
+  text-align: center;
+}
+
+.espada-titulo {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+  left: 50%;
+  width: 500px;
+  top: -169px;
+  transform: translateX(-55%);
+  transform-origin: top center;
+  filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.65));
+  animation: brilhoFogo 2s infinite ease-in-out;
+}
+
+.titulo-rpg span {
+  position: relative;
+  z-index: 10;
+  display: inline-block;
+  font-family: "Cinzel Decorative", serif;
+  font-weight: 700;
+  font-size: 38px;
+  letter-spacing: 0;
+  background: linear-gradient(
+    to bottom,
+    #fff3c4 0%,
+    #ffcc70 20%,
+    #ff7a00 50%,
+    #ff3c00 80%,
+    #7a1a00 100%
+  );
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 0.2px rgba(255, 255, 255, 0.85);
+  text-shadow:
+    0 0 8px rgba(255, 140, 0, 0.8),
+    0 0 18px rgba(255, 80, 0, 0.7),
+    0 0 40px rgba(255, 40, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.9);
+  animation: fogoTexto 2.5s ease-in-out infinite;
+}
+
+/* ========================= 04. TELA INICIAL / PERSONAGENS ========================= */
+#tela-inicial h2,
+.titulo-secao {
+  font-family: "Cinzel", serif;
+  text-align: center;
+  color: var(--ignea-gold);
+  letter-spacing: 2px;
+  position: relative;
+  text-transform: none;
+}
+
+.titulo-secao::before,
+.titulo-secao::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(200, 169, 107, 0.5), transparent);
+}
+
+.titulo-secao::before { left: 0; }
+.titulo-secao::after  { right: 0; }
+
+.grid-personagens {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.card,
+.add {
+  background-color: rgba(19, 12, 9, 0.76);
+  border: 1px solid rgba(216, 181, 106, 0.14);
+  border-radius: 16px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.btn-acao-ficha,
+.voltar,
+.voltar,
+.btn-voltar-modos {
+  background: linear-gradient(180deg, rgba(56, 52, 47, 0.95), rgba(34, 31, 28, 0.95));
+  color: var(--ignea-text);
+  border: 1px solid rgba(216, 181, 106, 0.25);
+  border-radius: 12px;
+}
+
+#tela-inicial .btn-voltar-modos {
+  background: transparent !important;
+  color: #b9a36f !important;
+  border: 1px solid #b9a36f !important;
+  font-weight: bold !important;
+  font-size: 13px !important;
+  padding: 6px 12px !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+#ficha .voltar {
+  background: transparent !important;
+  color: #b9a36f !important;
+  border: 1px solid #b9a36f !important;
+  font-weight: bold !important;
+  font-size: 13px !important;
+  padding: 8px 16px !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+/* ========================= 05. FICHA DO PERSONAGEM ========================= */
+.personagem-topo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.personagem-campos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.personagem-campos input,
+.personagem-campos textarea,
+#ficha input,
+#ficha textarea,
+#ficha select {
+  background: rgba(74, 59, 49, 0.92);
+  color: var(--ignea-text);
+  border: 1px solid rgba(216, 181, 106, 0.13);
+  border-radius: 10px;
+}
+
+.personagem-imagem-box {
+  width: 40%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#preview {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--ignea-card-soft);
+  border: 1px solid rgba(216, 181, 106, 0.35);
+}
+
+/* ========================= 06. ESCOLHA DE MODO ========================= */
+.tela-modo-img {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.area-click {
+  position: absolute;
+  top: 0;
+  bottom: 90px;
+  width: 50%;
+  z-index: 2;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.area-jornada { left: 0; }
+.area-grimorio { right: 0; }
+
+.btn-sair-img {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  pointer-events: auto;
+  background: rgba(60, 18, 14, 0.75);
+  color: var(--ignea-text);
+  border: 1px solid rgba(216, 181, 106, 0.25);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-weight: bold;
+}
+
+/* ========================================================================== */
+/* ========================= 07. GRIMÓRIO — BASE ========================= */
+/* ========================================================================== */
+#masterIgnea {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  padding: 14px 12px 96px !important;
+  overflow-x: hidden;
+  overflow-y: visible;
+  color: var(--grim-text) !important;
+  background:
+    radial-gradient(circle at top right, rgba(130, 25, 20, 0.14), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(120, 20, 15, 0.10), transparent 34%),
+    linear-gradient(180deg, var(--grim-bg) 0%, var(--grim-bg-2) 52%, #050505 100%) !important;
+}
+
+#masterIgnea::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(170, 40, 30, 0.08), transparent 24%),
+    radial-gradient(circle at 80% 70%, rgba(170, 40, 30, 0.06), transparent 28%);
+}
+
+#masterIgnea > *:not(.simbolos-bg):not(.folhas-bg) {
+  position: relative;
+  z-index: 2;
+}
+
+#masterIgnea .master-header {
+  display: none !important;
+}
+
+#masterIgnea .master-aba,
+#masterIgnea .master-page {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* ========================= 08. GRIMÓRIO — FUNDO DE SÍMBOLOS ========================= */
+.simbolos-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.simbolos-bg::before {
+  content: "";
+  position: absolute;
+  inset: -500px;
+  background-image: url("../img/simbolos-bg.png");
+  background-repeat: repeat;
+  background-size: 430px auto;
+  opacity: 0.22;
+  will-change: transform;
+  animation: simbolosGrimorioFinal 45s linear infinite;
+}
+
+@keyframes simbolosGrimorioFinal {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-430px, 320px, 0); }
+}
+
+/* ========================= 09. GRIMÓRIO — LOGO / TÍTULO ========================= */
+.grimorio-header {
+  text-align: center;
+  margin: 10px 0 20px;
+}
+
+.grimorio-logo-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.logo-grimorio-nova {
+  width: 200px;
+  height: auto;
+  margin: 0 auto 8px;
+  filter:
+    drop-shadow(0 0 14px rgba(180, 0, 0, 0.35))
+    drop-shadow(0 0 28px rgba(0, 0, 0, 0.8));
+}
+
+.grimorio-texto-logo {
+  text-transform: uppercase;
+  line-height: 0.9;
+}
+
+.grimorio-branco,
+.grimorio-vermelho {
+  font-family: "Cinzel Decorative", serif;
+}
+
+.grimorio-branco {
+  display: block;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #f4efe3;
+  text-shadow: 0 2px 4px #000;
+}
+
+.igneo-linha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 4px;
+}
+
+.grimorio-vermelho {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  padding-left: 5px;
+  color: #c21f1f;
+  text-shadow:
+    0 2px 4px #000,
+    0 0 10px rgba(180, 0, 0, 0.5);
+}
+
+.linha-ornamento {
+  width: 58px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #b91c1c, #b91c1c, transparent);
+  position: relative;
+}
+
+.linha-ornamento::after {
+  content: "◆";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.7);
+  color: #b91c1c;
+  font-size: 10px;
+}
+
+.grimorio-linha {
+  width: 210px;
+  height: 1px;
+  margin: 22px auto 0;
+  background: linear-gradient(to right, transparent, rgba(200, 80, 30, 0.5), transparent);
+}
+
+.master-desc {
+  color: var(--grim-muted) !important;
+  text-align: center;
+}
+
+/* ========================= 10. GRIMÓRIO — NAV INFERIOR ========================= */
+#masterIgnea .master-tabs {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(500px, 100%);
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background:
+    linear-gradient(180deg, rgba(28, 18, 16, 0.96), rgba(10, 7, 7, 0.98));
+  border-top: 1px solid rgba(180, 40, 30, 0.35);
+  box-shadow:
+    0 -8px 22px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  z-index: 9999;
+}
+
+#masterIgnea .master-tab-btn {
+  flex: 1;
+  height: 48px;
+  border: 1px solid rgba(160, 60, 45, 0.22) !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(180deg, rgba(35, 24, 21, 0.9), rgba(15, 10, 9, 0.95)) !important;
+  color: #bfa98a !important;
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  transition: 0.22s ease;
+}
+
+#masterIgnea .master-tab-btn.active {
+  color: #fff0d2 !important;
+  background:
+    radial-gradient(circle at top, rgba(220, 50, 35, 0.45), transparent 60%),
+    linear-gradient(180deg, #8f1d17, #3a0b09) !important;
+  border-color: rgba(255, 110, 80, 0.45) !important;
+  box-shadow:
+    0 0 14px rgba(180, 30, 20, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ========================= 11. GRIMÓRIO — FORMULÁRIOS / PAINÉIS ========================= */
+#masterIgnea .master-form-box,
+#masterIgnea .combate-card,
+#masterIgnea .monstro-card,
+#masterIgnea .sheet-bloco,
+#masterIgnea .modal-bloco,
+#masterIgnea .master-modal-content {
+  position: relative;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at top, rgba(120, 30, 25, 0.16), transparent 45%),
+    linear-gradient(180deg, rgba(35, 25, 23, 0.92), rgba(14, 10, 9, 0.96)) !important;
+  border: 1px solid rgba(160, 55, 45, 0.26) !important;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  overflow: hidden;
+}
+
+#masterIgnea .master-form-box {
+  padding: 18px !important;
+  margin-bottom: 90px !important;
+}
+
+#masterIgnea .master-form-box h3,
+#masterIgnea #tituloFormMonstro,
+#masterIgnea .titulo-secao {
+  margin: 4px 0 18px;
+  font-family: "Cinzel Decorative", serif !important;
+  font-size: clamp(27px, 10vw, 46px) !important;
+  letter-spacing: 2px;
+  color: var(--grim-red-bright) !important;
+  text-align: center;
+  text-shadow:
+    0 0 10px rgba(190, 35, 25, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+#masterIgnea .master-form-box h4,
+#masterIgnea .subtitulo-secao {
+  font-family: "Cinzel", serif !important;
+  color: var(--grim-gold) !important;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+#masterIgnea input,
+#masterIgnea textarea,
+#masterIgnea select,
+#masterIgnea .compendio-controles input,
+#masterIgnea .compendio-controles select {
+  background:
+    linear-gradient(180deg, rgba(16, 12, 11, 0.96), rgba(8, 6, 6, 0.98)) !important;
+  border: 1px solid rgba(140, 45, 35, 0.35) !important;
+  border-radius: 14px !important;
+  color: var(--grim-text) !important;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.03) !important;
+}
+
+#masterIgnea input::placeholder,
+#masterIgnea textarea::placeholder {
+  color: rgba(210, 190, 160, 0.48) !important;
+}
+
+/* ========================= 12. GRIMÓRIO — STATUS / COMBATE ========================= */
+#masterIgnea .status-monstro-box,
+#masterIgnea .combate-status-box,
+#masterIgnea .status-box {
+  border-radius: 20px !important;
+  background:
+    radial-gradient(circle at top, rgba(190, 60, 45, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(38, 30, 27, 0.95), rgba(18, 13, 12, 0.98)) !important;
+  border: 1px solid rgba(170, 65, 50, 0.28) !important;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+#masterIgnea .status-monstro-box span,
+#masterIgnea .combate-status-box span,
+#masterIgnea .status-box span {
+  font-family: "Cinzel", serif;
+  color: var(--grim-gold) !important;
+  letter-spacing: 1px;
+}
+
+#masterIgnea .status-monstro-box input {
+  background: rgba(5, 4, 4, 0.85) !important;
+  border: 1px solid rgba(170, 55, 45, 0.45) !important;
+  border-radius: 12px !important;
+}
+
+#masterIgnea .btn-hp-dano,
+#masterIgnea .btn-master-perigo {
+  background:
+    radial-gradient(circle at top, rgba(255, 80, 60, 0.18), transparent 60%),
+    linear-gradient(180deg, #7c1f19, #2f0807) !important;
+  color: #fff0e5 !important;
+}
+
+#masterIgnea .btn-hp-cura,
+#masterIgnea .btn-master-secundario {
+  background:
+    linear-gradient(180deg, rgba(35, 24, 21, 0.95), rgba(15, 10, 9, 0.98)) !important;
+  color: var(--grim-gold) !important;
+}
+
+#masterIgnea .btn-master-principal,
+#masterIgnea .master-upload,
+#masterIgnea .btn-aplicar-dano,
+#masterIgnea .btn-aplicar-cura {
+  background:
+    radial-gradient(circle at top, rgba(255, 115, 85, 0.22), transparent 58%),
+    linear-gradient(180deg, #9e2f24, #4a0d0b) !important;
+  color: #fff2e8 !important;
+}
+
+/* ========================= 13. GRIMÓRIO — COMPÊNDIO / CARDS ========================= */
+#masterIgnea .compendio-grid {
+  gap: 14px !important;
+}
+
+#masterIgnea .compendio-card,
+#masterIgnea .monstro-card {
+  background-color: #0b0a0a !important;
+  background-size: cover !important;
+  background-position: center 10% !important;
+  background-repeat: no-repeat !important;
+  border: 1px solid rgba(180, 55, 42, 0.22) !important;
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.42) !important;
+}
+
+#masterIgnea .compendio-card::before,
+#masterIgnea .monstro-card::before {
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(90, 18, 14, 0.28), transparent) !important;
+}
+
+#masterIgnea .compendio-info strong,
+#masterIgnea .monstro-nome {
+  color: #f5e4d5 !important;
+  font-family: "Cinzel", serif;
+}
+
+#masterIgnea .compendio-info span,
+#masterIgnea .monstro-meta {
+  color: var(--grim-red-bright) !important;
+}
+
+/* ========================= 14. MOBILE ========================= */
+@media (max-width: 420px) {
+  .titulo-rpg span { font-size: 34px; }
+  .espada-titulo { width: 460px; }
+  .logo-grimorio-nova { width: 185px; }
+  .grimorio-branco { font-size: 34px; }
+  .grimorio-vermelho { font-size: 26px; }
+  .linha-ornamento { width: 48px; }
+
+  #masterIgnea .master-tabs {
+    height: 70px;
+    padding: 9px 10px;
+    gap: 8px;
+  }
+
+  #masterIgnea .master-tab-btn {
+    height: 47px;
+    font-size: 12px;
+    border-radius: 14px !important;
+  }
+}
+
+#masterIgnea .master-craft-toggle,
+#masterIgnea .master-form-box {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+#masterIgnea .form-master-limpo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#masterIgnea .secao-toggle {
+  margin: 22px 0;
+}
+
+#masterIgnea .titulo-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  cursor: pointer;
+  font-family: "Cinzel", serif !important;
+  font-size: 22px !important;
+  color: #d8c8aa !important;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+#masterIgnea .titulo-toggle::before,
+#masterIgnea .titulo-toggle::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(216, 200, 170, 0.32),
+    transparent
+  );
+}
+
+#masterIgnea .titulo-toggle .setinha {
+  color: #7a2323 !important;
+  font-size: 16px;
+}
+
+#masterIgnea .conteudo-toggle {
+  margin-top: 14px;
+}
+
+/* popup no contexto do grimório — tema escuro vermelho */
+#masterIgnea ~ #popup .popup-box,
+body:has(#masterIgnea[style*="block"]) .popup-box {
+  background: linear-gradient(180deg, #1a1210, #0d0909);
+  border: 1px solid rgba(180, 45, 35, 0.45);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.03);
+  border-radius: 20px;
+  color: #e8e2d8;
+}
+
+body:has(#masterIgnea[style*="block"]) .popup-box h2,
+body:has(#masterIgnea[style*="block"]) .popup-titulo {
+  font-family: "Cinzel", serif;
+  color: #d8c8aa;
+  border-bottom: 1px solid rgba(180, 45, 35, 0.35);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+body:has(#masterIgnea[style*="block"]) .popup-fechar {
+  color: #8f2222;
+}
+
+body:has(#masterIgnea[style*="block"]) .popup-box strong {
+  color: #c8a870;
+}
+
+body:has(#masterIgnea[style*="block"]) .popup-box p {
+  color: #b9a98c;
+  line-height: 1.6;
+}
+
+/* ─────────────────────────────────────────────
+   LORE — timeline e eventos
+───────────────────────────────────────────── */
+.lore-header { text-align:center; margin: 16px 0 22px; }
+.lore-titulo {
+  font-family: "Cinzel", serif;
+  font-size: 28px;
+  color: #d8c8aa;
+  margin: 0 0 4px;
+}
+
+.lore-form-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0 16px;
+}
+
+.lista-lore-sempre-visivel { margin-top: 8px; }
+
+/* timeline sessões */
+.lore-timeline-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(216,200,170,0.1);
+  cursor: pointer;
+}
+.lore-timeline-item:last-child { border-bottom: none; }
+
+.lore-timeline-num {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.lore-timeline-corpo { flex: 1; min-width: 0; }
+
+.lore-timeline-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.lore-timeline-topo strong {
+  font-size: 15px;
+  color: #e8e2d8;
+}
+
+.lore-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 9px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* eventos */
+.lore-evento-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(216,200,170,0.1);
+  cursor: pointer;
+}
+.lore-evento-item:last-child { border-bottom: none; }
+
+.lore-evento-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+  width: fit-content;
+  font-size: 12px;
+}
+
+/* ─────────────────────────────────────────────
+   MUNDO — NPC cards e missões
+───────────────────────────────────────────── */
+.npc-card-mundo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(20,14,12,0.7);
+  border: 1px solid rgba(216,200,170,0.1);
+  margin-bottom: 10px;
+}
+
+.npc-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.npc-card-info { flex: 1; min-width: 0; }
+
+.npc-card-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.npc-card-topo strong { color: #e8e2d8; font-size: 15px; }
+.npc-card-info small  { color: #8a7060; font-size: 12px; }
+
+.npc-card-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.npc-card-acoes button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 2px !important;
+}
+
+/* missões */
+.missao-card-mundo {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(20,14,12,0.7);
+  border: 1px solid rgba(216,200,170,0.1);
+  margin-bottom: 10px;
+}
+
+.missao-card-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.missao-card-topo strong { color: #e8e2d8; font-size: 15px; }
+
+.missao-progresso { margin-top: 8px; }
+
+.missao-barra-bg {
+  width: 100%;
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.missao-barra-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.missao-progresso small { color: #8a7060; font-size: 11px; }
+
+/* combate — barra de HP */
+.combate-hp-barra {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0 4px;
+}
+
+.combate-hp-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* ─────────────────────────────────────────────
+   CRIAR — seletor de tipo em grid
+───────────────────────────────────────────── */
+.criar-tipo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+/* ===== ABAS CRIAR ===== */
+.criar-tipo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+#masterIgnea .criar-tipo-btn {
+  flex: 1 1 calc(33% - 6px);
+  max-width: calc(33% - 6px);
+  background: transparent !important;
+  border: 1px solid rgba(196, 169, 91, 0.3) !important;
+  border-radius: 11px !important;
+  color: #000000 !important;
+  font-size: 11px !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  font-family: 'Cinzel', serif !important;
+  font-weight: 400 !important;
+  transition: 0.2s !important;
+  box-shadow: 0 1px 1px rgba(123, 30, 40, 0.22) !important;
+}
+
+#masterIgnea .criar-tipo-btn,
+#masterIgnea .criar-tipo-btn span {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 1.5px !important;
+}
+
+#masterIgnea .criar-tipo-btn span {
+  color: #554437 !important;
+  font-size: 11px !important;
+}
+
+#masterIgnea .criar-tipo-btn.active {
+  background: #7B1E28 !important;
+  border-color: #7B1E28 !important;
+  color: #f1ede6 !important;
+  box-shadow: none !important;
+}
+
+#masterIgnea .criar-tipo-btn.active span {
+  color: #f1ede6 !important;
+}
+
+.criar-form-titulo {
+  font-family: "Cinzel", serif;
+  font-size: 20px;
+  color: #d8c8aa;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(216,200,170,0.15);
+  text-align: center;
+}
+
+.criar-campos-duplos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.criar-hp-ca {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.criar-hp-ca label {
+  display: block;
+  font-size: 11px;
+  color: #8a7060;
+  margin-bottom: 4px;
+}
+
+.npc-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.npc-toggle-seta {
+  margin-left: auto;
+  color: #8f2222;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.npc-card-detalhes {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(216,200,170,0.1);
+}
+
+.npc-card-mundo {
+  background: rgba(20,14,12,0.7);
+  border: 1px solid rgba(216,200,170,0.1);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.npc-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.npc-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.npc-card-info { flex: 1; min-width: 0; }
+
+.npc-card-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.npc-card-topo strong { color: #e8e2d8; font-size: 15px; }
+.npc-card-info small  { color: #8a7060; font-size: 12px; }
+
+.npc-toggle-seta {
+  margin-left: auto;
+  color: #8f2222;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.npc-card-detalhes {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(216,200,170,0.1);
+}
+
+#masterIgnea .criar-dif-btn.ativo.dif-facil    { background: rgba(60,140,40,0.85) !important;  color: #fff !important; border-color: transparent !important; }
+#masterIgnea .criar-dif-btn.ativo.dif-medio    { background: rgba(180,140,20,0.85) !important; color: #fff !important; border-color: transparent !important; }
+#masterIgnea .criar-dif-btn.ativo.dif-dificil  { background: rgba(180,80,20,0.85) !important;  color: #fff !important; border-color: transparent !important; }
+#masterIgnea .criar-dif-btn.ativo.dif-lendario { background: rgba(139,26,26,0.95) !important;  color: #f5ede0 !important; border-color: transparent !important; }
+
+#masterIgnea .btn-raridade.ativo.rar-normal   { background: rgba(120,120,120,0.6) !important; color: #fff !important; }
+#masterIgnea .btn-raridade.ativo.rar-incomum  { background: rgba(60,140,40,0.8) !important;   color: #fff !important; }
+#masterIgnea .btn-raridade.ativo.rar-raro     { background: rgba(30,80,180,0.8) !important;   color: #fff !important; }
+#masterIgnea .btn-raridade.ativo.rar-reliquia { background: rgba(160,80,10,0.9) !important;   color: #ffe8c0 !important; }
+
+#masterIgnea .criar-hp-ca {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+#masterIgnea .criar-hp-ca > div {
+  background: rgba(180,55,42,0.06) !important;
+  border: 1px solid rgba(180,55,42,0.22) !important;
+  border-radius: 12px !important;
+  padding: 8px 6px !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+#masterIgnea .criar-hp-ca label {
+  display: block !important;
+  font-size: 10px !important;
+  color: rgba(240,223,203,0.5) !important;
+  letter-spacing: 1px !important;
+  margin-bottom: 4px !important;
+  font-weight: 700 !important;
+}
+
+#masterIgnea .status-grid-master {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+}
+
+#masterIgnea .status-attr {
+  background: rgba(180,55,42,0.06) !important;
+  border: 1px solid rgba(180,55,42,0.22) !important;
+  border-radius: 12px !important;
+  padding: 8px 4px !important;
+  text-align: center !important;
+}
+
+#masterIgnea .status-attr label {
+  color: rgba(240,223,203,0.5) !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+}
+
+#masterIgnea .criar-hp-ca label,
+#masterIgnea .status-attr label {
+  -webkit-text-fill-color: #7a5040 !important;
+  color: #7a5040 !important;
+  opacity: 1 !important;
+  display: block !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  -webkit-text-fill-color: #8a7060 !important;
+  color: #8a7060 !important;
+}
+
+#masterIgnea .status-attr span {
+  color: #8a7060 !important;
+  -webkit-text-fill-color: #8a7060 !important;
+}
+
+#masterIgnea .criar-hp-ca > div {
+  background: rgba(240,230,210,0.15) !important;
+}
+
+#masterIgnea .criar-hp-ca > div,
+#masterIgnea .status-attr {
+  background: rgba(240,230,210,0.15) !important;
+}
+
+#masterIgnea .criar-hp-ca > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 6px !important;
+}
+
+#masterIgnea .criar-hp-ca > div input {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-align: center !important;
+  width: 100% !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  -webkit-text-fill-color: #3a1a0a !important;
+}
+
+#masterIgnea .criar-hp-ca > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 6px !important;
+}
+
+#masterIgnea .criar-hp-ca > div input,
+#masterIgnea .status-attr input {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-align: center !important;
+  width: 100% !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  -webkit-text-fill-color: #3a1a0a !important;
+}
+
+#masterIgnea .criar-hp-ca > div,
+#masterIgnea .status-attr {
+  padding: 4px 1px !important;
+}
+
+#masterIgnea .criar-hp-ca > div,
+#masterIgnea .status-attr {
+  border-color: rgba(196,169,91,0.3) !important;
+}
+
+.criar-tipo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.criar-form-panel {
+  animation: fadeEntrar 0.50s ease;
+}
+
+@keyframes fadeEntrar {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== COMBATE CLEAN ===== */
+.combate-botoes {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+.combate-botoes-linha {
+  display: flex !important;
+  gap: 8px !important;
+}
+
+#masterIgnea .btn-hp-dano,
+#masterIgnea .btn-hp-cura {
+  flex: 1 !important;
+  padding: 8px !important;
+  font-size: 12px !important;
+  border-radius: 10px !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+/* blocos lore/habilidades */
+#masterIgnea .sheet-bloco strong {
+  display: block !important;
+  text-align: center !important;
+  font-family: 'Cinzel', serif !important;
+  color: #3a1a0a !important;
+  font-size: 12px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+}
+
+.combate-acoes {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  margin-top: 8px !important;
+}
+
+.combate-manual {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+#masterIgnea .titulo-secao::before,
+#masterIgnea .titulo-secao::after {
+  display: none !important;
+}
+
+/* ===== LOG DE COMBATE ===== */
+.combate-log {
+  margin: 12px 0 10px;
+  border-top: 1px solid rgba(196, 169, 91, 0.18);
+  padding-top: 10px;
+}
+
+.combate-log-titulo {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #7A6A50;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.combate-log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.combate-log-dano {
+  background: rgba(123, 30, 40, 0.12);
+  color: #7B1E28;
+}
+
+.combate-log-cura {
+  background: rgba(40, 100, 40, 0.12);
+  color: #2d6e2d;
+}
+
+.combate-log-hora {
+  font-size: 10px;
+  opacity: 0.6;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ===== PAINEL INICIATIVA ===== */
+.combate-aba-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.btn-iniciativa-abrir {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 10px !important;
+  font-size: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.iniciativa-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 8000;
+}
+
+.iniciativa-painel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 80%;
+  max-width: 300px;
+  z-index: 9999;
+  background: linear-gradient(180deg, #1a1210, #0d0909);
+  border-left: 1px solid rgba(180, 55, 42, 0.35);
+  box-shadow: -8px 0 24px rgba(0,0,0,0.6);
+  flex-direction: column;
+  padding: 20px 16px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+
+.iniciativa-painel.aberto {
+  transform: translateX(0);
+}
+
+.iniciativa-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9998;
+  backdrop-filter: blur(2px);
+}
+
+.iniciativa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.iniciativa-titulo {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  color: #d8c8aa;
+  letter-spacing: 2px;
+}
+
+.iniciativa-fechar {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #8f2222 !important;
+  font-size: 18px !important;
+  padding: 4px 8px !important;
+}
+
+.iniciativa-add-jogador {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.iniciativa-add-jogador input {
+  flex: 1;
+  font-size: 13px !important;
+}
+
+.iniciativa-add-jogador button {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  font-size: 20px !important;
+  padding: 0 !important;
+}
+
+.iniciativa-separador {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #7A6A50;
+  text-align: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(196,169,91,0.2);
+  padding-bottom: 8px;
+}
+
+.iniciativa-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: rgba(20,14,12,0.7);
+  border: 1px solid rgba(196,169,91,0.1);
+  transition: 0.2s;
+}
+
+.iniciativa-item.ativo {
+  background: rgba(123,30,40,0.25) !important;
+  border-color: rgba(123,30,40,0.5) !important;
+}
+
+.iniciativa-nome {
+  flex: 1;
+  font-size: 13px;
+  color: #e8e2d8;
+  font-family: 'Cinzel', serif;
+}
+
+.iniciativa-input {
+  width: 52px !important;
+  text-align: center !important;
+  font-size: 15px !important;
+  font-weight: bold !important;
+  padding: 4px !important;
+  margin: 0 !important;
+}
+
+.iniciativa-remover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #8f2222 !important;
+  font-size: 14px !important;
+  padding: 2px 4px !important;
+}
+
+.combate-aba-topo {
+  align-items: flex-start !important;
+}
+
+.combate-aba-topo > div {
+  flex: 1;
+}
+
+.master-header-mini {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 4px 0 !important;
+}
+
+#abaMaster-combateMaster .titulo-secao {
+  text-align: center !important;
+  flex: 1 !important;
+}
+
+#abaMaster-combateMaster .master-desc {
+  text-align: center !important;
+}
+
+#abaMaster-combateMaster > div:first-child {
+  position: relative !important;
+}
+
+#abaMaster-combateMaster > div:first-child > div {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  text-align: center !important;
+  pointer-events: none !important;
+}
+
+#abaMaster-combateMaster .btn-iniciativa-abrir {
+  position: relative !important;
+  z-index: 2 !important;
+  margin-left: auto !important;
+}
+
+#abaMaster-combateMaster > div:first-child {
+  min-height: 70px !important;
+}
+
+#abaMaster-combateMaster .btn-iniciativa-abrir {
+  position: relative !important;
+  z-index: 2 !important;
+  margin-left: auto !important;
+  margin-top: -20px !important; /* ajusta esse valor */
+}
+
+
+#abaMaster-criar .master-upload {
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 8px !important;
+  box-sizing: border-box !important;
+}
+
+#abaMaster-criar .btn-master-principal {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#tmBtnEntrar {
+  border-radius: 999px !important;
+  -webkit-border-radius: 999px !important;
+  width: 60% !important;
+  max-width: 380px !important;
+  font-family: 'Cinzel', serif !important;
+  padding: 18px 32px !important;
+  display: block !important;
+  margin: 0 auto 28px auto !important;
+  letter-spacing: 0.18em !important;
+}
+
+/* ===== COMBATE — CORREÇÕES DE LAYOUT E COR ===== */
+
+/* Status grid no card de combate */
+#masterIgnea .combate-detalhes .sheet-status-grid {
+  margin: 10px 0 !important;
+}
+
+#masterIgnea .combate-detalhes .sheet-status-grid div {
+  background: #E8E0CC !important;
+  border: 1px solid rgba(196, 169, 91, 0.35) !important;
+  border-radius: 10px !important;
+  padding: 8px 4px !important;
+  text-align: center !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  color: #2A1A10 !important;
+  line-height: 1.3 !important;
+}
+
+#masterIgnea .combate-detalhes .sheet-status-grid div small {
+  display: block !important;
+  font-size: 11px !important;
+  color: #7B3A20 !important;
+  font-weight: 700 !important;
+}
+
+/* Blocos lore/habilidades/ataques dentro do combate */
+#masterIgnea .combate-detalhes .sheet-bloco {
+  background: #E8E0CC !important;
+  border: 1px solid rgba(196, 169, 91, 0.35) !important;
+  border-radius: 14px !important;
+  padding: 10px 14px !important;
+  margin: 8px 0 !important;
+  overflow: hidden !important;
+}
+
+#masterIgnea .combate-detalhes .sheet-bloco strong {
+  color: #4A3728 !important;
+  font-size: 11px !important;
+  letter-spacing: 1.5px !important;
+  margin-bottom: 8px !important;
+}
+
+#masterIgnea .combate-detalhes .sheet-bloco p {
+  color: #2A1A10 !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  margin: 0 !important;
+}
+
+#masterIgnea .combate-topo strong {
+  display: block !important;
+  font-family: 'Cinzel', serif !important;
+  font-size: 13px !important;
+  color: #662b20 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+#masterIgnea .combate-topo small {
+  display: block !important;
+  font-size: 11px !important;
+  color: var(--grim-muted) !important;
+  margin-top: 2px !important;
+}
+
+/* HP inline */
+#masterIgnea .combate-hp {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  color: #c9503a !important;
+  flex-wrap: wrap !important;
+  margin-top: 4px !important;
+}
+
+/* Barra HP */
+#masterIgnea .combate-hp-barra {
+  width: 100% !important;
+  height: 5px !important;
+  background: rgba(255,255,255,0.08) !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  display: block !important;
+  margin: 4px 0 0 !important;
+}
+
+/* Botão minimizar */
+#masterIgnea .btn-minimizar-combate {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13px !important;
+  padding: 0 !important;
+}
+
+/* Inputs manuais */
+#masterIgnea .combate-manual input {
+  text-align: center !important;
+  font-size: 14px !important;
+}
+
+/* Remove ::before que sobrepõe conteúdo */
+#masterIgnea .combate-card::before {
+  display: none !important;
+}
+
+.popup-form .popup-label {
+  padding-top: 14px !important;
+  border-top: 1px solid rgba(200, 169, 107, 0.18) !important;
+  display: block !important;
+  margin-top: 4px !important;
+}
+
+.popup-form .popup-label:first-child {
+  border-top: none !important;
+  padding-top: 0 !important;
+}
+
+#popup .popup-form input,
+#popup .popup-form textarea,
+#popup .popup-form select {
+  background: #5a4b3f !important;
+  border: none !important;
+}
+
+/* ===== TELA PLANOS ===== */
+.planos-page {
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 48px 18px 80px;
+  position: relative;
+}
+
+.planos-voltar {
+  background: transparent !important;
+  color: #b9a36f !important;
+  border: 1px solid #b9a36f !important;
+  border-radius: 12px !important;
+  padding: 8px 18px !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  margin-bottom: 28px !important;
+  display: inline-block !important;
+  box-shadow: none !important;
+}
+
+.planos-header { text-align: center; margin-bottom: 32px; }
+
+.planos-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #FF6B1A;
+  margin-bottom: 12px;
+}
+
+.planos-titulo {
+  font-family: 'Cinzel', serif !important;
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  color: #F5ECD7 !important;
+  margin-bottom: 8px !important;
+  text-shadow: 0 0 24px rgba(255,100,26,0.28) !important;
+}
+
+.planos-subtitulo {
+  font-size: 14px;
+  color: #C8B99A;
+  font-style: italic;
+}
+
+.planos-divisor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px auto;
+  max-width: 200px;
+}
+
+.planos-divisor-linha {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #C9A84C, transparent);
+  opacity: 0.35;
+}
+
+.planos-divisor-gem {
+  width: 7px;
+  height: 7px;
+  background: #FF6B1A;
+  transform: rotate(45deg);
+  box-shadow: 0 0 10px #FF4500;
+  flex-shrink: 0;
+}
+
+.planos-lista { display: flex; flex-direction: column; gap: 14px; }
+
+.plano-card {
+  background: #1A1612;
+  border: 1px solid rgba(201,168,76,0.14);
+  border-radius: 6px;
+  padding: 22px 18px;
+  position: relative;
+}
+
+.plano-destaque {
+  background: linear-gradient(155deg, #2A2018 0%, #1E1A13 55%, #231F17 100%);
+  border-color: rgba(201,168,76,0.42);
+  box-shadow: 0 0 0 1px rgba(201,168,76,0.08), 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.plano-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #FF4500, #FFA040);
+  color: #100D0A;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.plano-topo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.plano-icone {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.plano-meta { flex: 1; }
+
+.plano-para {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #FF6B1A;
+  margin-bottom: 2px;
+}
+
+.plano-nome {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #F5ECD7;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.plano-destaque .plano-nome { color: #E8C87A; }
+
+.plano-tagline {
+  font-size: 12px;
+  font-style: italic;
+  color: #6B5D4F;
+  line-height: 1.4;
+}
+
+.plano-preco-box { text-align: right; flex-shrink: 0; }
+
+.plano-preco {
+  font-family: 'Cinzel', serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #F5ECD7;
+  line-height: 1;
+}
+
+.plano-destaque .plano-preco { color: #E8C87A; }
+
+.plano-cifrao { font-size: 12px; font-weight: 400; vertical-align: super; opacity: 0.7; }
+.plano-centavos { font-size: 15px; }
+
+.plano-periodo {
+  font-size: 11px;
+  color: #6B5D4F;
+  font-style: italic;
+  text-align: right;
+}
+
+.plano-economia {
+  display: inline-block;
+  margin-top: 4px;
+  background: rgba(255,69,0,0.14);
+  border: 1px solid rgba(255,69,0,0.28);
+  color: #FFA040;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.plano-sep {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(201,168,76,0.18), transparent);
+  margin-bottom: 14px;
+}
+
+.plano-features {
+  list-style: none;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plano-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #C8B99A;
+  line-height: 1.4;
+}
+
+.plano-dot { color: #FF6B1A; font-size: 9px; margin-top: 4px; flex-shrink: 0; }
+
+.plano-locked { opacity: 0.35; text-decoration: line-through; }
+
+.plano-btn {
+  display: block;
+  width: 100%;
+  padding: 11px;
+  border-radius: 4px !important;
+  font-family: 'Cinzel', serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  border: none !important;
+}
+
+.plano-btn-ghost {
+  background: transparent !important;
+  border: 1px solid rgba(201,168,76,0.22) !important;
+  color: #C8B99A !important;
+}
+
+.plano-btn-gold {
+  background: linear-gradient(135deg, #C9A84C, #E8C87A) !important;
+  color: #100D0A !important;
+  box-shadow: 0 4px 18px rgba(201,168,76,0.28) !important;
+}
+
+.planos-free-note {
+  text-align: center;
+  margin-top: 28px;
+  font-size: 13px;
+  color: #6B5D4F !important;
+  font-style: italic;
+}
+
+/* =====================================================
+   ORDEM PARANORMAL — CLASSE / NEX
+===================================================== */
+
+.op-identidade-linha {
+  display: grid;
+  grid-template-columns: 1fr 82px;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.op-campo {
+  position: relative;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(100, 76, 58, 0.72),
+      rgba(62, 43, 32, 0.9)
+    );
+
+  border: 1px solid rgba(196, 169, 91, 0.25);
+  border-radius: 11px;
+
+  padding: 18px 10px 6px;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.04),
+    0 4px 12px rgba(0,0,0,.18);
+}
+
+.op-label {
+  position: absolute;
+  top: 5px;
+  left: 11px;
+
+  font-family: "Cinzel", serif;
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: .12em;
+
+  color: #c7aa64;
+  opacity: .8;
+}
+
+.op-campo select,
+.op-campo input {
+  width: 100%;
+  height: 28px;
+
+  margin: 0 !important;
+  padding: 0 4px !important;
+
+  border: 0 !important;
+  outline: none !important;
+
+  background: transparent !important;
+
+  color: #fff4df !important;
+
+  font-family: "EB Garamond", serif;
+  font-size: 14px;
+}
+
+.op-campo select {
+  cursor: pointer;
+}
+
+.op-nex-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.op-nex-wrap input {
+  text-align: center;
+  font-weight: 700;
+}
+
+.op-nex-wrap span {
+  color: #d1b66d;
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+}
+
+/* =====================================================
+   PE / SANIDADE
+===================================================== */
+
+.op-recursos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  margin: 12px 0 14px;
+}
+
+.op-recurso {
+  position: relative;
+
+  min-height: 72px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.04),
+    0 5px 14px rgba(0,0,0,.2);
+}
+
+.op-recurso::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  opacity: .7;
+  pointer-events: none;
+}
+
+.op-recurso-pe {
+  border: 1px solid rgba(53, 160, 177, .35);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(15, 56, 62, .72),
+      rgba(13, 30, 32, .95)
+    );
+}
+
+.op-recurso-san {
+  border: 1px solid rgba(135, 82, 151, .4);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(72, 34, 82, .72),
+      rgba(34, 20, 39, .96)
+    );
+}
+
+.op-recurso-label {
+  font-family: "Cinzel", serif;
+
+  color: #d8bf7b;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: .1em;
+
+  margin-bottom: 4px;
+}
+
+.op-recurso-valor {
+  font-family: "Cinzel", serif;
+
+  color: #fff6e7;
+
+  font-size: 23px;
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+.op-recurso-pe .op-recurso-valor {
+  text-shadow: 0 0 12px rgba(45, 185, 200, .25);
+}
+
+.op-recurso-san .op-recurso-valor {
+  text-shadow: 0 0 12px rgba(177, 87, 202, .28);
+}
+
+
+/* =====================================================
+   ATRIBUTOS — COMPACTOS
+===================================================== */
+
+.atributo-card,
+.attr-card,
+.atributo-box {
+  min-height: 82px !important;
+
+  padding: 12px 10px !important;
+
+  border-radius: 13px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(118, 91, 67, .88),
+      rgba(72, 51, 37, .96)
+    ) !important;
+
+  border: 1px solid rgba(211, 178, 111, .25) !important;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.06),
+    0 5px 13px rgba(0,0,0,.18) !important;
+}
+
+.atributo-card input,
+.attr-card input,
+.atributo-box input {
+  border-radius: 9px !important;
+
+  background: rgba(20, 14, 10, .42) !important;
+
+  border: 1px solid rgba(0,0,0,.18) !important;
+
+  color: #fff8e9 !important;
+
+  font-weight: 800 !important;
+
+  text-align: center;
+}
+
+.atributo-card:hover,
+.attr-card:hover,
+.atributo-box:hover {
+  border-color: rgba(209, 177, 94, .48) !important;
+
+  transform: translateY(-1px);
+
+  transition:
+    transform .15s ease,
+    border-color .15s ease;
+}
+
+/* =====================================================
+   PERÍCIAS
+===================================================== */
+
+#listaPericias,
+.pericias-lista {
+  padding: 2px 0 12px;
+}
+
+.pericia-item {
+  min-height: 38px;
+
+  display: grid !important;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 5px 4px !important;
+
+  border-bottom: 1px solid rgba(196, 169, 91, .045);
+}
+
+.pericia-item:hover {
+  background: rgba(196, 169, 91, .035);
+}
+
+.pericia-item input[type="checkbox"] {
+  appearance: none;
+
+  width: 17px;
+  height: 17px;
+
+  border-radius: 4px;
+
+  border: 2px solid #a78039;
+
+  background: rgba(25, 17, 12, .65);
+
+  cursor: pointer;
+}
+
+.pericia-item input[type="checkbox"]:checked {
+  background:
+    linear-gradient(
+      135deg,
+      #d0aa56,
+      #8f6825
+    );
+
+  box-shadow:
+    0 0 8px rgba(210, 168, 72, .2);
+}
+
+.pericia-item .nome-pericia {
+  font-size: 14px;
+
+  color: #eee4d3;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pericia-item .resultado-pericia {
+  min-width: 52px;
+
+  text-align: right;
+
+  font-family: "Cinzel", serif;
+
+  font-size: 17px;
+  font-weight: 800;
+
+  color: #fff7e9;
+}
+
+.pericia-item.bloqueada,
+.pericia-item.disabled {
+  opacity: .42;
+}
+
+.pericia-item.bloqueada .resultado-pericia,
+.pericia-item.disabled .resultado-pericia {
+  color: #b8aa96;
+}
+
+/* =====================================================
+   VIDA
+===================================================== */
+
+.hp-bar {
+  height: 39px !important;
+
+  border-radius: 11px !important;
+
+  overflow: hidden;
+
+  background: rgba(25, 9, 8, .82) !important;
+
+  border: 1px solid rgba(183, 43, 37, .35);
+
+  box-shadow:
+    inset 0 2px 5px rgba(0,0,0,.45),
+    0 4px 10px rgba(0,0,0,.15);
+}
+
+#hp-fill {
+  background:
+    linear-gradient(
+      90deg,
+      #8d1115,
+      #c7191e
+    ) !important;
+}
+
+.hp-overlay {
+  padding: 0 8px;
+}
+
+.hp-overlay button {
+  width: 28px !important;
+  height: 28px !important;
+
+  border-radius: 7px !important;
+
+  border: 0 !important;
+
+  background: rgba(22, 10, 9, .72) !important;
+
+  color: #fff !important;
+
+  font-size: 15px !important;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition:
+    transform .12s ease,
+    background .12s ease;
+}
+
+.hp-overlay button:hover {
+  transform: scale(1.06);
+
+  background: rgba(40, 15, 12, .85) !important;
+}
+
+#vida-texto {
+  font-family: "Cinzel", serif;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  color: white;
+
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
+
+/* =====================================================
+   CAMPOS PRINCIPAIS DO PERSONAGEM
+===================================================== */
+
+#nome,
+#idade,
+#altura,
+#nivel,
+#antecedentes,
+#classe {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(85, 64, 50, .82),
+      rgba(65, 46, 35, .9)
+    ) !important;
+
+  border: 1px solid rgba(196, 169, 91, .18) !important;
+
+  border-radius: 10px !important;
+
+  color: #fff6e7 !important;
+
+  transition:
+    border-color .15s ease,
+    box-shadow .15s ease;
+}
+
+#nome:focus,
+#idade:focus,
+#altura:focus,
+#nivel:focus,
+#antecedentes:focus,
+#classe:focus {
+  outline: none !important;
+
+  border-color: rgba(209, 174, 86, .7) !important;
+
+  box-shadow:
+    0 0 0 2px rgba(209, 174, 86, .08),
+    inset 0 1px rgba(255,255,255,.04) !important;
+}
+
+/* =========================================
+   RECURSOS OP — PE / SANIDADE
+========================================= */
+
+.op-recursos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 10px 0 12px;
+}
+
+.op-recurso {
+  height: 64px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: rgba(45, 31, 24, .9);
+  border: 1px solid rgba(196, 169, 91, .25);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 4px 12px rgba(0,0,0,.18);
+}
+
+.op-recurso label {
+  font-family: "Cinzel", serif;
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: .12em;
+
+  color: #c9aa5c;
+
+  margin-bottom: 3px;
+}
+
+.op-recurso input {
+  width: 70px !important;
+  height: 30px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border: 0 !important;
+  outline: 0 !important;
+
+  background: transparent !important;
+
+  color: #fff8e8 !important;
+
+  font-family: "Cinzel", serif;
+  font-size: 20px !important;
+  font-weight: 800;
+
+  text-align: center;
+}
+
+/* tira as setinhas do number */
+
+.op-recurso input::-webkit-inner-spin-button,
+.op-recurso input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.op-recurso-pe {
+  border-color: rgba(50, 155, 166, .28);
+}
+
+.op-recurso-san {
+  border-color: rgba(135, 74, 150, .30);
+}
+
+/* =====================================================
+   PERÍCIAS — TREINADAS / NÃO TREINADAS
+===================================================== */
+
+.pericia.pericia-nao-treinada {
+  opacity: 0.42;
+}
+
+.pericia.pericia-treinada {
+  opacity: 1;
+}
+
+.pericia.pericia-treinada label {
+  color: #fff4df !important;
+}
+
+.pericia.pericia-treinada > span {
+  color: #fff7e8 !important;
+}
+
+.pericia.pericia-nao-treinada label,
+.pericia.pericia-nao-treinada > span {
+  color: #9d9283 !important;
+}
+
+/* =====================================================
+   POPUP DE PERÍCIAS
+===================================================== */
+
+.modal-pericias-classe-overlay {
+  display: none;
+
+  position: fixed;
+  inset: 0;
+
+  z-index: 99998;
+
+  background: rgba(0, 0, 0, 0.78);
+
+  backdrop-filter: blur(4px);
+}
+
+.modal-pericias-classe {
+  display: none;
+
+  position: fixed;
+  z-index: 99999;
+
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+
+  width: min(90vw, 390px);
+  max-height: 82vh;
+
+  flex-direction: column;
+
+  box-sizing: border-box;
+
+  padding: 18px;
+
+  border-radius: 16px;
+
+  border: 1px solid rgba(196, 169, 91, 0.4);
+
+  background:
+    linear-gradient(
+      160deg,
+      #2a1d15,
+      #160f0b
+    );
+
+  box-shadow:
+    0 25px 70px rgba(0,0,0,.75),
+    inset 0 1px rgba(255,255,255,.04);
+
+  color: #f4ead8;
+}
+
+.modal-pericias-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 15px;
+}
+
+.modal-pericias-topo h2 {
+  margin: 3px 0 0;
+
+  font-family: "Cinzel", serif;
+
+  font-size: 19px;
+
+  color: #e4c675;
+}
+
+.modal-pericias-mini {
+  font-family: "Cinzel", serif;
+
+  font-size: 8px;
+
+  letter-spacing: .15em;
+
+  color: #9d8350;
+}
+
+.modal-pericias-fechar {
+  width: 32px;
+  height: 32px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(196,169,91,.3);
+
+  background: rgba(0,0,0,.3);
+
+  color: #d8bf7b;
+
+  cursor: pointer;
+}
+
+.modal-pericias-desc {
+  margin: 8px 0 14px;
+
+  color: #a99a85;
+
+  font-size: 12px;
+}
+
+.lista-pericias-classe {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 7px;
+
+  overflow-y: auto;
+
+  padding: 3px;
+
+  flex: 1;
+}
+
+.pericia-selecao-item {
+  min-height: 39px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  box-sizing: border-box;
+
+  padding: 7px 9px;
+
+  border-radius: 8px;
+
+  border: 1px solid rgba(196,169,91,.13);
+
+  background: rgba(255,255,255,.025);
+
+  cursor: pointer;
+}
+
+.pericia-selecao-item input {
+  display: none;
+}
+
+.pericia-selecao-check {
+  width: 15px;
+  height: 15px;
+
+  flex-shrink: 0;
+
+  border: 1px solid #806731;
+
+  border-radius: 4px;
+
+  background: #17100b;
+}
+
+.pericia-selecao-item:has(input:checked) {
+  border-color: rgba(213,175,81,.55);
+
+  background: rgba(196,169,91,.12);
+}
+
+.pericia-selecao-item input:checked
++ .pericia-selecao-check {
+  background: #aa9156;
+
+  border-color: #e0c46d;
+}
+
+.pericia-selecao-item input:checked
++ .pericia-selecao-check::after {
+  content: "✓";
+
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #1a1008;
+
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.pericia-selecao-nome {
+  color: #d8ccba;
+
+  font-size: 12px;
+}
+
+.btn-confirmar-pericias {
+  width: 100%;
+
+  margin-top: 13px;
+
+  padding: 11px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #d0b665,
+      #98782e
+    );
+
+  color: #1b1008;
+
+  font-family: "Cinzel", serif;
+
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+/* =====================================================
+   ATRIBUTOS — PAINEL SUPERIOR
+===================================================== */
+
+.atributos-compactos {
+  width: 100% !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(6, 1fr) !important;
+
+  gap: 10px 6px !important;
+
+  padding: 12px 8px 18px !important;
+
+  box-sizing: border-box;
+}
+
+/* 3 primeiros */
+
+.attr.attr-compacto:nth-child(1) {
+  grid-column: 1 / 3;
+}
+
+.attr.attr-compacto:nth-child(2) {
+  grid-column: 3 / 5;
+}
+
+.attr.attr-compacto:nth-child(3) {
+  grid-column: 5 / 7;
+}
+
+/* 2 últimos */
+
+.attr.attr-compacto:nth-child(4) {
+  grid-column: 2 / 4;
+}
+
+.attr.attr-compacto:nth-child(5) {
+  grid-column: 4 / 6;
+}
+
+.attr.attr-compacto {
+  position: relative;
+
+  width: 74px !important;
+  height: 72px !important;
+
+  margin: auto !important;
+
+  padding: 0 !important;
+
+  display: flex !important;
+
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      155deg,
+      #715842,
+      #403026
+    ) !important;
+
+  border: 1px solid rgba(211,180,103,.38) !important;
+
+  clip-path:
+    polygon(
+      50% 0%,
+      95% 34%,
+      78% 100%,
+      22% 100%,
+      5% 34%
+    );
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.07);
+
+  overflow: hidden;
+}
+
+.attr-sigla {
+  position: absolute;
+
+  top: 10px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  color: #dabe73 !important;
+
+  font-family: "Cinzel", serif;
+
+  font-size: 9px !important;
+  font-weight: 800;
+
+  letter-spacing: .08em;
+}
+
+.attr.attr-compacto input {
+  width: 48px !important;
+
+  padding: 0 !important;
+  margin-top: 10px !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  box-shadow: none !important;
+
+  color: #fff4de !important;
+
+  font-family: "Cinzel", serif;
+
+  font-size: 23px !important;
+  font-weight: 800;
+
+  text-align: center;
+}
+
+.attr.attr-compacto input::-webkit-inner-spin-button,
+.attr.attr-compacto input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+/* =====================================================
+   PERÍCIAS — NOVO LAYOUT
+===================================================== */
+
+.pericia {
+  width: 100% !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border-bottom: 1px solid rgba(196,169,91,.08);
+}
+
+.pericia-linha-conteudo {
+  min-height: 48px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    42px
+    78px;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 6px 4px;
+
+  box-sizing: border-box;
+}
+
+/* esquerda */
+
+.pericia-esquerda {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+.pericia-nome {
+  min-width: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-family: "EB Garamond", serif;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #eee2cf;
+}
+
+/* checkbox */
+
+.pericia-esquerda .check {
+  width: 17px !important;
+  height: 17px !important;
+
+  flex-shrink: 0;
+
+  border-radius: 5px !important;
+
+  border: 1px solid rgba(196,169,91,.55) !important;
+
+  background: rgba(15,10,7,.5);
+
+  cursor: pointer;
+}
+
+.pericia-esquerda .check.ativo {
+  background:
+    linear-gradient(
+      135deg,
+      #dfc16c,
+      #a58237
+    ) !important;
+
+  border-color: #e7cb75 !important;
+
+  box-shadow:
+    0 0 8px rgba(196,169,91,.25);
+}
+
+/* botão de treino */
+
+.btn-treino-pericia {
+  width: 42px;
+  height: 26px;
+
+  padding: 0;
+
+  border-radius: 8px;
+
+  border: 1px solid rgba(196,169,91,.18);
+
+  background: rgba(0,0,0,.22);
+
+  color: #887c6b;
+
+  font-family: "Cinzel", serif;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  text-align: center;
+
+  cursor: pointer;
+}
+
+.btn-treino-pericia.grau-1 {
+  color: #dfc16c;
+
+  border-color: rgba(196,169,91,.48);
+
+  background: rgba(196,169,91,.08);
+}
+
+.btn-treino-pericia.grau-2 {
+  color: #f1d77c;
+
+  border-color: rgba(220,185,85,.65);
+
+  box-shadow:
+    0 0 7px rgba(196,169,91,.12);
+}
+
+.btn-treino-pericia.grau-3 {
+  color: #fff2df;
+
+  border-color: #87323a;
+
+  background: #671b23;
+}
+
+/* rolagem */
+
+.pericia-rolagem {
+  text-align: right;
+
+  white-space: nowrap;
+
+  font-family: "Cinzel", serif;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  color: #fff4df;
+}
+
+/* não escolhida */
+
+.pericia.pericia-nao-treinada {
+  opacity: .38;
+}
+
+/* escolhida */
+
+.pericia.pericia-treinada {
+  opacity: 1;
+}
+
+/* =====================================================
+   ORDEM — ATRIBUTOS EM CIMA / PERÍCIAS EMBAIXO
+===================================================== */
+
+/* a aba inteira deixa de colocar atributos e perícias lado a lado */
+#atributos .atributos-layout-novo {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  gap: 14px !important;
+}
+
+
+/* =====================================================
+   ATRIBUTOS
+===================================================== */
+
+#atributos .atributos-compactos {
+  width: 100% !important;
+
+  display: grid !important;
+  grid-template-columns: repeat(6, 1fr) !important;
+
+  gap: 8px 4px !important;
+
+  padding: 8px 14px 14px !important;
+
+  box-sizing: border-box;
+}
+
+
+/* AGI */
+#atributos .attr.attr-compacto:nth-child(1) {
+  grid-column: 1 / 3;
+}
+
+/* FOR */
+#atributos .attr.attr-compacto:nth-child(2) {
+  grid-column: 3 / 5;
+}
+
+/* INT */
+#atributos .attr.attr-compacto:nth-child(3) {
+  grid-column: 5 / 7;
+}
+
+/* PRE */
+#atributos .attr.attr-compacto:nth-child(4) {
+  grid-column: 2 / 4;
+}
+
+/* VIG */
+#atributos .attr.attr-compacto:nth-child(5) {
+  grid-column: 4 / 6;
+}
+
+
+#atributos .attr.attr-compacto {
+  width: 92px !important;
+  height: 82px !important;
+
+  min-width: 92px !important;
+  min-height: 82px !important;
+
+  margin: 0 auto !important;
+  padding: 0 !important;
+
+  position: relative;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  background:
+    linear-gradient(
+      160deg,
+      rgba(105, 78, 57, 0.98),
+      rgba(54, 39, 29, 0.98)
+    ) !important;
+
+  border: 1px solid rgba(216,181,106,.45) !important;
+
+  clip-path: polygon(
+    50% 0%,
+    92% 28%,
+    78% 100%,
+    22% 100%,
+    8% 28%
+  );
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.07),
+    0 5px 14px rgba(0,0,0,.28) !important;
+
+  overflow: hidden;
+}
+
+
+/* nome AGI / FOR / etc */
+#atributos .attr-sigla {
+  position: absolute !important;
+
+  top: 11px !important;
+  left: 50% !important;
+
+  transform: translateX(-50%) !important;
+
+  font-family: "Cinzel", serif !important;
+
+  font-size: 9px !important;
+  font-weight: 800 !important;
+
+  letter-spacing: .08em;
+
+  color: #d9bd76 !important;
+
+  white-space: nowrap;
+}
+
+
+/* número do atributo */
+#atributos .attr.attr-compacto input {
+  width: 56px !important;
+  height: 40px !important;
+
+  margin: 14px 0 0 !important;
+  padding: 0 !important;
+
+  background: transparent !important;
+
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+
+  text-align: center !important;
+
+  font-family: "Cinzel", serif !important;
+
+  font-size: 25px !important;
+  font-weight: 800 !important;
+
+  color: #fff4df !important;
+}
+
+
+/* =====================================================
+   PAINEL DE PERÍCIAS
+===================================================== */
+
+#atributos .pericias {
+  width: 100% !important;
+  max-width: none !important;
+
+  box-sizing: border-box !important;
+
+  margin: 0 !important;
+
+  padding: 14px 14px 18px !important;
+
+  border-radius: 16px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(48,34,27,.96),
+      rgba(33,23,18,.98)
+    ) !important;
+
+  border: 1px solid rgba(196,169,91,.24) !important;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.035),
+    0 8px 20px rgba(0,0,0,.25) !important;
+}
+
+
+/* deixa de ser aquela coluna estreita com scroll próprio */
+#atributos .pericias-scroll {
+  max-height: none !important;
+  height: auto !important;
+
+  overflow: visible !important;
+}
+
+
+/* =====================================================
+   CADA PERÍCIA
+===================================================== */
+
+#atributos .pericia {
+  width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border-bottom: 1px solid rgba(196,169,91,.08) !important;
+}
+
+#atributos .pericia-linha-conteudo {
+  width: 100% !important;
+  min-width: 0 !important;
+
+  min-height: 46px !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    38px
+    64px !important;
+
+  align-items: center !important;
+
+  gap: 5px !important;
+
+  padding: 5px 0 !important;
+
+  box-sizing: border-box !important;
+
+  overflow: hidden !important;
+}
+
+
+/* checkbox + nome */
+#atributos .pericia-esquerda {
+  min-width: 0 !important;
+  width: 100% !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+
+  gap: 9px !important;
+
+  text-align: left !important;
+}
+
+
+/* checkbox */
+#atributos .pericia-esquerda .check {
+  width: 18px !important;
+  height: 18px !important;
+
+  min-width: 18px !important;
+
+  flex: 0 0 18px !important;
+
+  border-radius: 5px !important;
+
+  border: 1px solid rgba(196,169,91,.58) !important;
+
+  background: rgba(15,10,7,.5) !important;
+}
+
+
+/* selecionada */
+#atributos .pericia-esquerda .check.ativo {
+  position: relative;
+
+  background:
+    linear-gradient(
+      135deg,
+      #e0c36d,
+      #967229
+    ) !important;
+
+  border-color: #e7c96e !important;
+
+  box-shadow:
+    0 0 8px rgba(216,181,106,.28) !important;
+}
+
+
+#atributos .pericia-esquerda .check.ativo::after {
+  content: "✓";
+
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  color: #2a190b;
+}
+
+
+/* NOME — aqui corrige o A... */
+#atributos .pericia-nome {
+  min-width: 0 !important;
+
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+
+  text-align: left !important;
+
+  font-family: "EB Garamond", serif !important;
+
+  font-size: 13px !important;
+  font-weight: 600 !important;
+
+  color: #f1e7d6 !important;
+}
+
+
+/* botão treinamento */
+#atributos .btn-treino-pericia {
+  width: 38px !important;
+  height: 24px !important;
+
+  min-width: 38px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border-radius: 8px !important;
+
+  font-size: 9px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* rolagem */
+#atributos .pericia-rolagem {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 64px !important;
+
+  text-align: right !important;
+
+  white-space: nowrap !important;
+
+  overflow: hidden !important;
+  text-overflow: clip !important;
+
+  font-family: "Cinzel", serif !important;
+
+  font-size: 12px !important;
+  font-weight: 800 !important;
+
+  color: #fff5e5 !important;
+}
+
+
+/* NÃO selecionada */
+#atributos .pericia.pericia-nao-treinada {
+  opacity: .36 !important;
+}
+
+
+/* selecionada */
+#atributos .pericia.pericia-treinada {
+  opacity: 1 !important;
+}
+
+
+/* =====================================================
+   HEADER DAS PERÍCIAS
+===================================================== */
+
+#atributos .header-pericias {
+  margin-bottom: 10px !important;
+
+  padding-bottom: 10px !important;
+
+  border-bottom: 1px solid rgba(196,169,91,.16) !important;
+}
+
+
+#atributos .header-pericias-topo {
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  gap: 10px !important;
+}
+
+
+#atributos .header-pericias-topo > span {
+  font-family: "Cinzel", serif !important;
+
+  font-size: 20px !important;
+  font-weight: 800 !important;
+
+  color: #e1c378 !important;
+}
+
+
+/* =====================================================
+   MOBILE PEQUENO
+===================================================== */
+
+@media (max-width: 360px) {
+
+  #atributos .pericia-linha-conteudo {
+    grid-template-columns:
+      minmax(0, 1fr)
+      40px
+      78px !important;
+
+    gap: 5px !important;
+  }
+
+  #atributos .pericia-rolagem {
+    width: 78px !important;
+
+    font-size: 12px !important;
+  }
+
+  #atributos .btn-treino-pericia {
+    width: 40px !important;
+    min-width: 40px !important;
+  }
+
+}
+
+#classeOP,
+#nex {
+  background: linear-gradient(
+    180deg,
+    rgba(91, 67, 49, .96),
+    rgba(56, 40, 30, .98)
+  ) !important;
+
+  color: #fff4df !important;
+
+  border: 1px solid rgba(216,181,106,.35) !important;
+
+  border-radius: 10px !important;
+
+  font-family: "EB Garamond", serif !important;
+
+  font-size: 14px !important;
+  font-weight: 600 !important;
+
+  padding: 7px 10px !important;
+
+  cursor: pointer;
+}
+
+#classeOP option,
+#nex option {
+  background: #2b1e17 !important;
+  color: #f7ecd8 !important;
+}
+
+#classeOP option:checked,
+#nex option:checked {
+  background: #72512f !important;
+  color: #fff !important;
+}
+
+/* ========================= OP DARK — OVERRIDES FINAIS ========================= */
+:root {
+  --ignea-bg: #070707 !important;
+  --ignea-bg-deep: #030303 !important;
+  --ignea-card: #121111 !important;
+  --ignea-card-soft: #1c1a1a !important;
+  --ignea-gold: #b7a06a !important;
+  --ignea-gold-soft: #9b8d72 !important;
+  --ignea-text: #eee8de !important;
+
+  --grim-bg: #050505 !important;
+  --grim-bg-2: #090808 !important;
+  --grim-panel: rgba(18,17,17,.94) !important;
+  --grim-panel-2: rgba(8,8,8,.98) !important;
+  --grim-red: #a33a34 !important;
+  --grim-red-bright: #bf4b43 !important;
+  --grim-red-dark: #45100e !important;
+  --grim-gold: #b29a65 !important;
+  --grim-muted: #918b83 !important;
+  --grim-text: #e8e2d8 !important;
+  --grim-line: rgba(166,58,52,.20) !important;
+}
+
+body {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(143,45,45,.06), transparent 25%),
+    linear-gradient(180deg, #070707, #030303) !important;
+}
+
+/* reduz a leitura "medieval marrom" da Jornada sem mexer na estrutura */
+#ficha,
+#tela-inicial {
+  color: #eee8de !important;
+}
+#ficha input,
+#ficha textarea,
+#ficha select {
+  background: #171616 !important;
+  color: #eee8de !important;
+  border-color: rgba(183,160,106,.16) !important;
+}
+#ficha .tabs,
+.tabs {
+  background: rgba(7,7,7,.98) !important;
+}
+#ficha .tab-btn.active,
+.tab-btn.active {
+  background:
+    radial-gradient(circle at top, rgba(143,45,45,.24), transparent 62%),
+    linear-gradient(180deg, #241515, #0e0909) !important;
+  color: #f2ece4 !important;
+}
+
+/* atributos/perícias OP já existentes: só harmoniza a paleta */
+#atributos .attr.attr-compacto {
+  background: linear-gradient(155deg, #2a2727, #121111) !important;
+  border-color: rgba(183,160,106,.34) !important;
+}
+#atributos .pericias {
+  background:
+    radial-gradient(circle at top, rgba(143,45,45,.06), transparent 36%),
+    linear-gradient(180deg, #151414, #0b0b0b) !important;
+  border-color: rgba(183,160,106,.18) !important;
+}
