@@ -5774,7 +5774,7 @@ function atualizarTudo() {
   const grau = profs[pericia.nome] || 0;
 
   const dados =
-    1 + (atributos[pericia.attr] || 0);
+    Math.max(1, atributos[pericia.attr] || 0);
 
   const bonus =
     BONUS_TREINO[grau] || 0;
