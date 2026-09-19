@@ -3621,3 +3621,1818 @@ body {
     linear-gradient(180deg, #151414, #0b0b0b) !important;
   border-color: rgba(183,160,106,.18) !important;
 }
+
+/* =========================================================
+   ORDEM — INVENTÁRIO / ESPAÇOS
+========================================================= */
+
+.inventario-capacidade-box {
+  margin-bottom: 14px;
+  padding: 13px;
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(22, 21, 21, 0.96),
+      rgba(12, 12, 12, 0.96)
+    );
+
+  border:
+    1px solid rgba(183, 160, 106, 0.22);
+}
+
+.inventario-capacidade-topo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+
+  margin-bottom: 10px;
+}
+
+.inventario-capacidade-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  min-width: 0;
+}
+
+.inventario-capacidade-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+
+  color: #918b83;
+}
+
+#inventarioEspacosTexto {
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+
+  color: #eee8de;
+}
+
+.inventario-capacidade-editar {
+  width: 110px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inventario-capacidade-editar label {
+  font-size: 9px;
+  line-height: 1.2;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+
+  color: #918b83;
+}
+
+#inventarioEspacosMax {
+  width: 100%;
+  margin: 0 !important;
+  padding: 7px 8px !important;
+
+  text-align: center;
+
+  background: #111 !important;
+  color: #eee8de !important;
+
+  border:
+    1px solid rgba(183, 160, 106, 0.25) !important;
+
+  border-radius: 8px !important;
+}
+
+.inventario-barra {
+  width: 100%;
+  height: 7px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+.inventario-barra-preenchimento {
+  width: 0%;
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #726039,
+      #b7a06a
+    );
+
+  transition:
+    width 0.25s ease,
+    background 0.25s ease;
+}
+
+.inventario-barra-preenchimento.excedido {
+  background:
+    linear-gradient(
+      90deg,
+      #5d1717,
+      #b7473f
+    );
+}
+
+.inv-campos-duplos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.inv-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  min-width: 0;
+}
+
+.inv-campo label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+
+  color: #918b83;
+}
+
+.inv-campo input {
+  width: 100%;
+  min-width: 0;
+}
+
+.item-subtags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  margin-top: 6px;
+}
+
+.item-subtag-espaco {
+  color: #d5c394 !important;
+
+  border:
+    1px solid rgba(183, 160, 106, 0.2);
+}
+
+.item-subtag-categoria {
+  color: #eee8de !important;
+
+  border:
+    1px solid rgba(143, 45, 45, 0.35);
+
+  background:
+    rgba(143, 45, 45, 0.12) !important;
+}
+
+@media (max-width: 390px) {
+  .inventario-capacidade-topo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .inventario-capacidade-editar {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   VEÍCULOS
+========================================================= */
+
+#listaVeiculos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.veiculo-add {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.veiculo-card {
+  position: relative;
+
+  margin-bottom: 10px;
+  padding: 13px;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(22, 21, 21, 0.97),
+      rgba(12, 12, 12, 0.97)
+    );
+
+  border:
+    1px solid rgba(183, 160, 106, 0.2);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.veiculo-card:hover {
+  transform: translateY(-2px);
+
+  border-color:
+    rgba(183, 160, 106, 0.4);
+}
+
+.veiculo-card-principal {
+  min-width: 0;
+}
+
+.veiculo-card-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.veiculo-card-nome {
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+
+  color: #eee8de;
+}
+
+.veiculo-card-desc {
+  margin-top: 5px;
+
+  font-size: 12px;
+  line-height: 1.35;
+
+  color: #918b83;
+}
+
+.veiculo-resumo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+
+  margin-top: 10px;
+}
+
+.veiculo-resumo-grid span {
+  padding: 6px 8px;
+
+  border-radius: 7px;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  border:
+    1px solid rgba(183, 160, 106, 0.12);
+
+  font-size: 11px;
+
+  color: #d0c7b7;
+}
+
+/* VISUALIZAÇÃO */
+
+.veiculo-status-box {
+  margin-top: 14px;
+  padding: 10px;
+
+  border-radius: 10px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  border:
+    1px solid rgba(183, 160, 106, 0.14);
+}
+
+.veiculo-status-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 8px;
+
+  font-size: 12px;
+
+  color: #d9d0c1;
+}
+
+.veiculo-status-topo strong {
+  font-family: "Cinzel", serif;
+
+  color: #eee8de;
+}
+
+.veiculo-range {
+  width: 100%;
+  cursor: pointer;
+}
+
+.veiculo-range-vida {
+  accent-color: #9e3631;
+}
+
+.veiculo-range-gasolina {
+  accent-color: #b7a06a;
+}
+
+.veiculo-dados-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+
+  margin-top: 12px;
+}
+
+.veiculo-dados-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 10px;
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  border:
+    1px solid rgba(183, 160, 106, 0.14);
+}
+
+.veiculo-dados-grid span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+
+  color: #918b83;
+}
+
+.veiculo-dados-grid strong {
+  color: #eee8de;
+}
+
+/* ITENS DO VEÍCULO */
+
+.veiculo-itens-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 18px;
+  margin-bottom: 8px;
+
+  padding-bottom: 7px;
+
+  border-bottom:
+    1px solid rgba(183, 160, 106, 0.18);
+}
+
+.veiculo-itens-titulo > span {
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+
+  color: #b7a06a;
+}
+
+.veiculo-itens-titulo button {
+  padding: 5px 9px;
+
+  border-radius: 7px;
+
+  border:
+    1px solid rgba(183, 160, 106, 0.3);
+
+  background:
+    rgba(183, 160, 106, 0.1);
+
+  color: #d5c394;
+
+  cursor: pointer;
+}
+
+.veiculo-itens-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.veiculo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+
+  padding: 9px;
+
+  border-radius: 8px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.06);
+}
+
+.veiculo-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.veiculo-item-info strong {
+  display: block;
+
+  color: #eee8de;
+
+  overflow-wrap: anywhere;
+}
+
+.veiculo-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  margin-top: 5px;
+}
+
+.veiculo-item-meta span {
+  padding: 2px 6px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(183, 160, 106, 0.08);
+
+  border:
+    1px solid rgba(183, 160, 106, 0.15);
+
+  color: #aaa39a;
+
+  font-size: 10px;
+}
+
+.veiculo-item-acoes {
+  display: flex;
+  gap: 5px;
+}
+
+.veiculo-item-acoes button {
+  min-width: 29px;
+  height: 29px;
+
+  border-radius: 7px;
+
+  border:
+    1px solid rgba(183, 160, 106, 0.18);
+
+  background: #181717;
+
+  color: #eee8de;
+
+  cursor: pointer;
+}
+
+.veiculo-sem-itens {
+  padding: 14px;
+
+  text-align: center;
+
+  border-radius: 8px;
+
+  color: #77716b;
+
+  font-size: 12px;
+  font-style: italic;
+
+  border:
+    1px dashed rgba(183, 160, 106, 0.15);
+}
+
+.popup-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 390px) {
+  .veiculo-resumo-grid,
+  .veiculo-dados-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+/* =========================
+   POPUP DE ITEM - COMPACTO
+========================= */
+
+.popup-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.popup-info-grid > div {
+  min-width: 0;
+}
+
+.popup-info-grid .popup-descricao {
+  min-height: 0 !important;
+  height: auto !important;
+
+  padding: 9px 10px !important;
+
+  white-space: normal !important;
+
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+
+  border-radius: 10px !important;
+}
+
+.popup-info-grid .popup-label {
+  display: block;
+  margin-bottom: 5px;
+
+  font-size: 11px;
+}
+
+.popup-info-grid strong {
+  display: inline;
+}
+
+@media (max-width: 370px) {
+  .popup-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* =========================================================
+   FILTROS DE PODERES - CARROSSEL HORIZONTAL
+========================================================= */
+
+#poderes .poderes-ordem-filtros {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+
+  width: 100%;
+  max-width: 100%;
+
+  scroll-snap-type: x proximity;
+  margin: 8px 0 8px;
+  padding: 4px 14px 10px 16px;
+
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  touch-action: pan-x;
+  scroll-padding-inline: 14px;
+}
+
+#poderes .poderes-ordem-filtros::-webkit-scrollbar {
+  display: none;
+}
+
+#poderes .poderes-ordem-filtros .subtab-poder {
+  flex: 0 0 auto;
+  min-width: 92px;
+  height: 54px;
+
+  scroll-snap-align: start;
+  padding: 7px 10px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+
+  border-radius: 13px;
+  border: 1px solid rgba(183, 160, 106, 0.14);
+
+  background: linear-gradient(
+    180deg,
+    rgba(35, 32, 30, 0.96),
+    rgba(25, 23, 22, 0.96)
+  );
+
+  color: #e8dfcf;
+
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+#poderes .poderes-ordem-filtros .subtab-poder:hover {
+  border-color: rgba(183, 160, 106, 0.35);
+  transform: translateY(-1px);
+}
+
+#poderes .poderes-ordem-filtros .subtab-poder.active {
+  background: linear-gradient(
+    180deg,
+    #bda05c,
+    #9d8145
+  );
+
+  border-color: #e0c57a;
+  color: #17130d;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+#poderes .poderes-ordem-filtros .subtab-contador {
+  display: block;
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+
+  opacity: 0.75;
+}
+
+#poderes .poderes-ordem-filtros .subtab-poder.active .subtab-contador {
+  color: #17130d;
+  opacity: 0.78;
+}
+
+
+/* DICA DE ARRASTAR */
+
+.poderes-ordem-hint {
+  margin: -2px 0 14px;
+
+  text-align: center;
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  color: rgba(212, 193, 147, 0.75);
+  opacity: 0.9;
+}
+
+/* =========================================================
+   PODERES ORDEM - CORREÇÃO DA LISTA / CARDS
+========================================================= */
+
+#listaPoderesOrdem {
+  list-style: none !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 12px 0 0 0 !important;
+  padding: 0 !important;
+
+  box-sizing: border-box !important;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+#listaPoderesOrdem .poder-card {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================
+   CORREÇÃO ESPAÇO ENTRE PODERES
+========================================= */
+
+#listaPoderesOrdem {
+  gap: 8px !important;
+}
+
+#listaPoderesOrdem .poder-card {
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+}
+/* =========================================================
+   PODERES - ESPAÇAMENTO DOS CARDS
+========================================================= */
+
+#listaPoderesOrdem {
+  display: flex !important;
+  flex-direction: column !important;
+
+  gap: 8px !important;
+
+  width: 100% !important;
+
+  margin: 12px 0 0 !important;
+  padding: 0 !important;
+
+  list-style: none !important;
+
+  box-sizing: border-box !important;
+}
+
+
+#listaPoderesOrdem .poder-card {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   SUBPOPUP DE VEÍCULOS
+========================================================= */
+
+.subpopup-veiculo {
+  position: fixed !important;
+  inset: 0 !important;
+
+  z-index: 2000000 !important;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 18px;
+
+  background:
+    rgba(0, 0, 0, 0.58);
+
+  backdrop-filter: blur(2px);
+
+  box-sizing: border-box;
+}
+
+
+.subpopup-veiculo-content {
+  position: relative;
+  z-index: 2000001;
+
+  width: min(84vw, 320px);
+  max-height: 72vh;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding: 20px 18px;
+
+  box-sizing: border-box;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #181515,
+      #100e0e
+    );
+
+  border:
+    1px solid rgba(
+      183,
+      160,
+      106,
+      0.32
+    );
+
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+
+.subpopup-veiculo-content h3 {
+  margin:
+    2px 30px 18px 0;
+
+  font-family:
+    "Cinzel",
+    serif;
+
+  font-size: 20px;
+
+  color: #ead49c;
+}
+
+
+.subpopup-veiculo-fechar {
+  position: absolute;
+
+  top: 9px;
+  right: 10px;
+
+  width: 30px;
+  height: 30px;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #eee8de;
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+
+/* FORMULÁRIO MENOR */
+
+.subpopup-veiculo .popup-form {
+  gap: 7px;
+}
+
+
+.subpopup-veiculo .popup-form input,
+.subpopup-veiculo .popup-form select,
+.subpopup-veiculo .popup-form textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+
+.subpopup-veiculo .popup-form textarea {
+  min-height: 68px !important;
+
+  resize: vertical;
+}
+
+
+/* DETALHE DO ITEM */
+
+.veiculo-item-popup-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 7px;
+
+  margin-bottom: 12px;
+}
+
+
+.veiculo-item-popup-grid > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  padding: 9px;
+
+  border-radius: 9px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  border:
+    1px solid
+    rgba(183,160,106,.13);
+}
+
+
+.veiculo-item-popup-grid span {
+  font-size: 9px;
+
+  text-transform: uppercase;
+
+  letter-spacing: .7px;
+
+  color: #918b83;
+}
+
+
+.veiculo-item-popup-grid strong {
+  font-size: 13px;
+
+  color: #eee8de;
+}
+
+
+.veiculo-item-popup-bloco {
+  margin-top: 11px;
+}
+
+
+.veiculo-item-popup-texto {
+  margin-top: 5px;
+
+  padding: 9px 10px;
+
+  border-radius: 9px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  border:
+    1px solid
+    rgba(183,160,106,.12);
+
+  color: #d1c8bb;
+
+  font-size: 12px;
+
+  line-height: 1.45;
+
+  white-space: pre-wrap;
+}
+
+
+/* CARD DO ITEM DA MOTO CLICÁVEL */
+
+.veiculo-item {
+  cursor: pointer;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease;
+}
+
+
+.veiculo-item:hover {
+  border-color:
+    rgba(183,160,106,.3);
+
+  background:
+    rgba(183,160,106,.045);
+}
+
+/* =========================================================
+   VIDA BAIXA — SEM BRILHO / SEM PISCAR
+========================================================= */
+
+body.low-hp #hpBar {
+  animation: none !important;
+  box-shadow: none !important;
+
+  border: 2px solid #ef4444 !important;
+}
+
+body.low-hp #hp-fill {
+  background: #dc2626 !important;
+}
+
+/* =========================================================
+   POPUPS — HIERARQUIA VISUAL FINAL
+========================================================= */
+
+/* CONTEÚDO SEMPRE ALINHADO À ESQUERDA */
+
+#popup .popup-content,
+#popup #popup-texto,
+#popup .popup-bloco,
+#popup .popup-form,
+
+.subpopup-veiculo-content,
+.subpopup-veiculo-content .popup-form,
+.subpopup-veiculo-content
+  .veiculo-item-popup-view {
+  text-align: left !important;
+}
+
+
+/* =========================
+   TÍTULO PRINCIPAL
+========================= */
+
+#popup #popup-titulo,
+.subpopup-veiculo-content h3 {
+  color: #ead49c !important;
+
+  font-family: "Cinzel", serif !important;
+  font-weight: 700 !important;
+
+  text-align: left !important;
+
+  letter-spacing: 0.4px !important;
+}
+
+
+/* =========================
+   LABELS / SUBTÍTULOS
+========================= */
+
+#popup .popup-label,
+#popup .popup-form label,
+
+.subpopup-veiculo-content
+  .popup-label,
+
+.subpopup-veiculo-content
+  .popup-form label,
+
+.veiculo-item-popup-bloco
+  > .popup-label {
+  color: #b9a36f !important;
+
+  font-family: "Cinzel", serif !important;
+
+  font-size: 11px !important;
+  font-weight: 700 !important;
+
+  letter-spacing: 0.7px !important;
+
+  text-align: left !important;
+}
+
+
+/* =========================
+   CAMPOS DE ESCRITA
+========================= */
+
+#popup .popup-form input,
+#popup .popup-form textarea,
+#popup .popup-form select,
+
+.subpopup-veiculo
+  .popup-form input,
+
+.subpopup-veiculo
+  .popup-form textarea,
+
+.subpopup-veiculo
+  .popup-form select {
+  background:
+    #211c19 !important;
+
+  color:
+    #eee8de !important;
+
+  border:
+    1px solid
+    rgba(183, 160, 106, 0.16)
+    !important;
+
+  border-radius:
+    10px !important;
+
+  text-align:
+    left !important;
+
+  box-shadow:
+    inset 0 1px 4px
+    rgba(0, 0, 0, 0.25)
+    !important;
+}
+
+
+/* PLACEHOLDER MAIS FRACO */
+
+#popup
+  .popup-form input::placeholder,
+#popup
+  .popup-form textarea::placeholder,
+
+.subpopup-veiculo
+  input::placeholder,
+
+.subpopup-veiculo
+  textarea::placeholder {
+  color:
+    #756e65 !important;
+
+  opacity:
+    1 !important;
+}
+
+
+/* FOCO DO CAMPO */
+
+#popup
+  .popup-form input:focus,
+#popup
+  .popup-form textarea:focus,
+#popup
+  .popup-form select:focus,
+
+.subpopup-veiculo
+  input:focus,
+
+.subpopup-veiculo
+  textarea:focus,
+
+.subpopup-veiculo
+  select:focus {
+  border-color:
+    rgba(
+      213,
+      183,
+      108,
+      0.55
+    )
+    !important;
+
+  outline:
+    none !important;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(
+      183,
+      160,
+      106,
+      0.08
+    )
+    !important;
+}
+
+
+/* =========================
+   CAIXAS DE INFORMAÇÃO
+========================= */
+
+#popup .popup-descricao,
+
+.veiculo-item-popup-texto,
+
+.popup-info-grid
+  .popup-descricao {
+  background:
+    #181515 !important;
+
+  color:
+    #d3cbc0 !important;
+
+  border:
+    1px solid
+    rgba(183, 160, 106, 0.12)
+    !important;
+
+  text-align:
+    left !important;
+
+  white-space:
+    pre-wrap !important;
+
+  line-height:
+    1.5 !important;
+}
+
+
+/* =========================
+   VALORES IMPORTANTES
+========================= */
+
+.popup-info-grid strong,
+.veiculo-item-popup-grid strong,
+.veiculo-dados-grid strong,
+.veiculo-status-topo strong {
+  color:
+    #f0e9de !important;
+
+  text-align:
+    left !important;
+}
+
+
+/* LABELS PEQUENOS DE VALORES */
+
+.popup-info-grid .popup-label,
+.veiculo-item-popup-grid span,
+.veiculo-dados-grid span {
+  color:
+    #8f867c !important;
+}
+
+
+/* =========================
+   FORMULÁRIO
+========================= */
+
+.popup-form {
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    8px;
+
+  text-align:
+    left !important;
+}
+
+
+/* QUEBRA ENTRE CAMPOS */
+
+.popup-form .popup-label {
+  border-top:
+    1px solid
+    rgba(
+      183,
+      160,
+      106,
+      0.12
+    )
+    !important;
+
+  padding-top:
+    13px !important;
+
+  margin-top:
+    3px !important;
+}
+
+.popup-form
+  .popup-label:first-child {
+  border-top:
+    none !important;
+
+  padding-top:
+    0 !important;
+}
+
+
+/* BOTÕES CONTINUAM CENTRALIZADOS */
+
+.popup-salvar-btn {
+  text-align:
+    center !important;
+}
+
+/* =========================================================
+   ITEM DENTRO DO VEÍCULO — ALINHAMENTO
+========================================================= */
+
+.veiculo-item-popup-view {
+  text-align: left !important;
+}
+
+.veiculo-item-popup-grid {
+  text-align: left !important;
+}
+
+.veiculo-item-popup-grid > div {
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+
+.veiculo-item-popup-grid span,
+.veiculo-item-popup-grid strong {
+  width: 100%;
+  text-align: left !important;
+}
+
+.veiculo-item-popup-bloco {
+  text-align: left !important;
+}
+
+.veiculo-item-popup-texto {
+  display: block !important;
+
+  min-height: 0 !important;
+
+  padding: 11px 12px !important;
+
+  text-align: left !important;
+
+  color: #d3cbc0 !important;
+}
+
+.subpopup-veiculo-content
+.popup-salvar-btn {
+  margin-top: 14px;
+}
+
+/* =========================================================
+   POPUPS - ALINHAMENTO FINAL
+========================================================= */
+
+
+/* CONTEÚDO DOS POPUPS SEMPRE COMEÇA PELA ESQUERDA */
+
+#popup .popup-content,
+#popup #popup-texto,
+#popup .popup-bloco,
+
+.subpopup-veiculo-content,
+.subpopup-veiculo-content .popup-form,
+.veiculo-item-popup-view {
+  text-align: left !important;
+}
+
+
+/* =========================================================
+   CAIXAS DE TEXTO / DESCRIÇÃO
+========================================================= */
+
+#popup .popup-descricao,
+.veiculo-item-popup-texto {
+  display: block !important;
+
+  width: 100% !important;
+  box-sizing: border-box !important;
+
+  min-height: 0 !important;
+  height: auto !important;
+
+  padding: 12px 14px !important;
+
+  text-align: left !important;
+
+  white-space: pre-wrap !important;
+
+  line-height: 1.5 !important;
+
+  color: #d6cec2 !important;
+
+  background: #181515 !important;
+
+  border:
+    1px solid rgba(183, 160, 106, 0.14)
+    !important;
+
+  border-radius: 10px !important;
+
+  align-items: initial !important;
+  justify-content: initial !important;
+}
+
+
+/* NÃO DEIXA DESCRIÇÃO VAZIA VIRAR UMA CAIXA GIGANTE */
+
+#popup .popup-descricao-grande {
+  min-height: 70px !important;
+}
+
+
+/* =========================================================
+   ITEM DO VEÍCULO
+========================================================= */
+
+.veiculo-item-popup-bloco {
+  width: 100% !important;
+
+  margin-top: 14px !important;
+
+  text-align: left !important;
+}
+
+
+.veiculo-item-popup-bloco .popup-label {
+  display: block !important;
+
+  margin: 0 0 6px 0 !important;
+
+  padding: 0 !important;
+
+  text-align: left !important;
+
+  color: #b9a36f !important;
+}
+
+
+.veiculo-item-popup-texto {
+  margin: 0 !important;
+
+  text-align: left !important;
+}
+
+
+/* =========================================================
+   QUANTIDADE / ESPAÇOS
+   DEIXA OS DOIS CAMPOS NA MESMA ALTURA
+========================================================= */
+
+.inv-campos-duplos {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr) !important;
+
+  gap: 8px !important;
+
+  align-items: end !important;
+}
+
+
+.inv-campos-duplos .inv-campo {
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  min-width: 0 !important;
+}
+
+
+.inv-campos-duplos .inv-campo > label {
+  display: flex !important;
+
+  align-items: flex-end !important;
+
+  min-height: 28px !important;
+
+  margin: 0 0 5px 0 !important;
+
+  padding: 0 !important;
+
+  line-height: 1.2 !important;
+
+  text-align: left !important;
+
+  color: #a99a78 !important;
+}
+
+
+.inv-campos-duplos .inv-campo > input {
+  width: 100% !important;
+
+  height: 38px !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+
+  text-align: left !important;
+}
+
+
+/* =========================================================
+   GRID DE INFORMAÇÕES DO ITEM
+========================================================= */
+
+.veiculo-item-popup-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    1fr 1fr !important;
+
+  gap: 8px !important;
+
+  align-items: stretch !important;
+
+  text-align: left !important;
+}
+
+
+.veiculo-item-popup-grid > div {
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+
+  min-height: 58px !important;
+
+  padding: 9px 10px !important;
+
+  text-align: left !important;
+}
+
+
+.veiculo-item-popup-grid span {
+  width: 100% !important;
+
+  margin-bottom: 4px !important;
+
+  text-align: left !important;
+}
+
+
+.veiculo-item-popup-grid strong {
+  width: 100% !important;
+
+  text-align: left !important;
+}
+
+
+/* =========================================================
+   FORMULÁRIOS DOS POPUPS
+========================================================= */
+
+#popup .popup-form input,
+#popup .popup-form textarea,
+#popup .popup-form select,
+
+.subpopup-veiculo .popup-form input,
+.subpopup-veiculo .popup-form textarea,
+.subpopup-veiculo .popup-form select {
+  text-align: left !important;
+}
+
+
+#popup .popup-form textarea,
+.subpopup-veiculo .popup-form textarea {
+  padding: 11px 12px !important;
+
+  line-height: 1.45 !important;
+}
+
+
+/* =========================================================
+   TÍTULOS / LABELS
+========================================================= */
+
+#popup .popup-label,
+.subpopup-veiculo .popup-label {
+  text-align: left !important;
+}
+
+
+#popup #popup-titulo,
+.subpopup-veiculo-content h3 {
+  text-align: left !important;
+}
+
+/* =========================================================
+   NOMES / TEXTOS LONGOS SEM ESPAÇO
+========================================================= */
+
+/* Título do popup: quebra em vez de vazar, sem ficar embaixo do × */
+#popup #popup-titulo,
+.subpopup-veiculo-content h3 {
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  padding-right: 28px !important;
+
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+/* Textos digitados pelo usuário dentro do popup */
+#popup .popup-descricao,
+.veiculo-item-popup-texto,
+.popup-info-grid strong {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+/* Card do inventário (e armas/poderes, que usam a mesma classe) */
+.item-card .item-info,
+.item-topo-linha {
+  min-width: 0 !important;
+}
+
+.item-card .item-nome {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
+
+  min-width: 0 !important;
+  overflow: hidden !important;
+
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.item-card .item-qtd-badge,
+.item-card .item-acoes {
+  flex-shrink: 0 !important;
+}
+
+.item-card .item-preview {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+/* =========================================================
+   TRANSFERÊNCIA DE ITENS DO VEÍCULO
+========================================================= */
+
+.veiculo-itens-botoes {
+  display: flex;
+  gap: 6px;
+}
+
+.veiculo-item-popup-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin-top: 14px;
+}
+
+.veiculo-item-popup-acoes .popup-salvar-btn {
+  flex: 1 1 auto;
+
+  width: auto !important;
+  margin-top: 0 !important;
+}
+
+.veiculo-transf {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  max-height: 60vh;
+  overflow-y: auto;
+
+  text-align: left;
+}
+
+.veiculo-transf-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.veiculo-transf-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 10px 12px;
+
+  border-radius: 10px;
+  border: 1px solid rgba(183, 160, 106, 0.18);
+
+  background: #181515;
+  color: #d6cec2;
+
+  font-size: 13px;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.veiculo-transf-btn span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.veiculo-transf-btn small {
+  flex-shrink: 0;
+  color: #b7a06a;
+}
+
+/* Modais bonitos (prompt/confirm/alert) acima do subpopup do veículo */
+#modalConfirmBonitoOverlay,
+#modalAlertBonitoOverlay,
+#modalPromptBonitoOverlay {
+  z-index: 2100000 !important;
+}
+
+#modalConfirmBonito,
+#modalAlertBonito,
+#modalPromptBonito {
+  z-index: 2100001 !important;
+}
+
+/* Caixas pequenas do popup do item: sem herdar o pre-wrap */
+#popup .popup-info-grid .popup-descricao {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* =========================================================
+   PE POR TURNO
+========================================================= */
+
+#poderes .pe-turno-box {
+  padding: 12px !important;
+}
+
+
+#poderes .pe-turno-resultado {
+  min-height: 68px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 10px 12px !important;
+}
+
+
+#poderes .pe-turno-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  text-align: left;
+}
+
+
+#poderes .pe-turno-info > span {
+  color: #d1bea0 !important;
+
+  font-family: "Cinzel", serif;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+#poderes .pe-turno-info > small {
+  max-width: 190px;
+
+  color: #81796f;
+
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+
+#poderes #pePorTurno {
+  width: 54px !important;
+  height: 54px !important;
+
+  min-width: 54px;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border-radius: 50% !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #c4aa68,
+      #967b3e
+    ) !important;
+
+  border:
+    1px solid rgba(
+      232,
+      204,
+      128,
+      .5
+    ) !important;
+
+  color: #0c0a07 !important;
+
+  text-align: center !important;
+
+  font-size: 20px !important;
+  font-weight: 800 !important;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.18),
+    0 4px 10px rgba(0,0,0,.25) !important;
+
+  appearance: textfield;
+}
+
+
+#poderes #pePorTurno::-webkit-inner-spin-button,
+#poderes #pePorTurno::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
