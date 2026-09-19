@@ -108,7 +108,15 @@ function sanitizarPersonagem(p) {
   if (!p) return p;
   const textos = ["nome","classe","raca","idade","altura","antecedentes","idiomas","resistencias","diario","proficienciasExtras","nomeRacaCustom"];
   textos.forEach(c => { if (p[c]) p[c] = limparTags(p[c]) || ""; });
-  if (Array.isArray(p.inventario)) p.inventario.forEach(i => { i.nome = limparTags(i.nome) || ""; i.desc = limparTags(i.desc) || ""; });
+  if (Array.isArray(p.inventario)) {
+  p.inventario.forEach(i => {
+    i.nome = limparTags(i.nome) || "";
+    i.desc = limparTags(i.desc) || "";
+    i.categoria = limparTags(i.categoria) || "";
+    i.modificacoes = limparTags(i.modificacoes) || "";
+    i.maldicoes = limparTags(i.maldicoes) || "";
+  });
+}
   if (Array.isArray(p.armaduras))  p.armaduras.forEach(a  => { a.nome = limparTags(a.nome) || "";  a.desc = limparTags(a.desc) || ""; a.ca = limparTags(a.ca) || ""; });
   if (Array.isArray(p.armas))      p.armas.forEach(a      => { a.nome = limparTags(a.nome) || "";  a.desc = limparTags(a.desc) || ""; a.dano = limparTags(a.dano) || ""; });
   if (Array.isArray(p.poderes))    p.poderes.forEach(p2   => { p2.nome = limparTags(p2.nome) || ""; p2.desc = limparTags(p2.desc) || ""; p2.dano = limparTags(p2.dano) || ""; });
@@ -301,10 +309,12 @@ let dominio = [false, false, false, false, false, false];
 let editandoItem = -1;
 let editandoArma = -1;
 let editandoPoder = -1;
+let filtroPoderesOrdem = "todos";
 let editandoAliado = -1;
 let vidaAtual = 50;
 let vidaTemp = 0;
 let inventario = [];
+let veiculos = [];
 let armas = [];
 let poderes = [];
 let profs = {};
@@ -1161,6 +1171,26 @@ function salvarGastosCirculos() {
 
 /* ================= POPUP ================= */
 
+
+function limparEspacosPopup(container) {
+  if (!container) return;
+
+  container
+    .querySelectorAll(".popup-descricao, .veiculo-item-popup-texto")
+    .forEach((el) => {
+      const primeiro = el.firstChild;
+      const ultimo = el.lastChild;
+
+      if (primeiro && primeiro.nodeType === Node.TEXT_NODE) {
+        primeiro.textContent = primeiro.textContent.replace(/^\s+/, "");
+      }
+
+      if (ultimo && ultimo.nodeType === Node.TEXT_NODE) {
+        ultimo.textContent = ultimo.textContent.replace(/\s+$/, "");
+      }
+    });
+}
+
 function abrirPopup(titulo, conteudo, usarHTML = false, onEditar = null) {
   const noGrimorio = document.getElementById("masterIgnea")?.style.display !== "none";
   const popup = document.getElementById("popup");
@@ -1172,8 +1202,9 @@ function abrirPopup(titulo, conteudo, usarHTML = false, onEditar = null) {
 
   tituloEl.textContent = titulo || "";
 
-  if (usarHTML) {
+    if (usarHTML) {
     textoEl.innerHTML = conteudo || "";
+    limparEspacosPopup(textoEl);
   } else {
     textoEl.textContent = conteudo || "";
   }
@@ -1243,94 +1274,260 @@ function editarItem(index) {
 
   const html = `
     <div class="popup-form">
+
       <label class="popup-label">Nome</label>
-      <input id="editItemNome" value="${item.nome || ""}">
+      <input
+        id="editItemNome"
+        value="${esc(item.nome || "")}"
+      >
 
       <label class="popup-label">Descrição</label>
-      <textarea id="editItemDesc">${item.desc || ""}</textarea>
+      <textarea id="editItemDesc">${esc(item.desc || "")}</textarea>
 
-      <label class="popup-label">Quantidade</label>
-      <input id="editItemQtd" type="number" min="1" value="${item.qtd || 1}">
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+          <label class="popup-label">Quantidade</label>
+
+          <input
+            id="editItemQtd"
+            type="number"
+            min="1"
+            value="${item.qtd || 1}"
+          >
+        </div>
+
+        <div class="inv-campo">
+          <label class="popup-label">Espaços por unidade</label>
+
+          <input
+            id="editItemEspacos"
+            type="number"
+            min="0"
+            step="any"
+            value="${numeroInventario(item.espacos)}"
+          >
+        </div>
+
+      </div>
+
+      <label class="popup-label">Categoria</label>
+
+      <input
+        id="editItemCategoria"
+        placeholder="0, I, II, III ou IV"
+        value="${esc(item.categoria || "")}"
+      >
+
+      <label class="popup-label">Modificações</label>
+
+      <textarea
+        id="editItemModificacoes"
+        placeholder="Modificações do item"
+      >${esc(item.modificacoes || "")}</textarea>
+
+      <label class="popup-label">Maldições</label>
+
+      <textarea
+        id="editItemMaldicoes"
+        placeholder="Maldições do item"
+      >${esc(item.maldicoes || "")}</textarea>
 
       <label class="popup-label">Imagem (opcional)</label>
-      <input type="file" id="editItemImagem" accept="image/*" onchange="previewEditItemImagem()" />
-      <label for="editItemImagem" class="botao-upload">🖼 Trocar imagem</label>
+
+      <input
+        type="file"
+        id="editItemImagem"
+        accept="image/*"
+        onchange="previewEditItemImagem()"
+      />
+
+      <label for="editItemImagem" class="botao-upload">
+        🖼 Trocar imagem
+      </label>
+
       <img
         id="editItemImagemPreview"
         src="${item.imagemUrl || ""}"
-        style="display:${item.imagemUrl ? "block" : "none"}; max-width:100%; border-radius:10px; margin-top:8px;"
+        style="
+          display:${item.imagemUrl ? "block" : "none"};
+          max-width:100%;
+          border-radius:10px;
+          margin-top:8px;
+        "
       />
-      <span class="link-remover-imagem" onclick="removerEditImagemItem()">Remover imagem</span>
+
+      <span
+        class="link-remover-imagem"
+        onclick="removerEditImagemItem()"
+      >
+        Remover imagem
+      </span>
 
       <div class="toggle-cargas" style="margin-top:10px;">
-        <span class="toggle-cargas-texto">Requer sintonia</span>
+
+        <span class="toggle-cargas-texto">
+          Requer sintonia
+        </span>
+
         <label class="switch-cargas">
+
           <input
             type="checkbox"
             id="editItemRequerSintonia"
             ${item.requerSintonia ? "checked" : ""}
             onchange="toggleEditSintoniaItem()"
           >
+
           <span class="slider-cargas"></span>
+
         </label>
+
       </div>
 
-      <div id="boxEditItemSintonizado" style="display:${item.requerSintonia ? "block" : "none"};">
+      <div
+        id="boxEditItemSintonizado"
+        style="display:${item.requerSintonia ? "block" : "none"};"
+      >
+
         <div class="toggle-cargas" style="margin-top:10px;">
-          <span class="toggle-cargas-texto">Está sintonizado</span>
+
+          <span class="toggle-cargas-texto">
+            Está sintonizado
+          </span>
+
           <label class="switch-cargas">
+
             <input
               type="checkbox"
               id="editItemSintonizado"
               ${item.sintonizado ? "checked" : ""}
             >
+
             <span class="slider-cargas"></span>
+
           </label>
+
         </div>
+
       </div>
 
-      <button class="popup-salvar-btn" onclick="salvarEdicaoItem(${index})">
+      <button
+        class="popup-salvar-btn"
+        onclick="salvarEdicaoItem(${index})"
+      >
         Salvar
       </button>
+
     </div>
   `;
 
-  abrirPopup("Editar item", html, true, null);
+  abrirPopup(
+    "Editar item",
+    html,
+    true,
+    null
+  );
 }
 
 async function salvarEdicaoItem(index) {
-  const nome = document.getElementById("editItemNome").value.trim();
-  const desc = document.getElementById("editItemDesc").value.trim();
-  const qtd = parseInt(document.getElementById("editItemQtd")?.value) || 1;
-  const requerSintonia = !!document.getElementById("editItemRequerSintonia")
-    ?.checked;
+  const nome =
+    document.getElementById("editItemNome")
+      ?.value.trim() || "";
+
+  const desc =
+    document.getElementById("editItemDesc")
+      ?.value.trim() || "";
+
+  const qtd =
+    parseInt(
+      document.getElementById("editItemQtd")?.value
+    ) || 1;
+
+  const espacos =
+    numeroInventario(
+      document.getElementById(
+        "editItemEspacos"
+      )?.value
+    );
+
+  const categoria =
+    document.getElementById(
+      "editItemCategoria"
+    )?.value.trim() || "";
+
+  const modificacoes =
+    document.getElementById(
+      "editItemModificacoes"
+    )?.value.trim() || "";
+
+  const maldicoes =
+    document.getElementById(
+      "editItemMaldicoes"
+    )?.value.trim() || "";
+
+  const requerSintonia =
+    !!document.getElementById(
+      "editItemRequerSintonia"
+    )?.checked;
+
   const sintonizado =
-    requerSintonia && !!document.getElementById("editItemSintonizado")?.checked;
+    requerSintonia &&
+    !!document.getElementById(
+      "editItemSintonizado"
+    )?.checked;
 
   if (!nome) return;
 
-  let imagemUrl = inventario[index]?.imagemUrl || "";
-  let imagemDeleteUrl = inventario[index]?.imagemDeleteUrl || "";
+  let imagemUrl =
+    inventario[index]?.imagemUrl || "";
+
+  let imagemDeleteUrl =
+    inventario[index]?.imagemDeleteUrl || "";
 
   if (editItemImagemBase64Temp === "REMOVIDA") {
+
     imagemUrl = "";
     imagemDeleteUrl = "";
+
   } else if (editItemImagemBase64Temp) {
-    const resultado = await uploadImagemFirebase(editItemImagemBase64Temp, "item");
+
+    const resultado =
+      await uploadImagemFirebase(
+        editItemImagemBase64Temp,
+        "item"
+      );
+
     if (resultado.erro || !resultado.url) {
-      alertBonito(_mensagemErroUpload("A imagem anterior foi mantida."))
+
+      alertBonito(
+        _mensagemErroUpload(
+          "A imagem anterior foi mantida."
+        )
+      );
+
     } else {
+
       imagemUrl = resultado.url;
       imagemDeleteUrl = resultado.deleteUrl;
     }
   }
 
   inventario[index] = {
+    ...inventario[index],
+
     nome,
     desc,
     qtd,
+
+    espacos,
+    categoria,
+    modificacoes,
+    maldicoes,
+
     requerSintonia,
     sintonizado,
+
     imagemUrl,
     imagemDeleteUrl,
   };
@@ -1377,10 +1574,40 @@ function editarArma(index) {
       <label class="popup-label">Nome</label>
       <input id="editArmaNome" value="${arma.nome || ""}">
 
-      <label class="popup-label">Dano</label>
-      <input id="editArmaDano" value="${arma.dano || ""}">
+      <label class="popup-label">
+  Dano
+</label>
 
-      <label class="popup-label">Descrição</label>
+<input
+  id="editArmaDano"
+  value="${esc(arma.dano || "")}"
+>
+
+
+<label class="popup-label">
+  Espaços no inventário
+</label>
+
+<input
+  id="editArmaEspacos"
+  type="number"
+  min="0"
+  step="any"
+  value="${numeroInventario(arma.espacos)}"
+>
+
+<label class="popup-label">Categoria</label>
+
+<input
+  id="editArmaCategoria"
+  placeholder="0, I, II, III ou IV"
+  value="${esc(arma.categoria || "")}"
+>
+
+
+<label class="popup-label">
+  Descrição
+</label>
       <textarea id="editArmaDesc">${arma.desc || ""}</textarea>
 
       <label class="popup-label">Imagem (opcional)</label>
@@ -1488,152 +1715,376 @@ function toggleEditCampoCargasPoder() {
 
 function editarPoder(index) {
   const poder = poderes[index];
+
   if (!poder) return;
+
+  const categoria =
+    normalizarCategoriaPoder(poder);
+
+  const ativacao =
+    normalizarAtivacaoPoder(poder);
 
   const html = `
     <div class="popup-form">
-      <label class="popup-label">Nome</label>
-      <input id="editPoderNome" value="${poder.nome || ""}">
 
-      <label class="popup-label">Tipo</label>
-      <select id="editPoderTipo" class="input-personagem">
-  <option value="">Tipo de dano</option>
-  <option value="fogo" ${normalizarTipo(poder.tipo) === "fogo" ? "selected" : ""}>🔥 Fogo</option>
-  <option value="gelo" ${normalizarTipo(poder.tipo) === "gelo" ? "selected" : ""}>❄️ Gelo</option>
-  <option value="raio" ${normalizarTipo(poder.tipo) === "raio" ? "selected" : ""}>⚡ Raio</option>
-  <option value="cura" ${normalizarTipo(poder.tipo) === "cura" ? "selected" : ""}>🩹 Cura</option>
-  <option value="trovejante" ${normalizarTipo(poder.tipo) === "trovejante" ? "selected" : ""}>🌩️ Trovejante</option>
-  <option value="necrotico" ${normalizarTipo(poder.tipo) === "necrotico" ? "selected" : ""}>💀 Necrótico</option>
-  <option value="radiante" ${normalizarTipo(poder.tipo) === "radiante" ? "selected" : ""}>✨ Radiante</option>
-  <option value="veneno" ${normalizarTipo(poder.tipo) === "veneno" ? "selected" : ""}>☠️ Veneno</option>
-  <option value="agua" ${normalizarTipo(poder.tipo) === "agua" ? "selected" : ""}>💧 Água</option>
-  <option value="magico" ${normalizarTipo(poder.tipo) === "magico" ? "selected" : ""}>☄️ Mágico</option>
-  <option value="psiquico" ${normalizarTipo(poder.tipo) === "psiquico" ? "selected" : ""}>🧠 Psíquico</option>
-  <option value="corte" ${normalizarTipo(poder.tipo) === "corte" ? "selected" : ""}>🔪 Corte</option>
-  <option value="perfurante" ${normalizarTipo(poder.tipo) === "perfurante" ? "selected" : ""}>📌 Perfurante</option>
-  <option value="concussao" ${normalizarTipo(poder.tipo) === "concussao" ? "selected" : ""}>💥 Concussão</option>
-  <option value="metal" ${normalizarTipo(poder.tipo) === "metal" ? "selected" : ""}>⚙️ Metal</option>
-  <option value="fisico" ${normalizarTipo(poder.tipo) === "fisico" ? "selected" : ""}>🗡️ Físico</option>
-  <option value="vento" ${normalizarTipo(poder.tipo) === "vento" ? "selected" : ""}>🍃 Vento</option>
-  <option value="madeira" ${normalizarTipo(poder.tipo) === "madeira" ? "selected" : ""}>🌳 Madeira</option>
-  <option value="terra" ${normalizarTipo(poder.tipo) === "terra" ? "selected" : ""}>🌍 Terra</option>
-  <option value="trevas" ${normalizarTipo(poder.tipo) === "trevas" ? "selected" : ""}>🌑 Trevas</option>
-  <option value="luz" ${normalizarTipo(poder.tipo) === "luz" ? "selected" : ""}>🌕 Luz</option>
-  <option value="espirito" ${normalizarTipo(poder.tipo) === "espirito" ? "selected" : ""}>🌓 Espírito</option>
-</select>
+      <label class="popup-label">
+        Nome
+      </label>
 
-      <label class="popup-label">Dano</label>
-      <input id="editPoderDano" value="${poder.dano || ""}">
+      <input
+        id="editPoderNome"
+        value="${esc(poder.nome || "")}"
+      >
 
-      <label class="popup-label">Círculo</label>
-<select id="editPoderCirculo" class="input-personagem">
-  <option value="" ${(poder.circulo ?? "") === "" ? "selected" : ""}>Sem círculo (Poder)</option>
-  <option value="talento" ${(poder.circulo ?? "") === "talento" ? "selected" : ""}>Talento</option>
-  <option value="passiva" ${(poder.circulo ?? "") === "passiva" ? "selected" : ""}>Passiva</option>
-  <option value="0" ${String(poder.circulo ?? "") === "0" ? "selected" : ""}>Círculo 0 (Truque)</option>
-  <option value="1" ${String(poder.circulo ?? "") === "1" ? "selected" : ""}>Círculo 1</option>
-  <option value="2" ${String(poder.circulo ?? "") === "2" ? "selected" : ""}>Círculo 2</option>
-  <option value="3" ${String(poder.circulo ?? "") === "3" ? "selected" : ""}>Círculo 3</option>
-  <option value="4" ${String(poder.circulo ?? "") === "4" ? "selected" : ""}>Círculo 4</option>
-  <option value="5" ${String(poder.circulo ?? "") === "5" ? "selected" : ""}>Círculo 5</option>
-  <option value="6" ${String(poder.circulo ?? "") === "6" ? "selected" : ""}>Círculo 6</option>
-  <option value="7" ${String(poder.circulo ?? "") === "7" ? "selected" : ""}>Círculo 7</option>
-  <option value="8" ${String(poder.circulo ?? "") === "8" ? "selected" : ""}>Círculo 8</option>
-  <option value="9" ${String(poder.circulo ?? "") === "9" ? "selected" : ""}>Círculo 9</option>
-</select>
 
-      <label class="popup-label">Conjuração</label>
-      <input id="editPoderTempo" value="${poder.tempo || ""}">
+      <label class="popup-label">
+        Categoria
+      </label>
 
-      <label class="popup-label">Alcance</label>
-      <input id="editPoderAlcance" value="${poder.alcance || ""}">
+      <select
+        id="editPoderCategoria"
+        class="input-personagem"
+      >
 
-      <label class="popup-label">Duração</label>
-      <input id="editPoderDuracao" value="${poder.duracao || ""}">
+        <option value="classe"
+          ${categoria === "classe" ? "selected" : ""}>
+          Classe
+        </option>
 
-      <label class="popup-label">Descrição</label>
-<textarea id="editPoderDesc">${poder.desc || ""}</textarea>
+        <option value="trilha"
+          ${categoria === "trilha" ? "selected" : ""}>
+          Trilha
+        </option>
 
-<div class="toggle-cargas" style="margin-top:10px;">
-  <span class="toggle-cargas-texto">Possui uso</span>
+        <option value="paranormal"
+          ${categoria === "paranormal" ? "selected" : ""}>
+          Paranormal
+        </option>
 
-  <label class="switch-cargas">
-    <input
-      type="checkbox"
-      id="editPoderTemCargas"
-      ${poder.temCargas ? "checked" : ""}
-      onchange="toggleEditCampoCargasPoder()"
-    >
-    <span class="slider-cargas"></span>
-  </label>
-</div>
+        <option value="origem"
+          ${categoria === "origem" ? "selected" : ""}>
+          Origem
+        </option>
 
-<input
-  id="editPoderMaxCargas"
-  type="number"
-  min="1"
-  max="30"
-  placeholder="Qtd. de usos"
-  value="${poder.maxCargas || ""}"
-  style="display:${poder.temCargas ? "block" : "none"};"
->
+        <option value="outros"
+          ${categoria === "outros" ? "selected" : ""}>
+          Outros
+        </option>
 
-<button class="popup-salvar-btn" onclick="salvarEdicaoPoder(${index})">
+      </select>
+
+
+      <label class="popup-label">
+        Ativação
+      </label>
+
+      <select
+        id="editPoderAtivacao"
+        class="input-personagem"
+      >
+
+        <option value="">
+          Não definida
+        </option>
+
+        <option value="passiva"
+          ${ativacao === "passiva" ? "selected" : ""}>
+          Passiva
+        </option>
+
+        <option value="padrao"
+          ${ativacao === "padrao" ? "selected" : ""}>
+          Ação Padrão
+        </option>
+
+        <option value="movimento"
+          ${ativacao === "movimento" ? "selected" : ""}>
+          Ação de Movimento
+        </option>
+
+        <option value="completa"
+          ${ativacao === "completa" ? "selected" : ""}>
+          Ação Completa
+        </option>
+
+        <option value="livre"
+          ${ativacao === "livre" ? "selected" : ""}>
+          Ação Livre
+        </option>
+
+        <option value="reacao"
+          ${ativacao === "reacao" ? "selected" : ""}>
+          Reação
+        </option>
+
+        <option value="especial"
+          ${ativacao === "especial" ? "selected" : ""}>
+          Especial
+        </option>
+
+      </select>
+
+
+      <label class="popup-label">
+        Custo
+      </label>
+
+      <input
+        id="editPoderCusto"
+        placeholder="Ex.: 2 PE"
+        value="${esc(poder.custo || "")}"
+      >
+
+
+      <label class="popup-label">
+        Limite
+      </label>
+
+      <input
+        id="editPoderLimite"
+        placeholder="Ex.: 1 vez por rodada"
+        value="${esc(poder.limite || "")}"
+      >
+
+
+      <label class="popup-label">
+        Pré-requisito
+      </label>
+
+      <input
+        id="editPoderRequisito"
+        value="${esc(poder.requisito || "")}"
+      >
+
+
+      <label class="popup-label">
+        Dano ou efeito numérico
+      </label>
+
+      <input
+        id="editPoderDano"
+        value="${esc(poder.dano || "")}"
+      >
+
+
+      <label class="popup-label">
+        Alcance
+      </label>
+
+      <input
+        id="editPoderAlcance"
+        value="${esc(poder.alcance || "")}"
+      >
+
+
+      <label class="popup-label">
+        Duração
+      </label>
+
+      <input
+        id="editPoderDuracao"
+        value="${esc(poder.duracao || "")}"
+      >
+
+
+      <label class="popup-label">
+        Descrição
+      </label>
+
+      <textarea id="editPoderDesc">${esc(poder.desc || "")}</textarea>
+
+
+      <div
+        class="toggle-cargas"
+        style="margin-top:10px;"
+      >
+
+        <span class="toggle-cargas-texto">
+          Possui usos limitados
+        </span>
+
+        <label class="switch-cargas">
+
+          <input
+            type="checkbox"
+            id="editPoderTemCargas"
+            ${poder.temCargas ? "checked" : ""}
+            onchange="toggleEditCampoCargasPoder()"
+          >
+
+          <span class="slider-cargas"></span>
+
+        </label>
+
+      </div>
+
+
+      <input
+        id="editPoderMaxCargas"
+        type="number"
+        min="1"
+        max="99"
+        placeholder="Quantidade de usos"
+        value="${poder.maxCargas || ""}"
+        style="
+          display:${
+            poder.temCargas
+              ? "block"
+              : "none"
+          };
+        "
+      >
+
+
+      <button
+        class="popup-salvar-btn"
+        onclick="salvarEdicaoPoder(${index})"
+      >
         Salvar
       </button>
+
     </div>
   `;
 
-  abrirPopup("Editar poder", html, true, null);
+  abrirPopup(
+    "Editar poder",
+    html,
+    true,
+    null
+  );
 }
 
 function salvarEdicaoPoder(index) {
-  const nome = document.getElementById("editPoderNome").value.trim();
-  const tipo = document.getElementById("editPoderTipo").value.trim();
-  const dano = document.getElementById("editPoderDano").value.trim();
-  const circulo = document.getElementById("editPoderCirculo").value.trim();
-  const tempo = document.getElementById("editPoderTempo").value.trim();
-  const alcance = document.getElementById("editPoderAlcance").value.trim();
-  const duracao = document.getElementById("editPoderDuracao").value.trim();
-  const desc = document.getElementById("editPoderDesc").value.trim();
+  const poderAnterior =
+    poderes[index];
 
-  const temCargas = !!document.getElementById("editPoderTemCargas")?.checked;
-  const maxCargas = temCargas
-    ? parseInt(document.getElementById("editPoderMaxCargas")?.value) || 0
-    : 0;
+  if (!poderAnterior) return;
 
-  if (!nome) return;
-  if (temCargas && maxCargas <= 0) return;
 
-  const poderAnterior = poderes[index];
+  const nome =
+    document.getElementById(
+      "editPoderNome"
+    )?.value.trim() || "";
+
+  const categoria =
+    document.getElementById(
+      "editPoderCategoria"
+    )?.value || "outros";
+
+  const ativacao =
+    document.getElementById(
+      "editPoderAtivacao"
+    )?.value || "";
+
+  const custo =
+    document.getElementById(
+      "editPoderCusto"
+    )?.value.trim() || "";
+
+  const limite =
+    document.getElementById(
+      "editPoderLimite"
+    )?.value.trim() || "";
+
+  const requisito =
+    document.getElementById(
+      "editPoderRequisito"
+    )?.value.trim() || "";
+
+  const dano =
+    document.getElementById(
+      "editPoderDano"
+    )?.value.trim() || "";
+
+  const alcance =
+    document.getElementById(
+      "editPoderAlcance"
+    )?.value.trim() || "";
+
+  const duracao =
+    document.getElementById(
+      "editPoderDuracao"
+    )?.value.trim() || "";
+
+  const desc =
+    document.getElementById(
+      "editPoderDesc"
+    )?.value.trim() || "";
+
+
+  const temCargas =
+    !!document.getElementById(
+      "editPoderTemCargas"
+    )?.checked;
+
+
+  const maxCargas =
+    temCargas
+      ? Math.max(
+          1,
+          parseInt(
+            document.getElementById(
+              "editPoderMaxCargas"
+            )?.value
+          ) || 1
+        )
+      : 0;
+
+
+  if (!nome) {
+    alertBonito("Digite o nome do poder.");
+    return;
+  }
+
 
   let cargasGastas = [];
 
   if (temCargas) {
+
     if (
-      poderAnterior?.temCargas &&
-      poderAnterior.maxCargas === maxCargas &&
-      Array.isArray(poderAnterior.cargasGastas)
+      poderAnterior.temCargas &&
+      Number(poderAnterior.maxCargas) ===
+        Number(maxCargas) &&
+      Array.isArray(
+        poderAnterior.cargasGastas
+      )
     ) {
-      cargasGastas = poderAnterior.cargasGastas;
+
+      cargasGastas =
+        poderAnterior.cargasGastas;
+
     } else {
-      cargasGastas = Array(maxCargas).fill(false);
+
+      cargasGastas =
+        Array(maxCargas).fill(false);
+
     }
   }
 
+
   poderes[index] = {
+    ...poderAnterior,
+
     nome,
-    tipo,
+
+    categoria,
+    ativacao,
+
+    custo,
+    limite,
+    requisito,
+
     dano,
-    circulo,
-    tempo,
     alcance,
     duracao,
+
     desc,
+
     temCargas,
     maxCargas,
     cargasGastas,
   };
+
 
   renderPoderes();
   salvarTudo();
@@ -1661,7 +2112,15 @@ function fecharPopup() {
 async function salvarEdicaoArma(index) {
   const nome = document.getElementById("editArmaNome").value.trim();
   const dano = document.getElementById("editArmaDano").value.trim();
+  const espacos =
+  numeroInventario(
+    document.getElementById(
+      "editArmaEspacos"
+    )?.value
+  );
   const desc = document.getElementById("editArmaDesc").value.trim();
+  const categoria =
+    document.getElementById("editArmaCategoria")?.value.trim() || "";
 
   const requerSintonia =
     !!document.getElementById("editArmaRequerSintonia")?.checked;
@@ -1711,15 +2170,22 @@ async function salvarEdicaoArma(index) {
     }
   }
 
-  armas[index] = {
+ armas[index] = {
+    ...armaAnterior,
+
   nome,
   dano,
+  espacos,
+  categoria,
   desc,
+
   temCargas,
   maxCargas,
   cargasGastas,
+
   requerSintonia,
   sintonizado,
+
   imagemUrl,
   imagemDeleteUrl,
 };
@@ -1830,10 +2296,50 @@ const dir = indexNovo > indexAntigo ? 1 : -1;
     };
   }
 
-  novaAba.style.display = "block";
-  novaAba.classList.add("active");
+ novaAba.style.display = "block";
+novaAba.classList.add("active");
 
-  novaAba.animate(
+
+/* CORRIGE O CARROSSEL DOS PODERES
+   DEPOIS QUE A ABA FICA VISÍVEL */
+if (id === "poderes") {
+
+  requestAnimationFrame(() => {
+
+    requestAnimationFrame(() => {
+
+      const filtros =
+        document.querySelector(
+          ".poderes-ordem-filtros"
+        );
+
+      if (!filtros) return;
+
+
+      if (filtroPoderesOrdem === "todos") {
+
+        filtros.scrollLeft = 0;
+
+      } else {
+
+        const ativo =
+          filtros.querySelector(
+            ".subtab-poder.active"
+          );
+
+        if (ativo) {
+          garantirFiltroPoderVisivel(ativo);
+        }
+      }
+
+    });
+
+  });
+
+}
+
+
+novaAba.animate(
     [
       { opacity: 0, transform: `translateX(${dir * 30}px)` },
       { opacity: 1, transform: "translateX(0)" }
@@ -2777,9 +3283,7 @@ function criarPersonagem() {
     saves: {},
     exaustao: 0,
     inspiracao: 0,
-    dtBase: 8,
-    dtAtributo: 0,
-    dtProf: 2,
+    pePorTurno: 0,
     dominio: [false, false, false, false, false, false],
     morte: {
       sucessos: [false, false, false],
@@ -2864,7 +3368,12 @@ function toggleDiario() {
 async function addArmadura() {
   const nome = document.getElementById("armaduraNome").value.trim();
   const ca = document.getElementById("armaduraCA").value.trim();
-  const desc = document.getElementById("armaduraDesc").value.trim();
+    const espacos = numeroInventario(
+    document.getElementById("armaduraEspacos")?.value
+  );
+
+    const categoria =
+    document.getElementById("armaduraCategoria")?.value.trim() || "";
 
   const temCargasEl = document.getElementById("armaduraTemCargas");
   const maxCargasEl = document.getElementById("armaduraMaxCargas");
@@ -2884,7 +3393,7 @@ async function addArmadura() {
   } else if (armaduraImagemBase64Temp) {
     const resultado = await uploadImagemFirebase(armaduraImagemBase64Temp, "armadura");
     if (resultado.erro || !resultado.url) {
-      alertBonito(_mensagemErroUpload("A armadura foi salva sem imagem."))
+      alertBonito(_mensagemErroUpload("A vestimenta foi salva sem imagem."))
     } else {
       imagemUrl = resultado.url;
       imagemDeleteUrl = resultado.deleteUrl;
@@ -2898,6 +3407,8 @@ async function addArmadura() {
     nome,
     ca,
     desc,
+    categoria,
+    espacos,
     temCargas,
     maxCargas,
     cargasGastas: temCargas ? Array(maxCargas).fill(false) : [],
@@ -2931,6 +3442,11 @@ async function addArmadura() {
   document.getElementById("armaduraNome").value = "";
   document.getElementById("armaduraCA").value = "";
   document.getElementById("armaduraDesc").value = "";
+  
+  const armaduraEspacosEl = document.getElementById("armaduraEspacos");
+  if (armaduraEspacosEl) armaduraEspacosEl.value = "0";
+    const armaduraCategoriaEl = document.getElementById("armaduraCategoria");
+  if (armaduraCategoriaEl) armaduraCategoriaEl.value = "";
 
     const requerSintoniaEl = document.getElementById("armaduraRequerSintonia");
   const sintonizadoEl = document.getElementById("armaduraSintonizado");
@@ -3034,6 +3550,18 @@ function renderArmaduras() {
 
 <div class="item-subtags">
   ${
+    numeroInventario(armadura.espacos) > 0
+      ? `<span class="item-subtag item-subtag-espaco">🎒 ${formatarNumeroInventario(armadura.espacos)} ${numeroInventario(armadura.espacos) === 1 ? "espaço" : "espaços"}</span>`
+      : ""
+  }
+
+  ${
+    armadura.categoria
+      ? `<span class="item-subtag item-subtag-categoria">Cat. ${esc(armadura.categoria)}</span>`
+      : ""
+  }
+
+  ${
     armadura.requerSintonia
       ? `<span class="item-subtag">🔗 Requer sintonia</span>`
       : ""
@@ -3044,6 +3572,7 @@ function renderArmaduras() {
       ? `<span class="item-subtag ativo">✅ Sintonizado</span>`
       : ""
   }
+</div>
 </div>
 
 <p class="armadura-desc-preview">
@@ -3063,7 +3592,8 @@ ${cargasHTML}
     ul.appendChild(li);
   });
 
-  habilitarArrastarReordenar(ul, armaduras, renderArmaduras);
+    habilitarArrastarReordenar(ul, armaduras, renderArmaduras);
+  atualizarResumoInventario();
 }
 
 function toggleCampoCargasArmadura() {
@@ -3095,6 +3625,20 @@ function verArmadura(index) {
       <div>
         <span class="popup-label">CA</span>
         <div class="popup-descricao-pequena">${esc(armadura.ca) || "Sem CA"}</div>
+      </div>
+
+      <div class="popup-info-grid" style="margin-top: 12px;">
+
+        <div>
+          <span class="popup-label">Espaços</span>
+          <div class="popup-descricao popup-descricao-pequena">${formatarNumeroInventario(armadura.espacos || 0)}</div>
+        </div>
+
+        <div>
+          <span class="popup-label">Categoria</span>
+          <div class="popup-descricao popup-descricao-pequena">${armadura.categoria ? esc(armadura.categoria) : "—"}</div>
+        </div>
+
       </div>
 
       <div style="margin-top: 12px;">
@@ -3134,8 +3678,24 @@ function editarArmadura(index) {
       <label class="popup-label">Nome</label>
       <input id="editArmaduraNome" value="${armadura.nome || ""}">
 
-      <label class="popup-label">CA</label>
+            <label class="popup-label">CA</label>
       <input id="editArmaduraCA" value="${armadura.ca || ""}">
+
+      <label class="popup-label">Espaços no inventário</label>
+      <input
+        id="editArmaduraEspacos"
+        type="number"
+        min="0"
+        step="any"
+        value="${numeroInventario(armadura.espacos)}"
+      >
+
+            <label class="popup-label">Categoria</label>
+      <input
+        id="editArmaduraCategoria"
+        placeholder="0, I, II, III ou IV"
+        value="${esc(armadura.categoria || "")}"
+      >
 
       <label class="popup-label">Descrição</label>
       <textarea id="editArmaduraDesc">${armadura.desc || ""}</textarea>
@@ -3212,7 +3772,7 @@ function editarArmadura(index) {
     </div>
   `;
 
-  abrirPopup("Editar armadura", html, true, null);
+  abrirPopup("Editar vestimenta", html, true, null);
 }
 
 function toggleEditCampoCargasArmadura() {
@@ -3267,7 +3827,12 @@ function toggleEditSintoniaArmadura() {
 
 async function salvarEdicaoArmadura(index) {
   const nome = document.getElementById("editArmaduraNome").value.trim();
-  const ca = document.getElementById("editArmaduraCA").value.trim();
+    const espacos = numeroInventario(
+    document.getElementById("editArmaduraEspacos")?.value
+  );
+
+    const categoria =
+    document.getElementById("editArmaduraCategoria")?.value.trim() || "";
   const desc = document.getElementById("editArmaduraDesc").value.trim();
 
   const requerSintonia =
@@ -3319,6 +3884,8 @@ const sintonizado =
   armaduras[index] = {
   nome,
   ca,
+  categoria,
+  espacos,
   desc,
   temCargas,
   maxCargas,
@@ -3413,13 +3980,13 @@ if (sanMaxOP) sanMaxOP.value = p.sanMaxOP ?? 0;
   const profExtras = document.getElementById("proficienciasExtras");
   if (profExtras) profExtras.value = p.proficienciasExtras || "";
 
-  const dtBase = document.getElementById("dtBase");
-  const dtAtributo = document.getElementById("dtAtributo");
-  const dtProf = document.getElementById("dtProf");
+ const pePorTurno =
+  document.getElementById("pePorTurno");
 
-  if (dtBase) dtBase.value = p.dtBase ?? 8;
-  if (dtAtributo) dtAtributo.value = p.dtAtributo ?? 0;
-  if (dtProf) dtProf.value = p.dtProf ?? 2;
+if (pePorTurno) {
+  pePorTurno.value =
+    p.pePorTurno ?? 0;
+}
 
     imagensPersonagem = Array.isArray(p.imagens) && p.imagens.length
     ? p.imagens
@@ -3440,7 +4007,22 @@ if (sanMaxOP) sanMaxOP.value = p.sanMaxOP ?? 0;
   vidaAtual = p.vidaAtual ?? 50;
   vidaTemp = p.vidaTemp ?? 0;
   inventario = p.inventario || [];
-  armas = p.armas || [];
+  veiculos =
+  Array.isArray(p.veiculos)
+    ? p.veiculos
+    : [];
+
+const inventarioEspacosMaxEl =
+  document.getElementById(
+    "inventarioEspacosMax"
+  );
+
+if (inventarioEspacosMaxEl) {
+  inventarioEspacosMaxEl.value =
+    p.capacidadeInventario ?? 0;
+}
+
+armas = p.armas || [];
   poderes = p.poderes || [];
   profs = p.profs || {};
   periciasSelecionadasOP =
@@ -3479,17 +4061,17 @@ if (sanMaxOP) sanMaxOP.value = p.sanMaxOP ?? 0;
   };
 
   renderInv();
-  renderArmas();
+renderVeiculos();
+renderArmas();
   renderPoderes();
   atualizarTudo();
   atualizarSaves();
   atualizarBadgesSaves();
   atualizarHP();
   atualizarTemp();
-  setExaustao(exaustao);
-  atualizarMorte();
-  atualizarDT();
-  entrarFicha();
+setExaustao(exaustao);
+atualizarMorte();
+entrarFicha();
   renderAliados();
   renderDominio();
 restaurarSecoes();
@@ -3569,7 +4151,16 @@ p.nivel = document.getElementById("nivel")?.value || "";
   p.vigor = get("vigor");
 
   p.inventario = inventario;
-  p.armas = armas;
+  p.veiculos = veiculos;
+
+p.capacidadeInventario =
+  numeroInventario(
+    document.getElementById(
+      "inventarioEspacosMax"
+    )?.value
+  );
+
+p.armas = armas;
   p.poderes = poderes;
   p.gastosCirculos = gastosCirculos;
 p.profs = profs;
@@ -3579,15 +4170,24 @@ p.saves = saves;
   p.morte = morte;
   p.dominio = dominio;
 
-  const inspiracao = document.getElementById("inspiracao");
-  const dtBase = document.getElementById("dtBase");
-  const dtAtributo = document.getElementById("dtAtributo");
-  const dtProf = document.getElementById("dtProf");
+  const inspiracao =
+  document.getElementById("inspiracao");
 
-  p.inspiracao = inspiracao ? inspiracao.value : 0;
-  p.dtBase = dtBase ? dtBase.value : 8;
-  p.dtAtributo = dtAtributo ? dtAtributo.value : 0;
-  p.dtProf = dtProf ? dtProf.value : 2;
+const pePorTurno =
+  document.getElementById("pePorTurno");
+
+p.inspiracao =
+  inspiracao
+    ? inspiracao.value
+    : 0;
+
+p.pePorTurno =
+  pePorTurno
+    ? Math.max(
+        0,
+        parseInt(pePorTurno.value) || 0
+      )
+    : 0;
 
   renderPersonagens();
   clearTimeout(window._debounceSalvar);
@@ -4021,7 +4621,7 @@ window.abrirPreviewFicha = function (i) {
   }
   if (f.previewEquip) {
     const icone = f.previewEquip.tipo === "arma" ? "⚔️" : "🛡️";
-    const rotulo = f.previewEquip.tipo === "arma" ? "Arma" : "Armadura";
+    const rotulo = f.previewEquip.tipo === "arma" ? "Arma" : "Vestimenta";
     html += `
       <div style="display:flex;align-items:flex-start;gap:10px;padding-top:14px;border-top:1px solid rgba(196,169,91,0.12);">
         <div style="width:30px;height:30px;flex-shrink:0;border-radius:50%;background:rgba(196,169,91,0.1);border:1px solid rgba(196,169,91,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">${icone}</div>
@@ -4509,28 +5109,190 @@ async function removerFotoCarrosselPopup() {
 
 /* ================= INVENTÁRIO ================= */
 
+  function numeroInventario(valor) {
+  const numero = Number(
+    String(valor ?? "")
+      .trim()
+      .replace(",", ".")
+  );
+
+  if (!Number.isFinite(numero)) return 0;
+
+  return Math.max(0, numero);
+}
+
+function formatarNumeroInventario(valor) {
+  const numero = numeroInventario(valor);
+
+  return numero.toLocaleString("pt-BR", {
+    maximumFractionDigits: 2,
+  });
+}
+
+function calcularEspacosItem(item) {
+  if (!item) return 0;
+
+  const quantidade = Math.max(
+    1,
+    parseInt(item.qtd) || 1
+  );
+
+  const espacos = numeroInventario(item.espacos);
+
+  return espacos * quantidade;
+}
+
+function calcularEspacosArmas() {
+  return armas.reduce((total, arma) => {
+    return (
+      total +
+      numeroInventario(arma?.espacos)
+    );
+  }, 0);
+}
+
+
+function calcularEspacosArmaduras() {
+  return armaduras.reduce((total, armadura) => {
+    return total + numeroInventario(armadura?.espacos);
+  }, 0);
+}
+
+function calcularEspacosInventario() {
+  const espacosItens =
+    inventario.reduce((total, item) => {
+      return total + calcularEspacosItem(item);
+    }, 0);
+
+  return (
+    espacosItens +
+    calcularEspacosArmas() +
+    calcularEspacosArmaduras()
+  );
+}
+
+function atualizarResumoInventario() {
+  const texto = document.getElementById(
+    "inventarioEspacosTexto"
+  );
+
+  const barra = document.getElementById(
+    "inventarioBarraPreenchimento"
+  );
+
+  const inputMax = document.getElementById(
+    "inventarioEspacosMax"
+  );
+
+  const usado = calcularEspacosInventario();
+  const maximo = numeroInventario(inputMax?.value);
+
+  if (texto) {
+    texto.textContent =
+      `${formatarNumeroInventario(usado)} / ` +
+      `${formatarNumeroInventario(maximo)} espaços`;
+  }
+
+  if (barra) {
+    let porcentagem = 0;
+
+    if (maximo > 0) {
+      porcentagem = (usado / maximo) * 100;
+    }
+
+    barra.style.width =
+      `${Math.min(100, porcentagem)}%`;
+
+    if (maximo > 0 && usado > maximo) {
+      barra.classList.add("excedido");
+    } else {
+      barra.classList.remove("excedido");
+    }
+  }
+}
+
+function atualizarCapacidadeInventario() {
+  atualizarResumoInventario();
+  salvarTudo();
+}
+
 async function addItem() {
-  const nome = document.getElementById("itemNome")?.value.trim();
-  const desc = document.getElementById("itemDesc")?.value.trim();
-  const qtd = parseInt(document.getElementById("itemQtd")?.value) || 1;
+  const nome =
+    document.getElementById("itemNome")?.value.trim();
+
+  const desc =
+    document.getElementById("itemDesc")?.value.trim();
+
+  const qtd =
+    parseInt(
+      document.getElementById("itemQtd")?.value
+    ) || 1;
+
+  const espacos =
+    numeroInventario(
+      document.getElementById("itemEspacos")?.value
+    );
+
+  const categoria =
+    document
+      .getElementById("itemCategoria")
+      ?.value.trim() || "";
+
+  const modificacoes =
+    document
+      .getElementById("itemModificacoes")
+      ?.value.trim() || "";
+
+  const maldicoes =
+    document
+      .getElementById("itemMaldicoes")
+      ?.value.trim() || "";
+
   const requerSintonia =
-    !!document.getElementById("itemRequerSintonia")?.checked;
+    !!document.getElementById(
+      "itemRequerSintonia"
+    )?.checked;
+
   const sintonizado =
-    requerSintonia && !!document.getElementById("itemSintonizado")?.checked;
+    requerSintonia &&
+    !!document.getElementById(
+      "itemSintonizado"
+    )?.checked;
 
   if (!nome) return;
 
-  let imagemUrl = editandoItem >= 0 ? inventario[editandoItem]?.imagemUrl || "" : "";
-  let imagemDeleteUrl = editandoItem >= 0 ? inventario[editandoItem]?.imagemDeleteUrl || "" : "";
+  let imagemUrl =
+    editandoItem >= 0
+      ? inventario[editandoItem]?.imagemUrl || ""
+      : "";
+
+  let imagemDeleteUrl =
+    editandoItem >= 0
+      ? inventario[editandoItem]?.imagemDeleteUrl || ""
+      : "";
 
   if (itemImagemBase64Temp === "REMOVIDA") {
     imagemUrl = "";
     imagemDeleteUrl = "";
+
   } else if (itemImagemBase64Temp) {
-    const resultado = await uploadImagemFirebase(itemImagemBase64Temp, "item");
+
+    const resultado =
+      await uploadImagemFirebase(
+        itemImagemBase64Temp,
+        "item"
+      );
+
     if (resultado.erro || !resultado.url) {
-      alertBonito(_mensagemErroUpload("O item foi salvo sem imagem."))
+
+      alertBonito(
+        _mensagemErroUpload(
+          "O item foi salvo sem imagem."
+        )
+      );
+
     } else {
+
       imagemUrl = resultado.url;
       imagemDeleteUrl = resultado.deleteUrl;
     }
@@ -4540,16 +5302,26 @@ async function addItem() {
     nome,
     desc,
     qtd,
+
+    espacos,
+    categoria,
+    modificacoes,
+    maldicoes,
+
     requerSintonia,
     sintonizado,
+
     imagemUrl,
     imagemDeleteUrl,
   };
 
   if (editandoItem >= 0) {
+
     inventario[editandoItem] = novoItem;
     editandoItem = -1;
+
   } else {
+
     inventario.push(novoItem);
   }
 
@@ -4559,14 +5331,34 @@ async function addItem() {
   document.getElementById("itemNome").value = "";
   document.getElementById("itemDesc").value = "";
   document.getElementById("itemQtd").value = "";
-  document.getElementById("itemRequerSintonia").checked = false;
-  document.getElementById("itemSintonizado").checked = false;
-  document.getElementById("boxItemSintonizado").style.display = "none";
-  document.getElementById("itemImagem").value = "";
-  document.getElementById("itemImagemPreview").style.display = "none";
+
+  document.getElementById("itemEspacos").value = "";
+  document.getElementById("itemCategoria").value = "";
+  document.getElementById("itemModificacoes").value = "";
+  document.getElementById("itemMaldicoes").value = "";
+
+  document.getElementById(
+    "itemRequerSintonia"
+  ).checked = false;
+
+  document.getElementById(
+    "itemSintonizado"
+  ).checked = false;
+
+  document.getElementById(
+    "boxItemSintonizado"
+  ).style.display = "none";
+
+  document.getElementById(
+    "itemImagem"
+  ).value = "";
+
+  document.getElementById(
+    "itemImagemPreview"
+  ).style.display = "none";
+
   itemImagemBase64Temp = "";
 }
-
 function previewItemImagem() {
   _previewImagemGenerica("itemImagem", "itemImagemPreview", v => itemImagemBase64Temp = v);
 }
@@ -4685,53 +5477,186 @@ function toggleSintoniaItem() {
 
 function renderInv() {
   const ul = document.getElementById("lista");
+
+  atualizarResumoInventario();
+
   if (!ul) return;
 
   ul.innerHTML = "";
 
   inventario.forEach((item, index) => {
     const li = document.createElement("li");
+
     li.className = "item-card";
     li.dataset.index = index;
 
-    li.innerHTML = `
-      <button type="button" class="drag-handle" aria-label="Arrastar para reordenar">⠿</button>
+    const espacosTotal =
+      calcularEspacosItem(item);
 
-      <div class="item-info" onclick="verItem(${index})">
+    li.innerHTML = `
+      <button
+        type="button"
+        class="drag-handle"
+        aria-label="Arrastar para reordenar"
+      >
+        ⠿
+      </button>
+
+      <div
+        class="item-info"
+        onclick="verItem(${index})"
+      >
+
         <div class="item-topo-linha">
+
           <strong class="item-nome">
-            ${item.nome ? esc(item.nome) : "Sem nome"}
-            ${item.requerSintonia ? `<span class="item-tag-sintonia">${item.sintonizado ? "Sint." : "Req. Sint."}</span>` : ""}
+            ${
+              item.nome
+                ? esc(item.nome)
+                : "Sem nome"
+            }
+
+            ${
+              item.requerSintonia
+                ? `
+                  <span class="item-tag-sintonia">
+                    ${
+                      item.sintonizado
+                        ? "Sint."
+                        : "Req. Sint."
+                    }
+                  </span>
+                `
+                : ""
+            }
           </strong>
 
-          <span class="item-qtd-badge">x${item.qtd || 1}</span>
+          <span class="item-qtd-badge">
+            x${item.qtd || 1}
+          </span>
+
         </div>
 
         <div class="item-subtags">
-          ${item.requerSintonia ? `<span class="item-subtag">🔗 Requer sintonia</span>` : ""}
-          ${item.sintonizado ? `<span class="item-subtag ativo">✅ Sintonizado</span>` : ""}
+
+  <span class="item-subtag item-subtag-espaco">
+    🎒 ${formatarNumeroInventario(espacosTotal)}
+    ${
+      espacosTotal === 1
+        ? " espaço"
+        : " espaços"
+    }
+  </span>
+
+          ${
+            item.categoria
+              ? `
+                <span class="item-subtag item-subtag-categoria">
+                  Cat. ${esc(item.categoria)}
+                </span>
+              `
+              : ""
+          }
+
+          ${
+            item.requerSintonia
+              ? `
+                <span class="item-subtag">
+                  🔗 Requer sintonia
+                </span>
+              `
+              : ""
+          }
+
+          ${
+            item.sintonizado
+              ? `
+                <span class="item-subtag ativo">
+                  ✅ Sintonizado
+                </span>
+              `
+              : ""
+          }
+
         </div>
 
         <p class="item-preview">
-          ${item.desc ? esc(item.desc).substring(0, 60) + (item.desc.length > 60 ? "..." : "") : "Sem descrição"}
+          ${
+            item.desc
+              ? esc(item.desc).substring(0, 60) +
+                (
+                  item.desc.length > 60
+                    ? "..."
+                    : ""
+                )
+              : "Sem descrição"
+          }
         </p>
+
       </div>
 
       <div class="item-acoes">
+
         <div class="acoes-topo">
-          <button type="button" class="btn-editar" onclick="event.stopPropagation(); editarItem(${index})">✏️</button>
+          <button
+            type="button"
+            class="btn-editar"
+            onclick="
+              event.stopPropagation();
+              editarItem(${index})
+            "
+          >
+            ✏️
+          </button>
         </div>
 
-        <button type="button" onclick="event.stopPropagation(); window.abrirDarItem('inventario', ${index})" style="background:#4a3b31;border:none;color:#C4A95B;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;">Dar</button>
+        <button
+          type="button"
+          onclick="
+            event.stopPropagation();
+            window.abrirDarItem(
+              'inventario',
+              ${index}
+            )
+          "
+          style="
+            background:#4a3b31;
+            border:none;
+            color:#C4A95B;
+            border-radius:8px;
+            padding:4px 8px;
+            font-size:11px;
+            cursor:pointer;
+          "
+        >
+          Dar
+        </button>
 
-        <button type="button" class="item-remover" onclick="event.stopPropagation(); removerItem(${index})">X</button>
+        <button
+          type="button"
+          class="item-remover"
+          onclick="
+            event.stopPropagation();
+            removerItem(${index})
+          "
+        >
+          X
+        </button>
+
       </div>
     `;
 
     ul.appendChild(li);
   });
 
-  habilitarArrastarReordenar(ul, inventario, renderInv);
+  habilitarArrastarReordenar(
+    ul,
+    inventario,
+    renderInv
+  );
+
+  
+  atualizarResumoInventario();
 }
 
 function toggleEditSintoniaItem() {
@@ -4753,40 +5678,126 @@ function verItem(index) {
   const item = inventario[index];
   if (!item) return;
 
+  const espacosTotal =
+    calcularEspacosItem(item);
+
   const html = `
-  <div class="popup-bloco">
-    ${
-      item.imagemUrl
-        ? `<div><img src="${item.imagemUrl}" class="popup-imagem-item" /></div>`
-        : ""
-    }
+    <div class="popup-bloco">
 
-    <div>
-      <span class="popup-label">Quantidade</span>
-      <div class="popup-descricao popup-descricao-pequena">${item.qtd || 1}</div>
-    </div>
+      ${
+        item.imagemUrl
+          ? `
+            <div>
+              <img
+                src="${item.imagemUrl}"
+                class="popup-imagem-item"
+              />
+            </div>
+          `
+          : ""
+      }
 
-    <div style="margin-top: 12px;">
-      <span class="popup-label">Sintonia</span>
-      <div class="popup-descricao popup-descricao-pequena">
-        ${
-          item.requerSintonia
-            ? item.sintonizado
-              ? "Requer sintonia — Sintonizado"
-              : "Requer sintonia — Não sintonizado"
-            : "Não requer sintonia"
-        }
+      <div class="popup-info-grid">
+
+        <div>
+          <span class="popup-label">
+            Quantidade
+          </span>
+
+          <div class="popup-descricao popup-descricao-pequena">
+            ${item.qtd || 1}
+          </div>
+        </div>
+
+        <div>
+          <span class="popup-label">
+            Espaços
+          </span>
+
+                    <div class="popup-descricao popup-descricao-pequena">${formatarNumeroInventario(item.espacos || 0)} / un.<br><strong>${formatarNumeroInventario(espacosTotal)} no total</strong></div>
+        </div>
+
+        <div>
+          <span class="popup-label">
+            Categoria
+          </span>
+
+          <div class="popup-descricao popup-descricao-pequena">
+            ${item.categoria ? esc(item.categoria) : "Não definida"}
+          </div>
+        </div>
+
       </div>
-    </div>
 
-    <div style="margin-top: 12px;">
-      <span class="popup-label">Descrição</span>
-      <div class="popup-descricao popup-descricao-grande">${item.desc || "Sem descrição"}</div>
-    </div>
-  </div>
-`;
+      <div style="margin-top:12px;">
+        <span class="popup-label">
+          Sintonia
+        </span>
 
-  abrirPopup(item.nome || "Sem nome", html, true, () => editarItem(index));
+        <div class="popup-descricao popup-descricao-pequena">
+          ${
+            item.requerSintonia
+              ? item.sintonizado
+                ? "Requer sintonia — Sintonizado"
+                : "Requer sintonia — Não sintonizado"
+              : "Não requer sintonia"
+          }
+        </div>
+      </div>
+
+      ${
+        item.modificacoes
+          ? `
+            <div style="margin-top:12px;">
+              <span class="popup-label">
+                Modificações
+              </span>
+
+              <div class="popup-descricao">
+                ${esc(item.modificacoes)}
+              </div>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        item.maldicoes
+          ? `
+            <div style="margin-top:12px;">
+              <span class="popup-label">
+                Maldições
+              </span>
+
+              <div class="popup-descricao">
+                ${esc(item.maldicoes)}
+              </div>
+            </div>
+          `
+          : ""
+      }
+
+      <div style="margin-top:12px;">
+
+        <span class="popup-label">
+          Descrição
+        </span>
+
+        <div class="popup-descricao popup-descricao-grande">
+          ${item.desc ? esc(item.desc) : "Sem descrição"}
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  abrirPopup(
+    item.nome || "Sem nome",
+    html,
+    true,
+    () => editarItem(index)
+  );
 }
 
 async function removerItem(index) {
@@ -4801,12 +5812,1862 @@ async function removerItem(index) {
   salvarTudo();
 }
 
+/* =========================================================
+   VEÍCULOS
+========================================================= */
+
+function calcularEspacosVeiculo(veiculo) {
+  if (!veiculo || !Array.isArray(veiculo.itens)) {
+    return 0;
+  }
+
+  return veiculo.itens.reduce(
+    (total, item) =>
+      total + calcularEspacosItem(item),
+    0
+  );
+}
+
+function addVeiculo() {
+  const nome =
+    document.getElementById("veiculoNome")
+      ?.value.trim() || "";
+
+  const icone =
+  document.getElementById("veiculoIcone")
+    ?.value || "🚗";
+
+  const desc =
+    document.getElementById("veiculoDesc")
+      ?.value.trim() || "";
+
+  const vidaMax =
+    numeroInventario(
+      document.getElementById(
+        "veiculoVidaMax"
+      )?.value
+    );
+
+  const gasolinaMax =
+    numeroInventario(
+      document.getElementById(
+        "veiculoGasolinaMax"
+      )?.value
+    );
+
+  const passageirosMax =
+    Math.max(
+      0,
+      parseInt(
+        document.getElementById(
+          "veiculoPassageirosMax"
+        )?.value
+      ) || 0
+    );
+
+  const espacosMax =
+    numeroInventario(
+      document.getElementById(
+        "veiculoEspacosMax"
+      )?.value
+    );
+
+  const categoriasPermitidas =
+    document.getElementById(
+      "veiculoCategorias"
+    )?.value.trim() || "";
+
+  if (!nome) {
+    alertBonito("Digite o nome do veículo.");
+    return;
+  }
+
+  veiculos.push({
+    nome,
+    icone,
+    desc,
+
+    vidaMax,
+    vidaAtual: vidaMax,
+
+    gasolinaMax,
+    gasolinaAtual: gasolinaMax,
+
+    passageirosMax,
+
+    espacosMax,
+    categoriasPermitidas,
+
+    itens: [],
+  });
+
+  document.getElementById("veiculoNome").value = "";
+document.getElementById("veiculoIcone").value = "🚗";
+document.getElementById("veiculoDesc").value = "";
+  document.getElementById("veiculoVidaMax").value = "";
+  document.getElementById("veiculoGasolinaMax").value = "";
+  document.getElementById("veiculoPassageirosMax").value = "";
+  document.getElementById("veiculoEspacosMax").value = "";
+  document.getElementById("veiculoCategorias").value = "";
+
+  renderVeiculos();
+  salvarTudo();
+}
+
+function renderVeiculos() {
+  const lista =
+    document.getElementById("listaVeiculos");
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  veiculos.forEach((veiculo, index) => {
+
+    const vidaMax =
+      numeroInventario(veiculo.vidaMax);
+
+    const vidaAtual =
+      numeroInventario(
+        veiculo.vidaAtual ?? vidaMax
+      );
+
+    const gasolinaMax =
+      numeroInventario(
+        veiculo.gasolinaMax
+      );
+
+    const gasolinaAtual =
+      numeroInventario(
+        veiculo.gasolinaAtual ?? gasolinaMax
+      );
+
+    const carga =
+      calcularEspacosVeiculo(veiculo);
+
+    const card =
+      document.createElement("li");
+
+    card.className = "veiculo-card";
+
+    card.onclick = () =>
+      verVeiculo(index);
+
+    card.innerHTML = `
+      <div class="veiculo-card-principal">
+
+        <div class="veiculo-card-topo">
+
+          <strong class="veiculo-card-nome">
+  <span class="veiculo-card-icone">
+    ${veiculo.icone || "🚗"}
+  </span>
+
+  ${esc(veiculo.nome || "Veículo")}
+</strong>
+
+          <button
+            class="item-remover"
+            type="button"
+            onclick="
+              event.stopPropagation();
+              removerVeiculo(${index})
+            "
+          >
+            ×
+          </button>
+
+        </div>
+
+        ${
+          veiculo.desc
+            ? `
+              <div class="veiculo-card-desc">
+                ${esc(veiculo.desc)}
+              </div>
+            `
+            : ""
+        }
+
+        <div class="veiculo-resumo-grid">
+
+          <span>
+            ❤️ ${formatarNumeroInventario(vidaAtual)}
+            /
+            ${formatarNumeroInventario(vidaMax)}
+          </span>
+
+          <span>
+            ⛽ ${formatarNumeroInventario(gasolinaAtual)}
+            /
+            ${formatarNumeroInventario(gasolinaMax)}
+          </span>
+
+          <span>
+            👥 ${veiculo.passageirosMax || 0}
+          </span>
+
+          <span>
+            🎒 ${formatarNumeroInventario(carga)}
+            /
+            ${formatarNumeroInventario(veiculo.espacosMax)}
+          </span>
+
+        </div>
+
+      </div>
+    `;
+
+    lista.appendChild(card);
+  });
+}
+
+/* =========================================================
+   SUBPOPUP DOS VEÍCULOS
+   Fica por cima do popup principal sem fechá-lo
+========================================================= */
+
+function abrirSubPopupVeiculo(titulo, conteudo) {
+  let overlay =
+    document.getElementById("subPopupVeiculo");
+
+  if (!overlay) {
+    overlay = document.createElement("div");
+
+    overlay.id = "subPopupVeiculo";
+    overlay.className = "subpopup-veiculo";
+
+    overlay.innerHTML = `
+      <div class="subpopup-veiculo-content">
+
+        <button
+          type="button"
+          class="subpopup-veiculo-fechar"
+          onclick="fecharSubPopupVeiculo()"
+        >
+          ×
+        </button>
+
+        <h3 id="subPopupVeiculoTitulo"></h3>
+
+        <div id="subPopupVeiculoTexto"></div>
+
+      </div>
+    `;
+
+    overlay.addEventListener(
+      "click",
+      (event) => {
+        if (event.target === overlay) {
+          fecharSubPopupVeiculo();
+        }
+      }
+    );
+
+    document.body.appendChild(overlay);
+  }
+
+  const tituloEl =
+    document.getElementById(
+      "subPopupVeiculoTitulo"
+    );
+
+  const textoEl =
+    document.getElementById(
+      "subPopupVeiculoTexto"
+    );
+
+  if (tituloEl) {
+    tituloEl.textContent =
+      titulo || "";
+  }
+
+  if (textoEl) {
+    textoEl.innerHTML =
+      conteudo || "";
+          limparEspacosPopup(textoEl);
+  }
+
+  overlay.style.display = "flex";
+}
+
+
+function fecharSubPopupVeiculo() {
+  const overlay =
+    document.getElementById(
+      "subPopupVeiculo"
+    );
+
+  if (overlay) {
+    overlay.style.display = "none";
+  }
+}
+
+function verVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  if (!Array.isArray(veiculo.itens)) {
+    veiculo.itens = [];
+  }
+
+  const vidaMax =
+    numeroInventario(veiculo.vidaMax);
+
+  veiculo.vidaAtual =
+    Math.min(
+      vidaMax,
+      numeroInventario(
+        veiculo.vidaAtual ?? vidaMax
+      )
+    );
+
+  const gasolinaMax =
+    numeroInventario(
+      veiculo.gasolinaMax
+    );
+
+  veiculo.gasolinaAtual =
+    Math.min(
+      gasolinaMax,
+      numeroInventario(
+        veiculo.gasolinaAtual ?? gasolinaMax
+      )
+    );
+
+  const carga =
+    calcularEspacosVeiculo(veiculo);
+
+  const itensHTML =
+    veiculo.itens.length
+      ? veiculo.itens
+          .map((item, itemIndex) => {
+
+            const total =
+              calcularEspacosItem(item);
+
+            return `
+  <div
+    class="veiculo-item"
+    onclick="
+      verItemVeiculo(
+        ${index},
+        ${itemIndex}
+      )
+    "
+  >
+
+    <div class="veiculo-item-info">
+
+                  <strong>
+                    ${esc(item.nome || "Item")}
+                  </strong>
+
+                  <div class="veiculo-item-meta">
+
+                    <span>
+                      x${item.qtd || 1}
+                    </span>
+
+                    <span>
+                      🎒
+                      ${formatarNumeroInventario(total)}
+                    </span>
+
+                    ${
+                      item.categoria
+                        ? `
+                          <span>
+                            Cat. ${esc(item.categoria)}
+                          </span>
+                        `
+                        : ""
+                    }
+
+                  </div>
+
+                </div>
+
+                <div class="veiculo-item-acoes">
+
+                  <button
+  type="button"
+  onclick="
+    event.stopPropagation();
+
+    editarItemVeiculo(
+      ${index},
+      ${itemIndex}
+    )
+  "
+>
+                  
+                    ✏️
+                  </button>
+
+                  <button
+  type="button"
+  onclick="
+    event.stopPropagation();
+
+    removerItemVeiculo(
+      ${index},
+      ${itemIndex}
+    )
+  "
+>
+                    ×
+                  </button>
+
+                </div>
+
+              </div>
+            `;
+          })
+          .join("")
+      : `
+          <div class="veiculo-sem-itens">
+            Nenhum item guardado.
+          </div>
+        `;
+
+  const html = `
+    <div class="popup-bloco">
+
+      ${
+        veiculo.desc
+          ? `
+            <div class="popup-descricao">
+              ${esc(veiculo.desc)}
+            </div>
+          `
+          : ""
+      }
+
+      <div class="veiculo-status-box">
+
+        <div class="veiculo-status-topo">
+
+          <span>❤️ Vida</span>
+
+          <strong id="veiculoVidaTexto">
+            ${formatarNumeroInventario(veiculo.vidaAtual)}
+            /
+            ${formatarNumeroInventario(vidaMax)}
+          </strong>
+
+        </div>
+
+        <input
+          class="veiculo-range veiculo-range-vida"
+          type="range"
+          min="0"
+          max="${Math.max(1, vidaMax)}"
+          step="1"
+          value="${veiculo.vidaAtual}"
+          ${vidaMax <= 0 ? "disabled" : ""}
+          oninput="
+            alterarVidaVeiculo(
+              ${index},
+              this.value,
+              false
+            )
+          "
+          onchange="
+            alterarVidaVeiculo(
+              ${index},
+              this.value,
+              true
+            )
+          "
+        >
+
+      </div>
+
+      <div class="veiculo-status-box">
+
+        <div class="veiculo-status-topo">
+
+          <span>⛽ Gasolina</span>
+
+          <strong id="veiculoGasolinaTexto">
+            ${formatarNumeroInventario(veiculo.gasolinaAtual)}
+            /
+            ${formatarNumeroInventario(gasolinaMax)}
+          </strong>
+
+        </div>
+
+        <input
+          class="veiculo-range veiculo-range-gasolina"
+          type="range"
+          min="0"
+          max="${Math.max(1, gasolinaMax)}"
+          step="1"
+          value="${veiculo.gasolinaAtual}"
+          ${gasolinaMax <= 0 ? "disabled" : ""}
+          oninput="
+            alterarGasolinaVeiculo(
+              ${index},
+              this.value,
+              false
+            )
+          "
+          onchange="
+            alterarGasolinaVeiculo(
+              ${index},
+              this.value,
+              true
+            )
+          "
+        >
+
+      </div>
+
+      <div class="veiculo-dados-grid">
+
+        <div>
+          <span>👥 Lugares</span>
+          <strong>
+            ${veiculo.passageirosMax || 0}
+          </strong>
+        </div>
+
+        <div>
+          <span>🎒 Carga</span>
+
+          <strong>
+            ${formatarNumeroInventario(carga)}
+            /
+            ${formatarNumeroInventario(veiculo.espacosMax)}
+          </strong>
+        </div>
+
+      </div>
+
+      <div style="margin-top:12px;">
+
+        <span class="popup-label">
+          Categorias permitidas
+        </span>
+
+        <div class="popup-descricao popup-descricao-pequena">
+          ${
+            veiculo.categoriasPermitidas
+              ? esc(veiculo.categoriasPermitidas)
+              : "Não definidas"
+          }
+        </div>
+
+      </div>
+
+      <div class="veiculo-itens-titulo">
+
+        <span>Itens no veículo</span>
+
+                <div class="veiculo-itens-botoes">
+
+          <button
+            type="button"
+            onclick="
+              abrirGuardarNoVeiculo(${index})
+            "
+          >
+            Transferir
+          </button>
+
+          <button
+            type="button"
+            onclick="
+              abrirAdicionarItemVeiculo(${index})
+            "
+          >
+            + Item
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="veiculo-itens-lista">
+        ${itensHTML}
+      </div>
+
+    </div>
+  `;
+
+  abrirPopup(
+    `${veiculo.icone || "🚗"} ${veiculo.nome || "Veículo"}`,
+    html,
+    true,
+    () => editarVeiculo(index)
+  );
+}
+
+function alterarVidaVeiculo(
+  index,
+  valor,
+  salvarAgora
+) {
+  const veiculo = veiculos[index];
+  if (!veiculo) return;
+
+  const max =
+    numeroInventario(veiculo.vidaMax);
+
+  veiculo.vidaAtual =
+    Math.min(
+      max,
+      numeroInventario(valor)
+    );
+
+  const texto =
+    document.getElementById(
+      "veiculoVidaTexto"
+    );
+
+  if (texto) {
+    texto.textContent =
+      `${formatarNumeroInventario(veiculo.vidaAtual)} / ` +
+      `${formatarNumeroInventario(max)}`;
+  }
+
+  if (salvarAgora) {
+    renderVeiculos();
+    salvarTudo();
+  }
+}
+
+function alterarGasolinaVeiculo(
+  index,
+  valor,
+  salvarAgora
+) {
+  const veiculo = veiculos[index];
+  if (!veiculo) return;
+
+  const max =
+    numeroInventario(
+      veiculo.gasolinaMax
+    );
+
+  veiculo.gasolinaAtual =
+    Math.min(
+      max,
+      numeroInventario(valor)
+    );
+
+  const texto =
+    document.getElementById(
+      "veiculoGasolinaTexto"
+    );
+
+  if (texto) {
+    texto.textContent =
+      `${formatarNumeroInventario(veiculo.gasolinaAtual)} / ` +
+      `${formatarNumeroInventario(max)}`;
+  }
+
+  if (salvarAgora) {
+    renderVeiculos();
+    salvarTudo();
+  }
+}
+
+function editarVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">
+        Nome
+      </label>
+
+      <input
+  id="editVeiculoNome"
+  value="${esc(veiculo.nome || "")}"
+>
+
+
+<label class="popup-label">
+  Tipo / ícone
+</label>
+
+<select
+  id="editVeiculoIcone"
+  class="input-personagem"
+>
+
+  <option value="🏍️"
+    ${veiculo.icone === "🏍️" ? "selected" : ""}>
+    🏍️ Moto
+  </option>
+
+  <option value="🚗"
+    ${!veiculo.icone || veiculo.icone === "🚗" ? "selected" : ""}>
+    🚗 Carro
+  </option>
+
+  <option value="🚌"
+    ${veiculo.icone === "🚌" ? "selected" : ""}>
+    🚌 Ônibus
+  </option>
+
+  <option value="🚐"
+    ${veiculo.icone === "🚐" ? "selected" : ""}>
+    🚐 Van
+  </option>
+
+  <option value="🚲"
+    ${veiculo.icone === "🚲" ? "selected" : ""}>
+    🚲 Bicicleta
+  </option>
+
+  <option value="🛹"
+    ${veiculo.icone === "🛹" ? "selected" : ""}>
+    🛹 Skate
+  </option>
+
+  <option value="🚚"
+    ${veiculo.icone === "🚚" ? "selected" : ""}>
+    🚚 Caminhão
+  </option>
+
+  <option value="🚁"
+    ${veiculo.icone === "🚁" ? "selected" : ""}>
+    🚁 Helicóptero
+  </option>
+
+  <option value="✈️"
+    ${veiculo.icone === "✈️" ? "selected" : ""}>
+    ✈️ Avião
+  </option>
+
+  <option value="🚤"
+    ${veiculo.icone === "🚤" ? "selected" : ""}>
+    🚤 Barco
+  </option>
+
+</select>
+
+
+<label class="popup-label">
+  Descrição
+</label>
+
+      <textarea id="editVeiculoDesc">${esc(veiculo.desc || "")}</textarea>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+
+          <label class="popup-label">
+            Vida máxima
+          </label>
+
+          <input
+            id="editVeiculoVidaMax"
+            type="number"
+            min="0"
+            value="${numeroInventario(veiculo.vidaMax)}"
+          >
+
+        </div>
+
+        <div class="inv-campo">
+
+          <label class="popup-label">
+            Gasolina máxima
+          </label>
+
+          <input
+            id="editVeiculoGasolinaMax"
+            type="number"
+            min="0"
+            value="${numeroInventario(veiculo.gasolinaMax)}"
+          >
+
+        </div>
+
+      </div>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+
+          <label class="popup-label">
+            Lugares
+          </label>
+
+          <input
+            id="editVeiculoPassageiros"
+            type="number"
+            min="0"
+            value="${veiculo.passageirosMax || 0}"
+          >
+
+        </div>
+
+        <div class="inv-campo">
+
+          <label class="popup-label">
+            Espaços
+          </label>
+
+          <input
+            id="editVeiculoEspacos"
+            type="number"
+            min="0"
+            step="any"
+            value="${numeroInventario(veiculo.espacosMax)}"
+          >
+
+        </div>
+
+      </div>
+
+      <label class="popup-label">
+        Categorias permitidas
+      </label>
+
+      <input
+        id="editVeiculoCategorias"
+        value="${esc(veiculo.categoriasPermitidas || "")}"
+      >
+
+      <button
+        class="popup-salvar-btn"
+        onclick="salvarEdicaoVeiculo(${index})"
+      >
+        Salvar
+      </button>
+
+    </div>
+  `;
+
+  abrirSubPopupVeiculo(
+  "Editar veículo",
+  html
+);
+}
+
+function salvarEdicaoVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  const nome =
+    document.getElementById(
+      "editVeiculoNome"
+    )?.value.trim() || "";
+
+  if (!nome) return;
+
+  const vidaMax =
+    numeroInventario(
+      document.getElementById(
+        "editVeiculoVidaMax"
+      )?.value
+    );
+
+  const gasolinaMax =
+    numeroInventario(
+      document.getElementById(
+        "editVeiculoGasolinaMax"
+      )?.value
+    );
+
+  veiculo.nome = nome;
+
+veiculo.icone =
+  document.getElementById(
+    "editVeiculoIcone"
+  )?.value || "🚗";
+
+veiculo.desc =
+    document.getElementById(
+      "editVeiculoDesc"
+    )?.value.trim() || "";
+
+  veiculo.vidaMax = vidaMax;
+
+  veiculo.vidaAtual =
+    Math.min(
+      numeroInventario(
+        veiculo.vidaAtual
+      ),
+      vidaMax
+    );
+
+  veiculo.gasolinaMax =
+    gasolinaMax;
+
+  veiculo.gasolinaAtual =
+    Math.min(
+      numeroInventario(
+        veiculo.gasolinaAtual
+      ),
+      gasolinaMax
+    );
+
+  veiculo.passageirosMax =
+    Math.max(
+      0,
+      parseInt(
+        document.getElementById(
+          "editVeiculoPassageiros"
+        )?.value
+      ) || 0
+    );
+
+  veiculo.espacosMax =
+    numeroInventario(
+      document.getElementById(
+        "editVeiculoEspacos"
+      )?.value
+    );
+
+  veiculo.categoriasPermitidas =
+    document.getElementById(
+      "editVeiculoCategorias"
+    )?.value.trim() || "";
+
+  renderVeiculos();
+salvarTudo();
+
+fecharSubPopupVeiculo();
+verVeiculo(index);
+}
+
+async function removerVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  const confirmar =
+    await confirmBonito(
+      `Remover "${veiculo.nome}"?`
+    );
+
+  if (!confirmar) return;
+
+  veiculos.splice(index, 1);
+
+  renderVeiculos();
+  salvarTudo();
+}
+
+function abrirAdicionarItemVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">
+        Nome
+      </label>
+
+      <input
+        id="veiculoItemNome"
+        placeholder="Nome do item"
+      >
+
+      <label class="popup-label">
+        Descrição
+      </label>
+
+      <textarea
+        id="veiculoItemDesc"
+        placeholder="Descrição"
+      ></textarea>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+
+          <label>Quantidade</label>
+
+          <input
+            id="veiculoItemQtd"
+            type="number"
+            min="1"
+            value="1"
+          >
+
+        </div>
+
+        <div class="inv-campo">
+
+          <label>Espaços por unidade</label>
+
+          <input
+            id="veiculoItemEspacos"
+            type="number"
+            min="0"
+            step="any"
+            value="0"
+          >
+
+        </div>
+
+      </div>
+
+      <label class="popup-label">
+        Categoria
+      </label>
+
+      <input
+        id="veiculoItemCategoria"
+        placeholder="0, I, II..."
+      >
+
+      <label class="popup-label">
+        Modificações
+      </label>
+
+      <textarea
+        id="veiculoItemModificacoes"
+      ></textarea>
+
+      <label class="popup-label">
+        Maldições
+      </label>
+
+      <textarea
+        id="veiculoItemMaldicoes"
+      ></textarea>
+
+      <button
+        class="popup-salvar-btn"
+        onclick="
+          salvarNovoItemVeiculo(${index})
+        "
+      >
+        Adicionar
+      </button>
+
+    </div>
+  `;
+
+  abrirSubPopupVeiculo(
+  "Adicionar item ao veículo",
+  html
+);
+}
+
+function salvarNovoItemVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  if (!Array.isArray(veiculo.itens)) {
+    veiculo.itens = [];
+  }
+
+  const nome =
+    document.getElementById(
+      "veiculoItemNome"
+    )?.value.trim() || "";
+
+  if (!nome) return;
+
+  veiculo.itens.push({
+    nome,
+
+    desc:
+      document.getElementById(
+        "veiculoItemDesc"
+      )?.value.trim() || "",
+
+    qtd:
+      Math.max(
+        1,
+        parseInt(
+          document.getElementById(
+            "veiculoItemQtd"
+          )?.value
+        ) || 1
+      ),
+
+    espacos:
+      numeroInventario(
+        document.getElementById(
+          "veiculoItemEspacos"
+        )?.value
+      ),
+
+    categoria:
+      document.getElementById(
+        "veiculoItemCategoria"
+      )?.value.trim() || "",
+
+    modificacoes:
+      document.getElementById(
+        "veiculoItemModificacoes"
+      )?.value.trim() || "",
+
+    maldicoes:
+      document.getElementById(
+        "veiculoItemMaldicoes"
+      )?.value.trim() || "",
+  });
+
+  renderVeiculos();
+salvarTudo();
+
+fecharSubPopupVeiculo();
+verVeiculo(index);
+}
+
+function verItemVeiculo(
+  veiculoIndex,
+  itemIndex
+) {
+  const item =
+    veiculos[veiculoIndex]
+      ?.itens?.[itemIndex];
+
+  if (!item) return;
+
+  const totalEspacos =
+    calcularEspacosItem(item);
+
+  const html = `
+    <div class="veiculo-item-popup-view">
+
+      <div class="veiculo-item-popup-grid">
+
+        <div>
+          <span>Quantidade</span>
+
+          <strong>
+            ${item.qtd || 1}
+          </strong>
+        </div>
+
+        <div>
+          <span>Espaços</span>
+
+          <strong>
+            ${formatarNumeroInventario(
+              item.espacos || 0
+            )}
+            / un.
+          </strong>
+        </div>
+
+        <div>
+          <span>Total</span>
+
+          <strong>
+            ${formatarNumeroInventario(
+              totalEspacos
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>Categoria</span>
+
+          <strong>
+            ${
+              item.categoria
+                ? esc(item.categoria)
+                : "—"
+            }
+          </strong>
+        </div>
+
+      </div>
+
+
+      ${
+        item.modificacoes
+          ? `
+            <div class="veiculo-item-popup-bloco">
+
+              <span class="popup-label">
+                Modificações
+              </span>
+
+              <div class="veiculo-item-popup-texto">
+                ${esc(item.modificacoes)}
+              </div>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      ${
+        item.maldicoes
+          ? `
+            <div class="veiculo-item-popup-bloco">
+
+              <span class="popup-label">
+                Maldições
+              </span>
+
+              <div class="veiculo-item-popup-texto">
+                ${esc(item.maldicoes)}
+              </div>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      <div class="veiculo-item-popup-bloco">
+
+        <span class="popup-label">
+          Descrição
+        </span>
+
+        <div class="veiculo-item-popup-texto">
+          ${
+            item.desc
+              ? esc(item.desc)
+              : "Sem descrição"
+          }
+        </div>
+
+      </div>
+
+
+            <div class="veiculo-item-popup-acoes">
+
+        <button
+          type="button"
+          class="popup-salvar-btn"
+          onclick="
+            editarItemVeiculo(
+              ${veiculoIndex},
+              ${itemIndex}
+            )
+          "
+        >
+          Editar item
+        </button>
+
+        <button
+          type="button"
+          class="popup-salvar-btn"
+          onclick="
+            abrirRetirarItemVeiculo(
+              ${veiculoIndex},
+              ${itemIndex}
+            )
+          "
+        >
+          Retirar do veículo
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  abrirSubPopupVeiculo(
+    item.nome || "Item",
+    html
+  );
+}
+
+function editarItemVeiculo(
+  veiculoIndex,
+  itemIndex
+) {
+  const item =
+    veiculos[veiculoIndex]
+      ?.itens?.[itemIndex];
+
+  if (!item) return;
+
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">
+        Nome
+      </label>
+
+      <input
+        id="editVeiculoItemNome"
+        value="${esc(item.nome || "")}"
+      >
+
+      <label class="popup-label">
+        Descrição
+      </label>
+
+      <textarea id="editVeiculoItemDesc">${esc(item.desc || "")}</textarea>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+
+          <label>Quantidade</label>
+
+          <input
+            id="editVeiculoItemQtd"
+            type="number"
+            min="1"
+            value="${item.qtd || 1}"
+          >
+
+        </div>
+
+        <div class="inv-campo">
+
+          <label>
+            Espaços por unidade
+          </label>
+
+          <input
+            id="editVeiculoItemEspacos"
+            type="number"
+            min="0"
+            step="any"
+            value="${numeroInventario(item.espacos)}"
+          >
+
+        </div>
+
+      </div>
+
+      <label class="popup-label">
+        Categoria
+      </label>
+
+      <input
+        id="editVeiculoItemCategoria"
+        value="${esc(item.categoria || "")}"
+      >
+
+      <label class="popup-label">
+        Modificações
+      </label>
+
+      <textarea id="editVeiculoItemModificacoes">${esc(item.modificacoes || "")}</textarea>
+
+      <label class="popup-label">
+        Maldições
+      </label>
+
+      <textarea id="editVeiculoItemMaldicoes">${esc(item.maldicoes || "")}</textarea>
+
+      <button
+        class="popup-salvar-btn"
+        onclick="
+          salvarEdicaoItemVeiculo(
+            ${veiculoIndex},
+            ${itemIndex}
+          )
+        "
+      >
+        Salvar
+      </button>
+
+    </div>
+  `;
+
+  abrirSubPopupVeiculo(
+  "Editar item do veículo",
+  html
+);
+}
+
+function salvarEdicaoItemVeiculo(
+  veiculoIndex,
+  itemIndex
+) {
+  const item =
+    veiculos[veiculoIndex]
+      ?.itens?.[itemIndex];
+
+  if (!item) return;
+
+  const nome =
+    document.getElementById(
+      "editVeiculoItemNome"
+    )?.value.trim() || "";
+
+  if (!nome) return;
+
+  item.nome = nome;
+
+  item.desc =
+    document.getElementById(
+      "editVeiculoItemDesc"
+    )?.value.trim() || "";
+
+  item.qtd =
+    Math.max(
+      1,
+      parseInt(
+        document.getElementById(
+          "editVeiculoItemQtd"
+        )?.value
+      ) || 1
+    );
+
+  item.espacos =
+    numeroInventario(
+      document.getElementById(
+        "editVeiculoItemEspacos"
+      )?.value
+    );
+
+  item.categoria =
+    document.getElementById(
+      "editVeiculoItemCategoria"
+    )?.value.trim() || "";
+
+  item.modificacoes =
+    document.getElementById(
+      "editVeiculoItemModificacoes"
+    )?.value.trim() || "";
+
+  item.maldicoes =
+    document.getElementById(
+      "editVeiculoItemMaldicoes"
+    )?.value.trim() || "";
+
+  renderVeiculos();
+salvarTudo();
+
+fecharSubPopupVeiculo();
+verVeiculo(veiculoIndex);
+}
+
+async function removerItemVeiculo(
+  veiculoIndex,
+  itemIndex
+) {
+  const veiculo =
+    veiculos[veiculoIndex];
+
+  const item =
+    veiculo?.itens?.[itemIndex];
+
+  if (!veiculo || !item) return;
+
+  const confirmar =
+    await confirmBonito(
+      `Remover "${item.nome}" do veículo?`
+    );
+
+  if (!confirmar) return;
+
+  veiculo.itens.splice(
+    itemIndex,
+    1
+  );
+
+  renderVeiculos();
+  salvarTudo();
+
+  verVeiculo(veiculoIndex);
+}
+
+
+/* ================= TRANSFERIR ITENS: VEÍCULO <-> FICHA ================= */
+
+function copiaProfunda(obj) {
+  return JSON.parse(JSON.stringify(obj || {}));
+}
+
+// Ficha -> veículo (guarda o original pra devolver sem perder nada)
+// Ficha -> veículo (guarda o original pra devolver sem perder nada)
+function itemParaVeiculo(item, tipo) {
+  const dados = copiaProfunda(item);
+
+  if (tipo === "armas") {
+    return {
+      nome: dados.nome || "Arma",
+      desc: dados.desc || "",
+      qtd: 1,
+      espacos: numeroInventario(dados.espacos),
+      categoria: dados.categoria || "",
+      modificacoes: "",
+      maldicoes: "",
+      origemTipo: "armas",
+      origemDados: dados,
+    };
+  }
+
+  if (tipo === "armaduras") {
+    return {
+      nome: dados.nome || "Vestimenta",
+      desc: dados.desc || "",
+      qtd: 1,
+      espacos: numeroInventario(dados.espacos),
+      categoria: dados.categoria || "",
+      modificacoes: "",
+      maldicoes: "",
+      origemTipo: "armaduras",
+      origemDados: dados,
+    };
+  }
+
+  return {
+    nome: dados.nome || "Item",
+    desc: dados.desc || "",
+    qtd: Math.max(1, parseInt(dados.qtd) || 1),
+    espacos: numeroInventario(dados.espacos),
+    categoria: dados.categoria || "",
+    modificacoes: dados.modificacoes || "",
+    maldicoes: dados.maldicoes || "",
+    origemTipo: "inventario",
+    origemDados: dados,
+  };
+}
+
+// Veículo -> ficha (inventario | armas | armaduras)
+// Veículo -> ficha (inventario | armas | armaduras)
+function itemDoVeiculoPara(item, destino, primeiro = true) {
+  const o = item.origemDados || {};
+
+  const comum = {
+    nome: item.nome || "Item",
+    requerSintonia: !!o.requerSintonia,
+    sintonizado: !!o.requerSintonia && !!o.sintonizado,
+    // cópias extras não reaproveitam a imagem (evita apagar uma ao remover outra)
+    imagemUrl: primeiro ? o.imagemUrl || "" : "",
+    imagemDeleteUrl: primeiro ? o.imagemDeleteUrl || "" : "",
+  };
+
+  // Saída 1: vai para o inventário
+  if (destino === "inventario") {
+    return {
+      ...comum,
+      desc: item.desc || "",
+      qtd: Math.max(1, parseInt(item.qtd) || 1),
+      espacos: numeroInventario(item.espacos),
+      categoria: item.categoria || "",
+      modificacoes: item.modificacoes || "",
+      maldicoes: item.maldicoes || "",
+    };
+  }
+
+  // Armas e vestimentas não têm modificações/maldições:
+  // esses textos vão pra dentro da descrição pra nada se perder.
+  const desc = [
+    item.desc,
+    item.modificacoes ? `Modificações: ${item.modificacoes}` : "",
+    item.maldicoes ? `Maldições: ${item.maldicoes}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const maxCargas = parseInt(o.maxCargas) || 0;
+  const temCargas = !!o.temCargas && maxCargas > 0;
+
+  const cargas = {
+    temCargas,
+    maxCargas: temCargas ? maxCargas : 0,
+    cargasGastas: temCargas
+      ? Array.isArray(o.cargasGastas)
+        ? [...o.cargasGastas]
+        : Array(maxCargas).fill(false)
+      : [],
+  };
+
+  // Saída 2: vai para as armas
+  if (destino === "armas") {
+    return {
+      ...comum,
+      ...cargas,
+      desc,
+      dano: o.dano || "",
+      espacos: numeroInventario(item.espacos),
+      categoria: item.categoria || "",
+    };
+  }
+
+  // Saída 3: vai para as vestimentas
+  return {
+    ...comum,
+    ...cargas,
+    desc,
+    ca: o.ca || "",
+    espacos: numeroInventario(item.espacos),
+    categoria: item.categoria || "",
+  };
+}
+
+// Pergunta quantas unidades transferir. Devolve 1..max, ou null se cancelou.
+async function pedirQuantidadeTransferencia(nome, max, aviso = "") {
+  if (max <= 1) return 1;
+
+  const resposta = await promptBonito(
+    `Quantas unidades de "${nome}" transferir? (1 a ${max}) ${aviso}`.trim(),
+    max
+  );
+
+  if (resposta === null || resposta === undefined) return null;
+
+  const n = parseInt(String(resposta).trim(), 10);
+
+  if (!Number.isFinite(n) || n < 1) return null;
+
+  return Math.min(n, max);
+}
+
+// Dois itens são "o mesmo" se dá pra somar as quantidades
+function mesmoItem(a, b) {
+  const tipoA = a.origemTipo || "inventario";
+  const tipoB = b.origemTipo || "inventario";
+
+  if (tipoA !== "inventario" || tipoB !== "inventario") return false;
+
+  // itens no veículo guardam sintonia/imagem dentro de origemDados
+  const dadosA = a.origemDados || a;
+  const dadosB = b.origemDados || b;
+
+  return (
+    ["nome", "desc", "categoria", "modificacoes", "maldicoes"].every(
+      (campo) => (a[campo] || "") === (b[campo] || "")
+    ) &&
+    numeroInventario(a.espacos) === numeroInventario(b.espacos) &&
+    !!dadosA.requerSintonia === !!dadosB.requerSintonia &&
+    !!dadosA.sintonizado === !!dadosB.sintonizado
+  );
+}
+
+/* ---------- Transferir da ficha para o veículo ---------- */
+
+function abrirGuardarNoVeiculo(veiculoIndex) {
+  if (!veiculos[veiculoIndex]) return;
+
+  const grupos = [
+    { tipo: "inventario", titulo: "Inventário", lista: inventario },
+    { tipo: "armas", titulo: "Armas", lista: armas },
+    { tipo: "armaduras", titulo: "Vestimentas", lista: armaduras },
+  ];
+
+  const html = `
+    <div class="veiculo-transf">
+      ${grupos
+        .map(
+          (g) => `
+        <div class="veiculo-transf-grupo">
+          <span class="popup-label">${g.titulo}</span>
+          ${
+            g.lista.length
+              ? g.lista
+                  .map(
+                    (it, i) => `
+                <button
+                  type="button"
+                  class="veiculo-transf-btn"
+                  onclick="guardarNoVeiculo(${veiculoIndex}, '${g.tipo}', ${i})"
+                >
+                  <span>${esc(it.nome || "Sem nome")}</span>
+                  ${
+                    g.tipo === "inventario" && (parseInt(it.qtd) || 1) > 1
+                      ? `<small>x${parseInt(it.qtd)}</small>`
+                      : ""
+                  }
+                </button>`
+                  )
+                  .join("")
+              : `<div class="veiculo-sem-itens">Nada por aqui.</div>`
+          }
+        </div>`
+        )
+        .join("")}
+    </div>
+  `;
+
+  abrirSubPopupVeiculo("Transferir para o veículo", html);
+}
+
+async function guardarNoVeiculo(veiculoIndex, tipo, itemIndex) {
+  const veiculo = veiculos[veiculoIndex];
+  const origem = { inventario, armas, armaduras }[tipo];
+  const original = origem?.[itemIndex];
+
+  if (!veiculo || !original) return;
+
+  if (!Array.isArray(veiculo.itens)) veiculo.itens = [];
+
+  // só o inventário tem quantidade; arma e vestimenta vão inteiras
+  const qtdTotal =
+    tipo === "inventario" ? Math.max(1, parseInt(original.qtd) || 1) : 1;
+
+  const quantidade = await pedirQuantidadeTransferencia(
+    original.nome || "item",
+    qtdTotal
+  );
+
+  if (quantidade === null) return;
+
+  const novo = itemParaVeiculo(original, tipo);
+  novo.qtd = quantidade;
+
+  if (tipo === "inventario") novo.origemDados.qtd = quantidade;
+
+  const max = numeroInventario(veiculo.espacosMax);
+  const cargaFinal = calcularEspacosVeiculo(veiculo) + calcularEspacosItem(novo);
+
+  if (max > 0 && cargaFinal > max) {
+    const ok = await confirmBonito(
+      `"${novo.nome}" passa da capacidade do veículo. Guardar mesmo assim?`
+    );
+    if (!ok) return;
+  }
+
+  // tira da ficha só a quantidade escolhida
+  if (quantidade < qtdTotal) {
+    original.qtd = qtdTotal - quantidade;
+  } else {
+    origem.splice(itemIndex, 1);
+  }
+
+  // soma na pilha do veículo se já existir um igual
+  const igual =
+    tipo === "inventario"
+      ? veiculo.itens.find((it) => mesmoItem(it, novo))
+      : null;
+
+  if (igual) {
+    igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+  } else {
+    veiculo.itens.push(novo);
+  }
+
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+/* ---------- Retirar do veículo para a ficha ---------- */
+
+async function retirarItemVeiculo(veiculoIndex, itemIndex, destino) {
+  const veiculo = veiculos[veiculoIndex];
+  const item = veiculo?.itens?.[itemIndex];
+
+  if (!veiculo || !item) return;
+
+  const alvo = { inventario, armas, armaduras }[destino];
+  if (!alvo) return;
+
+  const qtdTotal = Math.max(1, parseInt(item.qtd) || 1);
+
+  const aviso =
+    destino === "inventario"
+      ? ""
+      : `(${destino === "armas" ? "Armas" : "Vestimentas"} não têm quantidade: cada unidade vira uma entrada separada.)`;
+
+  const quantidade = await pedirQuantidadeTransferencia(
+    item.nome || "item",
+    qtdTotal,
+    aviso
+  );
+
+  if (quantidade === null) return;
+
+  if (destino === "inventario") {
+    const novo = itemDoVeiculoPara(item, "inventario");
+    novo.qtd = quantidade;
+
+    const igual = alvo.find((it) => mesmoItem(it, novo));
+
+    if (igual) {
+      igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+    } else {
+      alvo.push(novo);
+    }
+  } else {
+    for (let i = 0; i < quantidade; i++) {
+      alvo.push(itemDoVeiculoPara(item, destino, i === 0));
+    }
+  }
+
+  // tira do veículo só a quantidade escolhida
+  if (quantidade < qtdTotal) {
+    item.qtd = qtdTotal - quantidade;
+  } else {
+    veiculo.itens.splice(itemIndex, 1);
+  }
+
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+function abrirRetirarItemVeiculo(veiculoIndex, itemIndex) {
+  const item = veiculos[veiculoIndex]?.itens?.[itemIndex];
+  if (!item) return;
+
+  const destinos = [
+    ["inventario", "Inventário"],
+    ["armas", "Armas"],
+    ["armaduras", "Vestimentas"],
+  ];
+
+  const html = `
+    <div class="veiculo-transf">
+      <div class="veiculo-transf-grupo">
+        <span class="popup-label">Enviar para</span>
+        ${destinos
+          .map(
+            ([tipo, nome]) => `
+          <button
+            type="button"
+            class="veiculo-transf-btn"
+            onclick="retirarItemVeiculo(${veiculoIndex}, ${itemIndex}, '${tipo}')"
+          >
+            <span>${nome}</span>
+          </button>`
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+
+  abrirSubPopupVeiculo("Retirar do veículo", html);
+}
+
+
 /* ================= ARMAS ================= */
 
 async function addArma() {
   const nome = document.getElementById("armaNome").value.trim();
-  const dano = document.getElementById("armaDano").value.trim();
-  const descEl = document.getElementById("armaDesc");
+  const dano =
+  document.getElementById("armaDano")
+    .value.trim();
+
+const espacos =
+  numeroInventario(
+    document.getElementById(
+      "armaEspacos"
+    )?.value
+  );
+
+  const categoria =
+  document.getElementById("armaCategoria")?.value.trim() || "";
+
+const descEl =
+  document.getElementById("armaDesc");
   const desc = descEl ? descEl.value.trim() : "";
 
   const temCargasEl = document.getElementById("armaTemCargas");
@@ -4840,6 +7701,8 @@ async function addArma() {
   const novaArma = {
     nome,
     dano,
+    espacos,
+    categoria,
     desc,
     temCargas,
     maxCargas,
@@ -4872,8 +7735,21 @@ async function addArma() {
   salvarTudo();
 
   document.getElementById("armaNome").value = "";
-  document.getElementById("armaDano").value = "";
-  if (descEl) descEl.value = "";
+document.getElementById("armaDano").value = "";
+
+const armaEspacosEl =
+  document.getElementById("armaEspacos");
+
+if (armaEspacosEl) {
+  armaEspacosEl.value = "0";
+}
+
+const armaCategoriaEl = document.getElementById("armaCategoria");
+if (armaCategoriaEl) armaCategoriaEl.value = "";
+
+if (descEl) {
+  descEl.value = "";
+}
 
     const requerSintoniaEl = document.getElementById("armaRequerSintonia");
   const sintonizadoEl = document.getElementById("armaSintonizado");
@@ -4942,6 +7818,18 @@ function renderArmas() {
 
 <div class="item-subtags">
   ${
+    numeroInventario(arma.espacos) > 0
+      ? `<span class="item-subtag item-subtag-espaco">🎒 ${formatarNumeroInventario(arma.espacos)} ${numeroInventario(arma.espacos) === 1 ? "espaço" : "espaços"}</span>`
+      : ""
+  }
+
+    ${
+    arma.categoria
+      ? `<span class="item-subtag item-subtag-categoria">Cat. ${esc(arma.categoria)}</span>`
+      : ""
+  }
+
+  ${
     arma.requerSintonia
       ? `<span class="item-subtag">🔗 Requer sintonia</span>`
       : ""
@@ -4971,7 +7859,8 @@ ${cargasHTML}
     ul.appendChild(li);
   });
 
-  habilitarArrastarReordenar(ul, armas, renderArmas);
+    habilitarArrastarReordenar(ul, armas, renderArmas);
+  atualizarResumoInventario();
 }
 
 function toggleCargaArma(indexArma, indexCarga) {
@@ -4998,9 +7887,22 @@ function verArma(index) {
       <div>
         <span class="popup-label">Dano</span>
         <div class="popup-tags">
-  <span class="tag-dano">${arma.dano || "—"}</span>
-</div>
+          <span class="tag-dano">${arma.dano || "—"}</span>
         </div>
+      </div>
+
+      <div class="popup-info-grid" style="margin-top: 12px;">
+
+        <div>
+          <span class="popup-label">Espaços</span>
+          <div class="popup-descricao popup-descricao-pequena">${formatarNumeroInventario(arma.espacos || 0)}</div>
+        </div>
+
+        <div>
+          <span class="popup-label">Categoria</span>
+          <div class="popup-descricao popup-descricao-pequena">${arma.categoria ? esc(arma.categoria) : "—"}</div>
+        </div>
+
       </div>
 
       <div style="margin-top: 12px;">
@@ -5030,53 +7932,107 @@ async function removerArma(index) {
 /* ================= PODERES ================= */
 
 function addPoder() {
-  const nome = document.getElementById("poderNome").value.trim();
-  const tipo = document.getElementById("poderTipo").value.trim();
-  const dano = document.getElementById("poderDano").value.trim();
-  const circulo = document.getElementById("poderCirculo").value.trim();
-  const tempo = document.getElementById("poderTempo").value.trim();
-  const alcance = document.getElementById("poderAlcance").value.trim();
-  const duracao = document.getElementById("poderDuracao").value.trim();
-  const desc = document.getElementById("poderDesc").value.trim();
-  const temCargas = !!document.getElementById("poderTemCargas")?.checked;
-  const maxCargas = temCargas
-    ? parseInt(document.getElementById("poderMaxCargas")?.value) || 0
-    : 0;
+  const nome =
+    document.getElementById("poderNome")?.value.trim() || "";
 
-  if (!nome) return;
+  const categoria =
+    document.getElementById("poderCategoria")?.value || "";
+
+  const ativacao =
+    document.getElementById("poderAtivacao")?.value || "";
+
+  const custo =
+    document.getElementById("poderCusto")?.value.trim() || "";
+
+  const limite =
+    document.getElementById("poderLimite")?.value.trim() || "";
+
+  const requisito =
+    document.getElementById("poderRequisito")?.value.trim() || "";
+
+  const dano =
+    document.getElementById("poderDano")?.value.trim() || "";
+
+  const alcance =
+    document.getElementById("poderAlcance")?.value.trim() || "";
+
+  const duracao =
+    document.getElementById("poderDuracao")?.value.trim() || "";
+
+  const desc =
+    document.getElementById("poderDesc")?.value.trim() || "";
+
+  const temCargas =
+    !!document.getElementById("poderTemCargas")?.checked;
+
+  const maxCargas =
+    temCargas
+      ? Math.max(
+          1,
+          parseInt(
+            document.getElementById("poderMaxCargas")?.value
+          ) || 1
+        )
+      : 0;
+
+  if (!nome) {
+    alertBonito("Digite o nome do poder.");
+    return;
+  }
+
+  if (!categoria) {
+    alertBonito("Selecione a categoria do poder.");
+    return;
+  }
+
+  if (!ativacao) {
+    alertBonito("Selecione a ativação do poder.");
+    return;
+  }
 
   const novoPoder = {
     nome,
-    tipo,
+
+    categoria,
+    ativacao,
+
+    custo,
+    limite,
+    requisito,
+
     dano,
-    circulo,
-    tempo,
     alcance,
     duracao,
+
     desc,
+
     temCargas,
     maxCargas,
-    cargasGastas: temCargas ? Array(maxCargas).fill(false) : [],
+
+    cargasGastas:
+      temCargas
+        ? Array(maxCargas).fill(false)
+        : [],
   };
 
-  if (editandoPoder >= 0) {
-    poderes[editandoPoder] = novoPoder;
-    editandoPoder = -1;
-  } else {
-    poderes.push(novoPoder);
-  }
+  poderes.push(novoPoder);
 
   renderPoderes();
   salvarTudo();
 
   document.getElementById("poderNome").value = "";
-  document.getElementById("poderTipo").value = "";
+  document.getElementById("poderCategoria").value = "";
+  document.getElementById("poderAtivacao").value = "";
+
+  document.getElementById("poderCusto").value = "";
+  document.getElementById("poderLimite").value = "";
+  document.getElementById("poderRequisito").value = "";
+
   document.getElementById("poderDano").value = "";
-  document.getElementById("poderCirculo").value = "";
-  document.getElementById("poderTempo").value = "";
   document.getElementById("poderAlcance").value = "";
   document.getElementById("poderDuracao").value = "";
   document.getElementById("poderDesc").value = "";
+
   document.getElementById("poderTemCargas").checked = false;
   document.getElementById("poderMaxCargas").value = "";
   document.getElementById("poderMaxCargas").style.display = "none";
@@ -5095,250 +8051,417 @@ function atualizarEstadoLowHP() {
   }
 }
 
-function renderPoderes() {
-  const listaPoderesComuns = document.getElementById("listaPoderesComuns");
-  const listaTalentos = document.getElementById("listaTalentos");
-  const listaPassivas = document.getElementById("listaPassivas");
+function normalizarCategoriaPoder(poder) {
+  if (!poder) return "outros";
 
-  const listasCirculos = {
-    0: document.getElementById("listaMagiasCirculo0"),
-    1: document.getElementById("listaMagiasCirculo1"),
-    2: document.getElementById("listaMagiasCirculo2"),
-    3: document.getElementById("listaMagiasCirculo3"),
-    4: document.getElementById("listaMagiasCirculo4"),
-    5: document.getElementById("listaMagiasCirculo5"),
-    6: document.getElementById("listaMagiasCirculo6"),
-    7: document.getElementById("listaMagiasCirculo7"),
-    8: document.getElementById("listaMagiasCirculo8"),
-    9: document.getElementById("listaMagiasCirculo9"),
+  const categoria =
+    String(poder.categoria || "")
+      .trim()
+      .toLowerCase();
+
+  const permitidas = [
+    "classe",
+    "trilha",
+    "paranormal",
+    "origem",
+    "outros",
+  ];
+
+  if (permitidas.includes(categoria)) {
+    return categoria;
+  }
+
+  // Compatibilidade com poderes antigos
+  return "outros";
+}
+
+
+function normalizarAtivacaoPoder(poder) {
+  if (!poder) return "";
+
+  if (poder.ativacao) {
+    return String(poder.ativacao)
+      .trim()
+      .toLowerCase();
+  }
+
+  // Poder antigo que estava na aba Passivas
+  if (
+    String(poder.circulo || "")
+      .toLowerCase() === "passiva"
+  ) {
+    return "passiva";
+  }
+
+  return "";
+}
+
+
+function nomeCategoriaPoder(categoria) {
+  const nomes = {
+    classe: "Classe",
+    trilha: "Trilha",
+    paranormal: "Paranormal",
+    origem: "Origem",
+    outros: "Outros",
   };
 
-  if (listaPoderesComuns) listaPoderesComuns.innerHTML = "";
-  if (listaTalentos) listaTalentos.innerHTML = "";
-  if (listaPassivas) listaPassivas.innerHTML = "";
+  return nomes[categoria] || "Outros";
+}
 
-  Object.values(listasCirculos).forEach((lista) => {
-    if (lista) lista.innerHTML = "";
+
+function nomeAtivacaoPoder(ativacao) {
+  const nomes = {
+    passiva: "Passiva",
+    padrao: "Ação Padrão",
+    movimento: "Ação de Movimento",
+    completa: "Ação Completa",
+    livre: "Ação Livre",
+    reacao: "Reação",
+    especial: "Especial",
+  };
+
+  return nomes[ativacao] || "";
+}
+
+function garantirFiltroPoderVisivel(botao) {
+  if (!botao) return;
+
+  const container =
+    botao.closest(".poderes-ordem-filtros");
+
+  if (!container) return;
+
+  const margem = 12;
+
+  const containerRect =
+    container.getBoundingClientRect();
+
+  const botaoRect =
+    botao.getBoundingClientRect();
+
+  // botão ficou cortado na esquerda
+  if (
+    botaoRect.left <
+    containerRect.left + margem
+  ) {
+    container.scrollBy({
+      left:
+        botaoRect.left -
+        containerRect.left -
+        margem,
+
+      behavior: "smooth",
+    });
+
+    return;
+  }
+
+  // botão ficou cortado na direita
+  if (
+    botaoRect.right >
+    containerRect.right - margem
+  ) {
+    container.scrollBy({
+      left:
+        botaoRect.right -
+        containerRect.right +
+        margem,
+
+      behavior: "smooth",
+    });
+  }
+}
+
+function filtrarPoderesOrdem(filtro, botao) {
+  filtroPoderesOrdem = filtro || "todos";
+
+  const container = document.querySelector(
+    ".poderes-ordem-filtros"
+  );
+
+  document
+    .querySelectorAll(
+      ".poderes-ordem-filtros .subtab-poder"
+    )
+    .forEach((btn) => {
+      btn.classList.remove("active");
+    });
+
+  const ativo =
+    botao ||
+    document.querySelector(
+      `[data-filtro-poder="${filtroPoderesOrdem}"]`
+    );
+
+  if (ativo) {
+    ativo.classList.add("active");
+  }
+
+  renderPoderes();
+
+  requestAnimationFrame(() => {
+    if (!container) return;
+
+    if (filtroPoderesOrdem === "todos") {
+      container.scrollTo({
+        left: 0,
+        behavior: "smooth",
+      });
+
+      return;
+    }
+
+    if (ativo) {
+      garantirFiltroPoderVisivel(ativo);
+    }
   });
+}
+
+function renderPoderes() {
+  const lista =
+    document.getElementById("listaPoderesOrdem");
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
 
   poderes.forEach((poder, index) => {
-    const icone = getIconeTipo(poder.tipo);
-    const circulo = (poder.circulo ?? "").toString().trim();
+    const categoria =
+      normalizarCategoriaPoder(poder);
 
-    // 🔥 ===== CARGAS =====
+    const ativacao =
+      normalizarAtivacaoPoder(poder);
+
+    if (
+      filtroPoderesOrdem !== "todos" &&
+      categoria !== filtroPoderesOrdem
+    ) {
+      return;
+    }
+
     let cargasHTML = "";
 
-    if (poder.temCargas && poder.maxCargas > 0) {
+    if (
+      poder.temCargas &&
+      Number(poder.maxCargas) > 0
+    ) {
       if (!Array.isArray(poder.cargasGastas)) {
-        poder.cargasGastas = Array(poder.maxCargas).fill(false);
+        poder.cargasGastas =
+          Array(Number(poder.maxCargas))
+            .fill(false);
       }
 
-      cargasHTML = `<div style="margin-top:6px;">`;
+      cargasHTML = `
+        <div class="poder-usos">
+      `;
 
-      for (let i = 0; i < poder.maxCargas; i++) {
-        const usada = poder.cargasGastas[i];
+      for (
+        let i = 0;
+        i < Number(poder.maxCargas);
+        i++
+      ) {
+        const usada =
+          !!poder.cargasGastas[i];
 
         cargasHTML += `
           <span
-            style="
-              display:inline-block;
-              width:14px;
-              height:14px;
-              border-radius:50%;
-              border:2px solid #b89654;
-              margin-right:4px;
-              background:${usada ? "#b89654" : "transparent"};
-              cursor:pointer;
+            class="poder-uso-bolinha ${
+              usada ? "usado" : ""
+            }"
+            onclick="
+              event.stopPropagation();
+              toggleCargaPoder(${index}, ${i})
             "
-            onclick="event.stopPropagation(); toggleCargaPoder(${index}, ${i})"
           ></span>
         `;
       }
 
       cargasHTML += `</div>`;
     }
-    // 🔥 ===== FIM CARGAS =====
 
-    const li = document.createElement("li");
+    const li =
+      document.createElement("li");
+
     li.className = "poder-card";
     li.dataset.index = index;
 
     li.innerHTML = `
-      <button type="button" class="drag-handle" aria-label="Arrastar para reordenar">⠿</button>
+      <button
+        type="button"
+        class="drag-handle"
+        aria-label="Arrastar para reordenar"
+      >
+        ⠿
+      </button>
 
-      <div class="poder-info" onclick="verPoder(${index})">
-        <strong class="poder-nome">${icone} ${esc(poder.nome) || "Sem nome"}</strong>
+      <div
+        class="poder-info"
+        onclick="verPoder(${index})"
+      >
 
-        ${
-          poder.dano
-            ? `
-          <div class="poder-tags">
-            <span class="tag-dano">${esc(poder.dano)}</span>
-          </div>
-        `
-            : ""
-        }
+        <strong class="poder-nome">
+          ${esc(poder.nome || "Sem nome")}
+        </strong>
+
+        <div class="poder-tags poder-tags-ordem">
+
+          <span class="popup-tag poder-tag-categoria">
+            ${nomeCategoriaPoder(categoria)}
+          </span>
+
+          ${
+            ativacao
+              ? `
+                <span class="popup-tag poder-tag-ativacao">
+                  ${nomeAtivacaoPoder(ativacao)}
+                </span>
+              `
+              : ""
+          }
+
+          ${
+            poder.custo
+              ? `
+                <span class="popup-tag">
+                  ${esc(poder.custo)}
+                </span>
+              `
+              : ""
+          }
+
+        </div>
 
         <p class="poder-preview">
-          ${poder.desc ? esc(poder.desc).substring(0, 70) + (poder.desc.length > 70 ? "..." : "") : "Sem descrição"}
+          ${
+            poder.desc
+              ? esc(poder.desc).substring(0, 90) +
+                (
+                  poder.desc.length > 90
+                    ? "..."
+                    : ""
+                )
+              : "Sem descrição"
+          }
         </p>
 
         ${cargasHTML}
+
       </div>
 
       <div class="item-acoes">
+
         <div class="acoes-topo">
-          <button class="btn-editar" onclick="editarPoder(${index})">✏️</button>
+
+          <button
+            class="btn-editar"
+            onclick="
+              event.stopPropagation();
+              editarPoder(${index})
+            "
+          >
+            ✏️
+          </button>
+
         </div>
 
-        <button class="btn-deletar" onclick="removerPoder(${index})">X</button>
+        <button
+          class="btn-deletar"
+          onclick="
+            event.stopPropagation();
+            removerPoder(${index})
+          "
+        >
+          X
+        </button>
+
       </div>
     `;
 
-    if (circulo === "") {
-      if (listaPoderesComuns) listaPoderesComuns.appendChild(li);
-    } else if (circulo === "talento") {
-      if (listaTalentos) listaTalentos.appendChild(li);
-    } else if (circulo === "passiva") {
-      if (listaPassivas) listaPassivas.appendChild(li);
-    } else if (listasCirculos[circulo]) {
-      listasCirculos[circulo].appendChild(li);
-    } else {
-      if (listaPoderesComuns) listaPoderesComuns.appendChild(li);
-    }
+    lista.appendChild(li);
   });
 
-  habilitarArrastarReordenar(listaPoderesComuns, poderes, renderPoderes);
-  habilitarArrastarReordenar(listaTalentos, poderes, renderPoderes);
-  habilitarArrastarReordenar(listaPassivas, poderes, renderPoderes);
-  Object.values(listasCirculos).forEach((lista) => {
-    habilitarArrastarReordenar(lista, poderes, renderPoderes);
-  });
+  habilitarArrastarReordenar(
+    lista,
+    poderes,
+    renderPoderes
+  );
 
-  let totalPoderes = 0;
-  let totalMagias = 0;
-  let totalTalentos = 0;
-  let totalPassivas = 0;
 
-  poderes.forEach((poder) => {
-    const c = (poder.circulo ?? "").toString().trim();
-    if (c === "") totalPoderes++;
-    else if (c === "talento") totalTalentos++;
-    else if (c === "passiva") totalPassivas++;
-    else totalMagias++;
-  });
+  /* ================= CONTADORES ================= */
 
-  const contadorPoderes = document.getElementById("contadorPoderes");
-  const contadorMagias = document.getElementById("contadorMagias");
-  const contadorTalentos = document.getElementById("contadorTalentos");
-  const contadorPassivas = document.getElementById("contadorPassivas");
-
-  if (contadorPoderes) contadorPoderes.textContent = `(${totalPoderes})`;
-  if (contadorMagias) contadorMagias.textContent = `(${totalMagias})`;
-  if (contadorTalentos) contadorTalentos.textContent = `(${totalTalentos})`;
-  if (contadorPassivas) contadorPassivas.textContent = `(${totalPassivas})`;
-
-  for (let i = 0; i <= 9; i++) {
-    const inputGasto = document.getElementById(`gastoCirculo${i}`);
-    if (inputGasto) {
-      inputGasto.value = gastosCirculos[i] || 0;
-    }
-  }
-}
-
-function abrirImportacao() {
-  const input = document.getElementById("importarFicha");
-
-  if (!input) {
-    alertBonito("Input de importação não encontrado no HTML.");
-    console.error("Elemento #importarFicha não existe.");
-    return;
-  }
-
-  input.value = "";
-  input.click();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const popup = document.getElementById("popup");
-  if (popup && popup.parentElement !== document.body) {
-    document.body.appendChild(popup);
-  }
-
-  const inputImportar = document.getElementById("importarFicha");
-
-  if (!inputImportar) {
-    console.warn("Input #importarFicha não encontrado ao carregar a página.");
-    return;
-  }
-
-  inputImportar.addEventListener("change", importarFichaArquivo);
-});
-
-function importarFichaArquivo(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  if (!file.name.endsWith(".json")) {
-    alertBonito("Apenas arquivos .json são aceitos.");
-    e.target.value = "";
-    return;
-  }
-
-  if (file.size > 2 * 1024 * 1024) {
-    alertBonito("Arquivo muito grande. Máximo permitido: 2MB.");
-    e.target.value = "";
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = async function (event) {
-    try {
-      const dadosImportados = JSON.parse(event.target.result);
-
-      const validar = (p) => p && (p.nome || p.classe || p.raca);
-
-      if (Array.isArray(dadosImportados)) {
-        const validos = dadosImportados.filter(validar);
-        if (!validos.length) throw new Error("Nenhuma ficha válida encontrada.");
-        validos.forEach((p) => {
-          p.imagem = "";
-          if (!p.id) p.id = Date.now() + Math.floor(Math.random() * 99999);
-          sanitizarPersonagem(p);
-          personagens.push(p);
-        });
-      } else {
-        if (!validar(dadosImportados)) throw new Error("Arquivo não parece ser uma ficha válida.");
-        dadosImportados.imagem = "";
-        if (!dadosImportados.id) dadosImportados.id = Date.now() + Math.floor(Math.random() * 99999);
-        sanitizarPersonagem(dadosImportados);
-        personagens.push(dadosImportados);
-      }
-
-      window.personagens = personagens;
-      localStorage.setItem("personagens", JSON.stringify(personagens));
-
-      if (typeof window.salvarFichasNaNuvem === "function") {
-        await window.salvarFichasNaNuvem();
-      }
-
-      if (typeof renderPersonagens === "function") {
-        renderPersonagens();
-      }
-
-      alertBonito("Ficha importada com sucesso! A imagem precisa ser adicionada separadamente.");
-    } catch (erro) {
-      console.error("Erro ao importar ficha:", erro);
-      alertBonito("Arquivo inválido ou corrompido.");
-    }
-
-    e.target.value = "";
+  const contadores = {
+    todos: poderes.length,
+    classe: 0,
+    trilha: 0,
+    paranormal: 0,
+    origem: 0,
+    outros: 0,
   };
 
-  reader.readAsText(file);
+  poderes.forEach((poder) => {
+    const categoria =
+      normalizarCategoriaPoder(poder);
+
+    contadores[categoria]++;
+  });
+
+
+  const elementos = {
+    todos:
+      document.getElementById(
+        "contadorPoderTodos"
+      ),
+
+    classe:
+      document.getElementById(
+        "contadorPoderClasse"
+      ),
+
+    trilha:
+      document.getElementById(
+        "contadorPoderTrilha"
+      ),
+
+    paranormal:
+      document.getElementById(
+        "contadorPoderParanormal"
+      ),
+
+    origem:
+      document.getElementById(
+        "contadorPoderOrigem"
+      ),
+
+    outros:
+      document.getElementById(
+        "contadorPoderOutros"
+      ),
+  };
+
+
+  Object.keys(elementos).forEach((chave) => {
+    if (elementos[chave]) {
+      elementos[chave].textContent =
+        `(${contadores[chave]})`;
+    }
+  });
+
+  if (filtroPoderesOrdem === "todos") {
+  const filtros =
+    document.querySelector(
+      ".poderes-ordem-filtros"
+    );
+
+  if (filtros) {
+    filtros.scrollTo({
+      left: 0,
+      behavior: "smooth",
+    });
+  }
 }
 
+}
 function exportarFicha(index) {
   const personagens = JSON.parse(localStorage.getItem("personagens")) || [];
   const ficha = personagens[index];
@@ -5425,41 +8548,140 @@ function moverPoderPorDrag(origem, destino) {
 
 function verPoder(index) {
   const poder = poderes[index];
+
   if (!poder) return;
 
-  const tipoTexto = poder.tipo || "Sem tipo";
-  const icone = getIconeTipo(tipoTexto);
+
+  const categoria =
+    normalizarCategoriaPoder(poder);
+
+  const ativacao =
+    normalizarAtivacaoPoder(poder);
+
 
   const tags = [
-    poder.dano ? `<span class="tag-dano">${poder.dano}</span>` : "",
-    poder.circulo
-      ? `<span class="popup-tag">Círculo: ${poder.circulo}</span>`
+
+    `
+      <span class="popup-tag">
+        ${nomeCategoriaPoder(categoria)}
+      </span>
+    `,
+
+    ativacao
+      ? `
+        <span class="popup-tag">
+          ${nomeAtivacaoPoder(ativacao)}
+        </span>
+      `
       : "",
-    poder.tempo
-      ? `<span class="popup-tag">Conjuração: ${poder.tempo}</span>`
+
+    poder.custo
+      ? `
+        <span class="popup-tag">
+          Custo: ${esc(poder.custo)}
+        </span>
+      `
       : "",
+
+    poder.dano
+      ? `
+        <span class="popup-tag">
+          ${esc(poder.dano)}
+        </span>
+      `
+      : "",
+
     poder.alcance
-      ? `<span class="popup-tag">Alcance: ${poder.alcance}</span>`
+      ? `
+        <span class="popup-tag">
+          Alcance: ${esc(poder.alcance)}
+        </span>
+      `
       : "",
+
     poder.duracao
-      ? `<span class="popup-tag">Duração: ${poder.duracao}</span>`
+      ? `
+        <span class="popup-tag">
+          Duração: ${esc(poder.duracao)}
+        </span>
+      `
       : "",
+
   ].join("");
+
 
   const html = `
     <div class="popup-bloco">
-      ${tags ? `<div class="popup-tags">${tags}</div>` : ""}
 
-      <div style="margin-top: 12px;">
-        <span class="popup-label">Descrição</span>
-        <div class="popup-descricao">
-          ${poder.desc || "Sem descrição"}
-        </div>
+      <div class="popup-tags">
+        ${tags}
       </div>
+
+
+      ${
+        poder.limite
+          ? `
+            <div style="margin-top:12px;">
+
+              <span class="popup-label">
+                Limite
+              </span>
+
+              <div class="popup-descricao popup-descricao-pequena">
+                ${esc(poder.limite)}
+              </div>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      ${
+        poder.requisito
+          ? `
+            <div style="margin-top:12px;">
+
+              <span class="popup-label">
+                Pré-requisito
+              </span>
+
+              <div class="popup-descricao popup-descricao-pequena">
+                ${esc(poder.requisito)}
+              </div>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      <div style="margin-top:12px;">
+
+        <span class="popup-label">
+          Descrição
+        </span>
+
+        <div class="popup-descricao">
+          ${
+            poder.desc
+              ? esc(poder.desc)
+              : "Sem descrição"
+          }
+        </div>
+
+      </div>
+
     </div>
   `;
 
-  abrirPopup(`${icone} ${poder.nome}`, html, true, null);
+
+  abrirPopup(
+    poder.nome || "Poder",
+    html,
+    true,
+    () => editarPoder(index)
+  );
 }
 
 async function removerPoder(index) {
@@ -5543,18 +8765,6 @@ function ativarDragVida() {
   document.addEventListener("mouseup", () => {
     arrastando = false;
   });
-}
-/* ================= DT ================= */
-
-function atualizarDT() {
-  const base = parseInt(document.getElementById("dtBase")?.value) || 0;
-  const atributo = parseInt(document.getElementById("dtAtributo")?.value) || 0;
-  const prof = parseInt(document.getElementById("dtProf")?.value) || 0;
-
-  const total = base + atributo + prof;
-  const dtTotal = document.getElementById("dtTotal");
-
-  if (dtTotal) dtTotal.textContent = total;
 }
 
 /* ================= VIDA ================= */
@@ -9713,7 +12923,6 @@ function init() {
   atualizarHP();
   atualizarTemp();
   atualizarMorte();
-  atualizarDT();
   atualizarSaves();
   atualizarBadgesSaves();
   ativarDragVida();
@@ -9759,9 +12968,7 @@ function init() {
     "altura",
     "nivel",
     "inspiracao",
-    "dtBase",
-    "dtAtributo",
-    "dtProf",
+    "pePorTurno",
     "racaSelect",
     "antecedentes",
     "aliados",
@@ -9773,10 +12980,9 @@ function init() {
     if (!el) return;
 
     el.addEventListener("input", () => {
-      atualizarTudo();
-      atualizarDT();
-      salvarTudo();
-    });
+  atualizarTudo();
+  salvarTudo();
+});
   });
 
   const popup = document.getElementById("popup");
@@ -12139,7 +15345,7 @@ const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32
     ${_fichaDashSecao("Talentos", talentos)}
     ${_fichaDashSecao("Passivas", passivas)}
     ${_fichaDashSecao("Armas", armas)}
-    ${_fichaDashSecao("Armaduras", armaduras)}
+    ${_fichaDashSecao("Vestimentas", armaduras)}
     ${_fichaDashSecao("Inventário", inventario)}
      ${dominioArr.length ? _fichaDashSecao("Pontos de Domínio", dominioHtml) : ""}
     ${_fichaDashSecao("Exaustão", exaustaoHtml)}
@@ -12349,7 +15555,7 @@ const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:#cdb791;">
           <div>Itens: ${(f.inventario || []).length}</div>
           <div>Armas: ${(f.armas || []).length}</div>
-          <div>Armaduras: ${(f.armaduras || []).length}</div>
+          <div>Vestimentas: ${(f.armaduras || []).length}</div>
           <div>Poderes: ${(f.poderes || []).length}</div>
         </div>
       `;
