@@ -20,9 +20,9 @@
     <link rel="stylesheet" href="css/03-master-grimorio.css" />
     <link rel="stylesheet" href="css/04-jornada-modo.css" />
     <link rel="stylesheet" href="css/05-grimorio-componentes.css" />
-    <link rel="stylesheet" href="css/06-final-overrides.css" />
-    <link rel="stylesheet" href="css/07-paleta-master.css" />
-    <link rel="stylesheet" href="css/08-campanhas-master.css" />
+<link rel="stylesheet" href="css/07-paleta-master.css" />
+<link rel="stylesheet" href="css/08-campanhas-master.css" />
+<link rel="stylesheet" href="css/06-final-overrides.css" />
    <link
   href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cinzel+Decorative:wght@700&family=MedievalSharp&display=swap"
   rel="stylesheet"
@@ -1069,10 +1069,10 @@
       <select id="itemMasterCategoria">
         <option value="inventario">Item diverso (vai pro inventário)</option>
         <option value="armas">Arma</option>
-        <option value="armaduras">Armadura</option>
+        <option value="armaduras">Vestimenta</option>
       </select>
       <div class="criar-campos-duplos">
-        <input id="itemMasterTipo" placeholder="Tipo (arma, armadura...)">
+        <input id="itemMasterTipo" placeholder="Tipo (arma, vestimenta...)">
         <select id="itemMasterRaridade">
           <option value="comum">Comum</option>
           <option value="incomum">Incomum</option>
@@ -1690,12 +1690,63 @@
 
           <div id="boxArmasForm" class="conteudo-toggle aberto">
             <div class="arma-add">
-              <input id="armaNome" placeholder="Nome da arma" />
-              <input id="armaDano" placeholder="Dano (ex: 2d6)" />
-              <textarea
-                id="armaDesc"
-                placeholder="Descrição da arma"
-              ></textarea>
+              <input
+  id="armaNome"
+  placeholder="Nome da arma"
+/>
+
+<div class="inv-campos-duplos">
+
+  <div class="inv-campo">
+
+    <label for="armaDano">
+      Dano
+    </label>
+
+    <input
+      id="armaDano"
+      placeholder="Ex.: 2d6"
+    />
+
+  </div>
+
+  <div class="inv-campo">
+
+    <label for="armaEspacos">
+      Espaços
+    </label>
+
+    <input
+      id="armaEspacos"
+      type="number"
+      min="0"
+      step="any"
+      value="0"
+      placeholder="Ex.: 1"
+    />
+
+  </div>
+
+</div>
+
+<div class="inv-campo">
+
+  <label for="armaCategoria">
+    Categoria
+  </label>
+
+  <input
+    id="armaCategoria"
+    type="text"
+    placeholder="Ex.: 0, I, II..."
+  />
+
+</div>
+
+<textarea
+  id="armaDesc"
+  placeholder="Descrição da arma"
+></textarea>
 
               <input
                 type="file"
@@ -1775,17 +1826,42 @@
             class="titulo-secao titulo-toggle"
             onclick="toggleSecao('boxArmadurasForm', this)"
           >
-            <span>Armaduras</span>
+            <span>Vestimentas</span>
             <span class="setinha">▼</span>
           </h2>
 
           <div id="boxArmadurasForm" class="conteudo-toggle aberto">
             <div class="armadura-add">
-              <input id="armaduraNome" placeholder="Nome da armadura" />
-              <input id="armaduraCA" placeholder="CA (ex: 16)" />
+              <input id="armaduraNome" placeholder="Nome da vestimenta" />
+                            <input id="armaduraCA" placeholder="CA (ex: 16)" />
+
+                            <div class="inv-campos-duplos">
+
+                <div class="inv-campo">
+                  <label for="armaduraEspacos">Espaços</label>
+                  <input
+                    id="armaduraEspacos"
+                    type="number"
+                    min="0"
+                    step="any"
+                    value="0"
+                    placeholder="Ex.: 1"
+                  />
+                </div>
+
+                <div class="inv-campo">
+                  <label for="armaduraCategoria">Categoria</label>
+                  <input
+                    id="armaduraCategoria"
+                    type="text"
+                    placeholder="Ex.: 0, I, II..."
+                  />
+                </div>
+
+              </div>
               <textarea
                 id="armaduraDesc"
-                placeholder="Descrição da armadura"
+                placeholder="Descrição da vestimenta"
               ></textarea>
 
               <input
@@ -1986,586 +2062,944 @@
         </div>
       </div>
 
-      <!-- ================= INVENTÁRIO ================= -->
-      <div class="aba" id="inventario" style="display: none">
-        <h2 class="titulo-secao">Inventário</h2>
+  
 
-        <button class="btn-diario" onclick="toggleDiario()">Diário</button>
+<!-- ================= INVENTÁRIO ================= -->
+<div class="aba" id="inventario" style="display: none">
 
-        <div id="diario-box" class="diario-box" style="display: none">
-          <textarea
-            id="diario"
-            oninput="salvarTudo()"
-            placeholder="Escreva aqui seu diário, anotações, pistas, missões, nomes, eventos..."
-          ></textarea>
-        </div>
+  <h2 class="titulo-secao">Inventário</h2>
 
-        <div class="secao-toggle">
-          <h2
-            class="titulo-secao titulo-toggle"
-            onclick="toggleSecao('boxItensForm', this)"
-          >
-            <span>Itens</span>
-            <span class="setinha">▼</span>
-          </h2>
+  <!-- ================= DIÁRIO ================= -->
 
-          <div id="boxItensForm" class="conteudo-toggle aberto">
-            <div class="inv-add">
-              <input id="itemNome" placeholder="Nome do item" />
-              <textarea id="itemDesc" placeholder="Descrição"></textarea>
-
-              <input
-                type="file"
-                id="itemImagem"
-                accept="image/*"
-                onchange="previewItemImagem()"
-                style="display: none"
-              />
-              <label for="itemImagem" class="botao-upload"
-                >🖼 Adicionar imagem (opcional)</label
-              >
-              <img id="itemImagemPreview" style="display: none" />
-              <span class="link-remover-imagem" onclick="removerImagemItem()"
-                >Remover imagem</span
-              >
-
-              <input
-                id="itemQtd"
-                type="number"
-                min="1"
-                placeholder="Quantidade"
-              />
-
-              <div class="toggle-cargas">
-                <span class="toggle-cargas-texto">Requer sintonia</span>
-                <label class="switch-cargas">
-                  <input
-                    type="checkbox"
-                    id="itemRequerSintonia"
-                    onchange="toggleSintoniaItem()"
-                  />
-                  <span class="slider-cargas"></span>
-                </label>
-              </div>
-
-              <div id="boxItemSintonizado" style="display: none">
-                <div class="toggle-cargas">
-                  <span class="toggle-cargas-texto">Está sintonizado</span>
-                  <label class="switch-cargas">
-                    <input type="checkbox" id="itemSintonizado" />
-                    <span class="slider-cargas"></span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div class="add-linha">
-              <button class="inv-add-btn" onclick="addItem()">+</button>
-            </div>
-          </div>
-
-          <ul id="lista" class="lista-sempre-visivel"></ul>
-          
-          <div class="secao-toggle">
-        <h2 class="titulo-secao titulo-toggle" onclick="toggleSecao('boxMapasForm', this)">
-          <span>Mapas</span>
-          <span class="setinha">▼</span>
-        </h2>
-        <div id="boxMapasForm" class="conteudo-toggle aberto">
-          <div class="mapa-add">
-            <input id="mapaNome" placeholder="Nome do mapa" />
-            <textarea id="mapaDesc" placeholder="Descrição do mapa"></textarea>
-            <label class="botao-upload mapa-upload-label">
-              Escolher imagem
-              <input type="file" id="mapaImagem" accept="image/*" onchange="previewMapaImagem()" style="display:none" />
-            </label>
-            <div id="mapaPreviewBox" style="display:none">
-              <img id="mapaPreview" class="mapa-preview-thumb" />
-            </div>
-            <div class="add-linha">
-              <button class="inv-add-btn" onclick="addMapa()">+</button>
-            </div>
-          </div>
-        </div>
-        <ul id="listaMapas" class="lista-sempre-visivel"></ul>
-      </div>
-        </div>
-      </div>
-
-
-      <!-- VISUALIZADOR DE MAPA FULLSCREEN -->
-      <div id="mapaViewer" class="mapa-viewer fechado">
-        <div class="mapa-viewer-topo">
-          <span id="mapaViewerNome" class="mapa-viewer-titulo"></span>
-          <button class="mapa-viewer-fechar" onclick="fecharMapaViewer()">✕</button>
-        </div>
-        <canvas id="mapaCanvas"></canvas>
-        <div class="mapa-viewer-toolbar">
-          <div class="mapa-toolbar-cores">
-            <div class="mapa-cor ativa" style="background:#ef4444" data-cor="#ef4444" onclick="selecionarCorMapa(this)"></div>
-            <div class="mapa-cor" style="background:#3b82f6" data-cor="#3b82f6" onclick="selecionarCorMapa(this)"></div>
-            <div class="mapa-cor" style="background:#22c55e" data-cor="#22c55e" onclick="selecionarCorMapa(this)"></div>
-            <div class="mapa-cor" style="background:#000000" data-cor="#000000" onclick="selecionarCorMapa(this)"></div>
-            <div class="mapa-cor" style="background:#ffffff" data-cor="#ffffff" onclick="selecionarCorMapa(this)"></div>
-          </div>
-          <div class="mapa-toolbar-ferramentas">
-            <button class="mapa-tool ativa" data-tool="pincel" onclick="selecionarFerramentaMapa(this)" title="Pincel">✏</button>
-            <button class="mapa-tool" data-tool="texto" onclick="selecionarFerramentaMapa(this)" title="Texto">T</button>
-            <button class="mapa-tool" data-tool="seta" onclick="selecionarFerramentaMapa(this)" title="Seta">↗</button>
-            <button class="mapa-tool" data-tool="x" onclick="selecionarFerramentaMapa(this)" title="X">✗</button>
-            <button class="mapa-tool" data-tool="caveira" onclick="selecionarFerramentaMapa(this)" title="Caveira">☠</button>
-            <button class="mapa-tool" data-tool="pergaminho" onclick="selecionarFerramentaMapa(this)" title="Pergaminho">📜</button>
-            <button class="mapa-tool" data-tool="interrogacao" onclick="selecionarFerramentaMapa(this)" title="?">?</button>
-            <button class="mapa-tool" data-tool="pan" onclick="selecionarFerramentaMapa(this)" title="Mover">✋</button>
-            <button class="mapa-tool" data-tool="borracha" onclick="selecionarFerramentaMapa(this)" title="Borracha">⌫</button>
-          </div>
-          <div class="mapa-toolbar-acoes">
-            <button class="mapa-tool-acao" onclick="desfazerMapaAnotacao()" title="Desfazer">↩</button>
-            <button class="mapa-tool-acao mapa-zoom-in" onclick="zoomMapa(0.2)" title="Zoom +">+</button>
-            <button class="mapa-tool-acao mapa-zoom-out" onclick="zoomMapa(-0.2)" title="Zoom −">−</button>
-            <button class="mapa-tool-acao mapa-salvar" onclick="salvarAnotacoesMapa()" title="Salvar">Salvar</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- INPUT TEXTO MAPA -->
-      <div id="mapaInputTexto" class="mapa-input-texto fechado">
-        <input id="mapaTextoValor" placeholder="Digite a anotação..." />
-        <button onclick="confirmarTextoMapa()">OK</button>
-        <button onclick="cancelarTextoMapa()">✕</button>
-      </div>
-
-
-      <!-- ================= PODERES ================= -->
-      <div class="aba" id="poderes" style="display: none">
-        <h2 class="titulo-secao">Poderes e Magias</h2>
-
-        <div class="dt-box">
-          <h3 class="subtitulo-secao">DT</h3>
-
-          <div class="dt-linha">
-            <div class="campo">
-              <label for="dtBase">Base</label>
-              <input
-                id="dtBase"
-                type="text"
-                value="8"
-                oninput="
-                  atualizarDT();
-                  salvarTudo();
-                "
-              />
-            </div>
-
-            <div class="campo">
-              <label for="dtAtributo">Mod.</label>
-              <input
-                id="dtAtributo"
-                type="text"
-                value="0"
-                oninput="
-                  atualizarDT();
-                  salvarTudo();
-                "
-              />
-            </div>
-
-            <div class="campo">
-              <label for="dtProf">Prof.</label>
-              <input
-                id="dtProf"
-                type="text"
-                value="2"
-                oninput="
-                  atualizarDT();
-                  salvarTudo();
-                "
-              />
-            </div>
-          </div>
-
-          <div class="dt-resultado-box">
-            <span>DT Total</span>
-            <div id="dtTotal">10</div>
-          </div>
-        </div>
-
-        <div class="secao-toggle">
-          <h2
-            class="titulo-secao titulo-toggle"
-            onclick="toggleSecao('boxPoderForm', this)"
-          >
-            <span>Adicionar Poder</span>
-            <span class="setinha">▼</span>
-          </h2>
-
-          <div id="boxPoderForm" class="conteudo-toggle aberto">
-            <div class="poder-add">
-              <input id="poderNome" placeholder="Nome do poder" />
-
-              <div class="select-wrapper">
-                <select id="poderTipo" class="input-personagem">
-                  <option value="">Tipo de dano</option>
-                  <option value="fogo">🔥 Fogo</option>
-                  <option value="gelo">❄️ Gelo</option>
-                  <option value="raio">⚡ Raio</option>
-                  <option value="cura">🩹 Cura</option>
-                  <option value="trovejante">🌩️ Trovejante</option>
-                  <option value="necrotico">💀 Necrótico</option>
-                  <option value="radiante">✨ Radiante</option>
-                  <option value="veneno">☠️ Veneno</option>
-                  <option value="agua">💧 Água</option>
-                  <option value="magico">☄️ Mágico</option>
-                  <option value="psiquico">🧠 Psíquico</option>
-                  <option value="corte">🔪 Corte</option>
-                  <option value="perfurante">📌 Perfurante</option>
-                  <option value="concussao">💥 Concussão</option>
-                  <option value="metal">⚙️ Metal</option>
-                  <option value="fisico">🗡️ Físico</option>
-                  <option value="vento">🍃 Vento</option>
-                  <option value="madeira">🌳 Madeira</option>
-                  <option value="terra">🌍 Terra</option>
-                  <option value="trevas">🌑 Trevas</option>
-                  <option value="luz">🌕 Luz</option>
-                  <option value="espirito">🌓 Espírito</option>
-                </select>
-              </div>
-
-              <input id="poderDano" placeholder="Dano (ex: 2d6, 1d8+3)" />
-
-              <div class="poder-linha">
-                <div class="select-wrapper">
-                  <select id="poderCirculo" class="input-personagem">
-                    <option value="">Sem círculo (Poder)</option>
-                    <option value="talento">Talento</option>
-                    <option value="passiva">Passiva</option>
-                    <option value="0">Círculo 0 (Truque)</option>
-                    <option value="1">Círculo 1</option>
-                    <option value="2">Círculo 2</option>
-                    <option value="3">Círculo 3</option>
-                    <option value="4">Círculo 4</option>
-                    <option value="5">Círculo 5</option>
-                    <option value="6">Círculo 6</option>
-                    <option value="7">Círculo 7</option>
-                    <option value="8">Círculo 8</option>
-                    <option value="9">Círculo 9</option>
-                  </select>
-                </div>
-
-                <input id="poderTempo" placeholder="Conjuração" />
-              </div>
-
-              <div class="poder-linha">
-                <input id="poderAlcance" placeholder="Alcance" />
-                <input id="poderDuracao" placeholder="Duração" />
-              </div>
-
-              <textarea
-                id="poderDesc"
-                placeholder="Descrição do poder"
-              ></textarea>
-              <div class="toggle-cargas">
-                <span class="toggle-cargas-texto">Possui usos</span>
-                <label class="switch-cargas">
-                  <input
-                    type="checkbox"
-                    id="poderTemCargas"
-                    onchange="toggleCampoCargasPoder()"
-                  />
-                  <span class="slider-cargas"></span>
-                </label>
-              </div>
-
-              <input
-                id="poderMaxCargas"
-                type="number"
-                min="1"
-                max="30"
-                placeholder="Qtd. de usos"
-                style="display: none"
-              />
-            </div>
-
-            <div class="add-linha">
-              <button class="inv-add-btn" onclick="addPoder()">+</button>
-            </div>
-          </div>
-
-          <div class="subtabs-poderes">
   <button
-    class="subtab-poder active"
-    onclick="trocarSubAbaPoderes('poderes-comuns', this)"
+    class="btn-diario"
+    onclick="toggleDiario()"
   >
-    Poderes<span class="subtab-contador" id="contadorPoderes"></span>
+    Diário
   </button>
-  <button
-    class="subtab-poder"
-    onclick="trocarSubAbaPoderes('magias', this)"
+
+  <div
+    id="diario-box"
+    class="diario-box"
+    style="display: none"
   >
-    Magias<span class="subtab-contador" id="contadorMagias"></span>
-  </button>
-  <button
-    class="subtab-poder"
-    onclick="trocarSubAbaPoderes('talentos', this)"
-  >
-    Talentos<span class="subtab-contador" id="contadorTalentos"></span>
-  </button>
-  <button
-    class="subtab-poder"
-    onclick="trocarSubAbaPoderes('passivas', this)"
-  >
-    Passivas<span class="subtab-contador" id="contadorPassivas"></span>
-  </button>
-</div>
+    <textarea
+      id="diario"
+      oninput="salvarTudo()"
+      placeholder="Escreva aqui seu diário, anotações, pistas, missões, nomes, eventos..."
+    ></textarea>
+  </div>
 
-          <div id="subaba-poderes-comuns" class="subaba-poderes active">
-  <ul id="listaPoderesComuns" class="lista-sempre-visivel"></ul>
-</div>
 
-<div id="subaba-talentos" class="subaba-poderes" style="display: none">
-  <ul id="listaTalentos" class="lista-sempre-visivel"></ul>
-</div>
+  <!-- =====================================================
+       ITENS
+  ====================================================== -->
 
-<div id="subaba-passivas" class="subaba-poderes" style="display: none">
-  <ul id="listaPassivas" class="lista-sempre-visivel"></ul>
-</div>
+  <div class="secao-toggle">
 
-          <div id="subaba-magias" class="subaba-poderes" style="display: none">
-            <div class="subtabs-circulos">
-              <div class="bloco-circulos">
-                <button
-                  class="subtab-circulo active"
-                  onclick="trocarSubAbaCirculo(0, this)"
-                >
-                  0
-                </button>
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(1, this)"
-                >
-                  1
-                </button>
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(2, this)"
-                >
-                  2
-                </button>
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(3, this)"
-                >
-                  3
-                </button>
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(4, this)"
-                >
-                  4
-                </button>
-              </div>
+    <h2
+      class="titulo-secao titulo-toggle"
+      onclick="toggleSecao('boxItensForm', this)"
+    >
+      <span>Itens</span>
+      <span class="setinha">▼</span>
+    </h2>
 
-              <div class="bloco-circulos">
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(5, this)"
-                >
-                  5
-                </button>
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(6, this)"
-                >
-                  6
-                </button>
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(7, this)"
-                >
-                  7
-                </button>
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(8, this)"
-                >
-                  8
-                </button>
-                <button
-                  class="subtab-circulo"
-                  onclick="trocarSubAbaCirculo(9, this)"
-                >
-                  9
-                </button>
-              </div>
-            </div>
 
-            <!-- ================= CÍRCULOS ================= -->
+    <!-- CAPACIDADE DO INVENTÁRIO
+         FICA FORA DA ABA QUE ABRE/FECHA -->
 
-            <div id="circulo-0" class="circulo-box active">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 0</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(0)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo0" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo0" class="lista-sempre-visivel"></ul>
-            </div>
+    <div class="inventario-capacidade-box">
 
-            <div id="circulo-1" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 1</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(1)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo1" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo1" class="lista-sempre-visivel"></ul>
-            </div>
+      <div class="inventario-capacidade-topo">
 
-            <div id="circulo-2" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 2</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(2)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo2" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo2" class="lista-sempre-visivel"></ul>
-            </div>
+        <div class="inventario-capacidade-info">
 
-            <div id="circulo-3" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 3</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(3)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo3" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo3" class="lista-sempre-visivel"></ul>
-            </div>
+          <span class="inventario-capacidade-label">
+            Carga do inventário
+          </span>
 
-            <div id="circulo-4" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 4</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(4)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo4" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo4" class="lista-sempre-visivel"></ul>
-            </div>
+          <strong id="inventarioEspacosTexto">
+            0 / 0 espaços
+          </strong>
 
-            <div id="circulo-5" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 5</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(5)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo5" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo5" class="lista-sempre-visivel"></ul>
-            </div>
-
-            <div id="circulo-6" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 6</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(6)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo6" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo6" class="lista-sempre-visivel"></ul>
-            </div>
-
-            <div id="circulo-7" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 7</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(7)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo7" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo7" class="lista-sempre-visivel"></ul>
-            </div>
-
-            <div id="circulo-8" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 8</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(8)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo8" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo8" class="lista-sempre-visivel"></ul>
-            </div>
-
-            <div id="circulo-9" class="circulo-box" style="display: none">
-              <div class="gasto-circulo-box">
-                <div class="topo-slots-circulo">
-                  <span>Círculo 9</span>
-                  <button
-                    class="btn-editar-slots"
-                    onclick="editarQuantidadeSlotsCirculo(9)"
-                  >
-                    ✏️
-                  </button>
-                </div>
-                <div id="slotsCirculo9" class="slots-circulo"></div>
-              </div>
-              <ul id="listaMagiasCirculo9" class="lista-sempre-visivel"></ul>
-            </div>
-          </div>
         </div>
+
+
+        <div class="inventario-capacidade-editar">
+
+          <label for="inventarioEspacosMax">
+            Capacidade máxima
+          </label>
+
+          <input
+            id="inventarioEspacosMax"
+            type="number"
+            min="0"
+            step="any"
+            value="0"
+            oninput="atualizarCapacidadeInventario()"
+          />
+
+        </div>
+
       </div>
+
+
+      <div class="inventario-barra">
+
+        <div
+          id="inventarioBarraPreenchimento"
+          class="inventario-barra-preenchimento"
+        ></div>
+
+      </div>
+
     </div>
 
-    <!-- ===== TELA PLANOS ===== -->
+
+    <!-- FORMULÁRIO DE CRIAR ITEM
+         ESSE SIM ABRE E FECHA -->
+
+    <div
+      id="boxItensForm"
+      class="conteudo-toggle aberto"
+    >
+
+      <div class="inv-add">
+
+        <input
+          id="itemNome"
+          placeholder="Nome do item"
+        />
+
+
+        <textarea
+          id="itemDesc"
+          placeholder="Descrição"
+        ></textarea>
+
+
+        <div class="inv-campos-duplos">
+
+          <div class="inv-campo">
+
+            <label for="itemEspacos">
+              Espaços por unidade
+            </label>
+
+            <input
+              id="itemEspacos"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="Ex.: 2"
+            />
+
+          </div>
+
+
+          <div class="inv-campo">
+
+            <label for="itemCategoria">
+              Categoria
+            </label>
+
+            <input
+              id="itemCategoria"
+              type="text"
+              placeholder="Ex.: 0, I, II..."
+            />
+
+          </div>
+
+        </div>
+
+
+        <textarea
+          id="itemModificacoes"
+          placeholder="Modificações do item (opcional)"
+        ></textarea>
+
+
+        <textarea
+          id="itemMaldicoes"
+          placeholder="Maldições do item (opcional)"
+        ></textarea>
+
+
+        <!-- IMAGEM -->
+
+        <input
+          type="file"
+          id="itemImagem"
+          accept="image/*"
+          onchange="previewItemImagem()"
+          style="display: none"
+        />
+
+        <label
+          for="itemImagem"
+          class="botao-upload"
+        >
+          🖼 Adicionar imagem (opcional)
+        </label>
+
+        <img
+          id="itemImagemPreview"
+          style="display: none"
+        />
+
+        <span
+          class="link-remover-imagem"
+          onclick="removerImagemItem()"
+        >
+          Remover imagem
+        </span>
+
+
+        <!-- QUANTIDADE -->
+
+        <input
+          id="itemQtd"
+          type="number"
+          min="1"
+          placeholder="Quantidade"
+        />
+
+
+        <!-- SINTONIA -->
+
+        <div class="toggle-cargas">
+
+          <span class="toggle-cargas-texto">
+            Requer sintonia
+          </span>
+
+          <label class="switch-cargas">
+
+            <input
+              type="checkbox"
+              id="itemRequerSintonia"
+              onchange="toggleSintoniaItem()"
+            />
+
+            <span class="slider-cargas"></span>
+
+          </label>
+
+        </div>
+
+
+        <div
+          id="boxItemSintonizado"
+          style="display: none"
+        >
+
+          <div class="toggle-cargas">
+
+            <span class="toggle-cargas-texto">
+              Está sintonizado
+            </span>
+
+            <label class="switch-cargas">
+
+              <input
+                type="checkbox"
+                id="itemSintonizado"
+              />
+
+              <span class="slider-cargas"></span>
+
+            </label>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="add-linha">
+
+        <button
+          class="inv-add-btn"
+          onclick="addItem()"
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- LISTA DOS ITENS
+         SEMPRE VISÍVEL -->
+
+    <ul
+      id="lista"
+      class="lista-sempre-visivel"
+    ></ul>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       VEÍCULOS
+  ====================================================== -->
+
+  <div class="secao-toggle">
+
+    <h2
+      class="titulo-secao titulo-toggle"
+      onclick="toggleSecao('boxVeiculosForm', this)"
+    >
+      <span>Veículos</span>
+      <span class="setinha">▼</span>
+    </h2>
+
+
+    <div
+      id="boxVeiculosForm"
+      class="conteudo-toggle aberto"
+    >
+
+      <div class="veiculo-add">
+
+
+        <!-- NOME -->
+
+        <input
+  id="veiculoNome"
+  placeholder="Nome do veículo"
+/>
+
+
+<!-- ÍCONE DO VEÍCULO -->
+
+<div class="inv-campo">
+
+  <label for="veiculoIcone">
+    Tipo / ícone
+  </label>
+
+  <select
+    id="veiculoIcone"
+    class="input-personagem"
+  >
+
+    <option value="🏍️">
+      🏍️ Moto
+    </option>
+
+    <option value="🚗" selected>
+      🚗 Carro
+    </option>
+
+    <option value="🚌">
+      🚌 Ônibus
+    </option>
+
+    <option value="🚐">
+      🚐 Van
+    </option>
+
+    <option value="🚲">
+      🚲 Bicicleta
+    </option>
+
+    <option value="🛹">
+      🛹 Skate
+    </option>
+
+    <option value="🚚">
+      🚚 Caminhão
+    </option>
+
+    <option value="🚁">
+      🚁 Helicóptero
+    </option>
+
+    <option value="✈️">
+      ✈️ Avião
+    </option>
+
+    <option value="🚤">
+      🚤 Barco
+    </option>
+
+  </select>
+
+</div>
+
+
+<!-- DESCRIÇÃO -->
+
+        <textarea
+          id="veiculoDesc"
+          placeholder="Descrição do veículo"
+        ></textarea>
+
+
+        <!-- VIDA / GASOLINA -->
+
+        <div class="inv-campos-duplos">
+
+          <div class="inv-campo">
+
+            <label for="veiculoVidaMax">
+              Vida máxima
+            </label>
+
+            <input
+              id="veiculoVidaMax"
+              type="number"
+              min="0"
+              placeholder="Ex.: 50"
+            />
+
+          </div>
+
+
+          <div class="inv-campo">
+
+            <label for="veiculoGasolinaMax">
+              Gasolina máxima
+            </label>
+
+            <input
+              id="veiculoGasolinaMax"
+              type="number"
+              min="0"
+              placeholder="Ex.: 100"
+            />
+
+          </div>
+
+        </div>
+
+
+        <!-- PASSAGEIROS / CARGA -->
+
+        <div class="inv-campos-duplos">
+
+          <div class="inv-campo">
+
+            <label for="veiculoPassageirosMax">
+              Quantidade de pessoas
+            </label>
+
+            <input
+              id="veiculoPassageirosMax"
+              type="number"
+              min="0"
+              placeholder="Ex.: 4"
+            />
+
+          </div>
+
+
+          <div class="inv-campo">
+
+            <label for="veiculoEspacosMax">
+              Espaços de carga
+            </label>
+
+            <input
+              id="veiculoEspacosMax"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="Ex.: 10"
+            />
+
+          </div>
+
+        </div>
+
+
+        <!-- CATEGORIAS -->
+
+        <input
+          id="veiculoCategorias"
+          type="text"
+          placeholder="Categorias permitidas: 0, I, II..."
+        />
+
+      </div>
+
+
+      <div class="add-linha">
+
+        <button
+          class="inv-add-btn"
+          onclick="addVeiculo()"
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- VEÍCULOS CRIADOS -->
+
+    <ul
+      id="listaVeiculos"
+      class="lista-sempre-visivel"
+    ></ul>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       MAPAS
+  ====================================================== -->
+
+  <div class="secao-toggle">
+
+    <h2
+      class="titulo-secao titulo-toggle"
+      onclick="toggleSecao('boxMapasForm', this)"
+    >
+      <span>Mapas</span>
+      <span class="setinha">▼</span>
+    </h2>
+
+
+    <div
+      id="boxMapasForm"
+      class="conteudo-toggle aberto"
+    >
+
+      <div class="mapa-add">
+
+        <input
+          id="mapaNome"
+          placeholder="Nome do mapa"
+        />
+
+
+        <textarea
+          id="mapaDesc"
+          placeholder="Descrição do mapa"
+        ></textarea>
+
+
+        <label class="botao-upload mapa-upload-label">
+
+          Escolher imagem
+
+          <input
+            type="file"
+            id="mapaImagem"
+            accept="image/*"
+            onchange="previewMapaImagem()"
+            style="display:none"
+          />
+
+        </label>
+
+
+        <div
+          id="mapaPreviewBox"
+          style="display:none"
+        >
+
+          <img
+            id="mapaPreview"
+            class="mapa-preview-thumb"
+          />
+
+        </div>
+
+
+        <div class="add-linha">
+
+          <button
+            class="inv-add-btn"
+            onclick="addMapa()"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <ul
+      id="listaMapas"
+      class="lista-sempre-visivel"
+    ></ul>
+
+  </div>
+
+</div>
+      <!-- ================= PODERES ================= -->
+<div class="aba" id="poderes" style="display: none">
+
+  <h2 class="titulo-secao">
+    Poderes e Habilidades
+  </h2>
+
+<!-- ================= PE POR TURNO ================= -->
+
+<div class="dt-box pe-turno-box">
+
+  <h3 class="subtitulo-secao">
+    PE por turno
+  </h3>
+
+  <div class="dt-resultado-box pe-turno-resultado">
+
+    <div class="pe-turno-info">
+      <span>Limite por turno</span>
+
+      <small>
+        Máximo de PE que pode ser gasto no mesmo turno
+      </small>
+    </div>
+
+    <input
+      id="pePorTurno"
+      type="number"
+      min="0"
+      step="1"
+      value="0"
+      oninput="salvarTudo()"
+    />
+
+  </div>
+
+</div>
+
+  <!-- ================= ADICIONAR PODER ================= -->
+
+  <div class="secao-toggle">
+
+    <h2
+      class="titulo-secao titulo-toggle"
+      onclick="toggleSecao('boxPoderForm', this)"
+    >
+      <span>Adicionar Poder</span>
+      <span class="setinha">▼</span>
+    </h2>
+
+    <div
+      id="boxPoderForm"
+      class="conteudo-toggle aberto"
+    >
+
+      <div class="poder-add">
+
+        <input
+          id="poderNome"
+          placeholder="Nome do poder ou habilidade"
+        />
+
+
+        <!-- CATEGORIA -->
+
+        <div class="campo-poder-ordem">
+
+          <label for="poderCategoria">
+            Categoria
+          </label>
+
+          <div class="select-wrapper">
+
+            <select
+              id="poderCategoria"
+              class="input-personagem"
+            >
+              <option value="">
+                Selecione a categoria
+              </option>
+
+              <option value="classe">
+                Classe
+              </option>
+
+              <option value="trilha">
+                Trilha
+              </option>
+
+              <option value="paranormal">
+                Paranormal
+              </option>
+
+              <option value="origem">
+                Origem
+              </option>
+
+              <option value="outros">
+                Outros
+              </option>
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <!-- ATIVAÇÃO -->
+
+        <div class="campo-poder-ordem">
+
+          <label for="poderAtivacao">
+            Ativação
+          </label>
+
+          <div class="select-wrapper">
+
+            <select
+              id="poderAtivacao"
+              class="input-personagem"
+            >
+              <option value="">
+                Selecione a ativação
+              </option>
+
+              <option value="passiva">
+                Passiva
+              </option>
+
+              <option value="padrao">
+                Ação Padrão
+              </option>
+
+              <option value="movimento">
+                Ação de Movimento
+              </option>
+
+              <option value="completa">
+                Ação Completa
+              </option>
+
+              <option value="livre">
+                Ação Livre
+              </option>
+
+              <option value="reacao">
+                Reação
+              </option>
+
+              <option value="especial">
+                Especial
+              </option>
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <!-- CUSTO / LIMITE -->
+
+        <div class="poder-linha">
+
+          <input
+            id="poderCusto"
+            placeholder="Custo (ex.: 2 PE)"
+          />
+
+          <input
+            id="poderLimite"
+            placeholder="Limite (ex.: 1 vez por rodada)"
+          />
+
+        </div>
+
+
+        <!-- REQUISITO -->
+
+        <input
+          id="poderRequisito"
+          placeholder="Pré-requisito (opcional)"
+        />
+
+
+        <!-- DANO / EFEITO -->
+
+        <input
+          id="poderDano"
+          placeholder="Dano ou efeito numérico (opcional)"
+        />
+
+
+        <!-- ALCANCE / DURAÇÃO -->
+
+        <div class="poder-linha">
+
+          <input
+            id="poderAlcance"
+            placeholder="Alcance (opcional)"
+          />
+
+          <input
+            id="poderDuracao"
+            placeholder="Duração (opcional)"
+          />
+
+        </div>
+
+
+        <!-- DESCRIÇÃO -->
+
+        <textarea
+          id="poderDesc"
+          placeholder="Descrição completa do poder ou habilidade"
+        ></textarea>
+
+
+        <!-- POSSUI USOS -->
+
+        <div class="toggle-cargas">
+
+          <span class="toggle-cargas-texto">
+            Possui usos limitados
+          </span>
+
+          <label class="switch-cargas">
+
+            <input
+              type="checkbox"
+              id="poderTemCargas"
+              onchange="toggleCampoCargasPoder()"
+            />
+
+            <span class="slider-cargas"></span>
+
+          </label>
+
+        </div>
+
+
+        <input
+          id="poderMaxCargas"
+          type="number"
+          min="1"
+          max="99"
+          placeholder="Quantidade de usos"
+          style="display: none"
+        />
+
+      </div>
+
+
+      <div class="add-linha">
+
+        <button
+          class="inv-add-btn"
+          onclick="addPoder()"
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= FILTROS ================= -->
+
+ <div class="subtabs-poderes poderes-ordem-filtros">
+
+  <button
+    class="subtab-poder active"
+    data-filtro-poder="todos"
+    onclick="filtrarPoderesOrdem('todos', this)"
+  >
+    Todos
+    <span
+      class="subtab-contador"
+      id="contadorPoderTodos"
+    ></span>
+  </button>
+
+  <button
+    class="subtab-poder"
+    data-filtro-poder="classe"
+    onclick="filtrarPoderesOrdem('classe', this)"
+  >
+    Classe
+    <span
+      class="subtab-contador"
+      id="contadorPoderClasse"
+    ></span>
+  </button>
+
+  <button
+    class="subtab-poder"
+    data-filtro-poder="trilha"
+    onclick="filtrarPoderesOrdem('trilha', this)"
+  >
+    Trilha
+    <span
+      class="subtab-contador"
+      id="contadorPoderTrilha"
+    ></span>
+  </button>
+
+  <button
+    class="subtab-poder"
+    data-filtro-poder="paranormal"
+    onclick="filtrarPoderesOrdem('paranormal', this)"
+  >
+    Paranormal
+    <span
+      class="subtab-contador"
+      id="contadorPoderParanormal"
+    ></span>
+  </button>
+
+  <button
+    class="subtab-poder"
+    data-filtro-poder="origem"
+    onclick="filtrarPoderesOrdem('origem', this)"
+  >
+    Origem
+    <span
+      class="subtab-contador"
+      id="contadorPoderOrigem"
+    ></span>
+  </button>
+
+  <button
+    class="subtab-poder"
+    data-filtro-poder="outros"
+    onclick="filtrarPoderesOrdem('outros', this)"
+  >
+    Outros
+    <span
+      class="subtab-contador"
+      id="contadorPoderOutros"
+    ></span>
+  </button>
+
+</div>
+
+<div class="poderes-ordem-hint">
+  ← arraste para ver mais categorias →
+</div>
+
+<ul
+  id="listaPoderesOrdem"
+  class="lista-sempre-visivel lista-poderes-ordem"
+></ul>
+
+</div>
+
+</div>
 <div id="tela-planos" style="display:none; position:fixed; inset:0; z-index:6000; overflow-y:auto; background:#100D0A;">
   <div class="planos-page">
 
