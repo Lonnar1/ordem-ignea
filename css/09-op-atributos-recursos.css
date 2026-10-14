@@ -1,0 +1,247 @@
+/* ===== Atributos em pentágono (estilo CRIS) ===== */
+.attr-pentagono {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto 16px;
+  container-type: inline-size;
+  --ap-cor: #e8e8e8;
+}
+.attr-pentagono-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.attr-pentagono-svg .ap-anel-ritual { fill: none; stroke: var(--ap-cor); stroke-width: 6; stroke-dasharray: 1 5; opacity: .55; }
+.attr-pentagono-svg .ap-anel { fill: none; stroke: var(--ap-cor); stroke-width: 1; opacity: .35; }
+.attr-pentagono-svg .ap-linha { fill: none; stroke: var(--ap-cor); stroke-width: 3; opacity: .9; stroke-linejoin: round; }
+.attr-pentagono-svg .ap-linha-int { stroke-width: 1.2; opacity: .45; }
+.attr-pentagono-svg .ap-raios line { stroke: var(--ap-cor); stroke-width: 1.5; opacity: .55; }
+.attr-pentagono-svg .ap-centro-aro { fill: #111; stroke: var(--ap-cor); stroke-width: 2; }
+.attr-pentagono-svg .ap-centro { fill: #f2f2f2; }
+
+.attr-centro {
+  position: absolute;
+  left: 50%; top: 51.25%;
+  transform: translate(-50%, -50%);
+  color: #111;
+  font-weight: 800;
+  letter-spacing: .5px;
+  font-size: 4.3cqw;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.attr-node {
+  position: absolute;
+  width: 25%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #0d0d0d;
+  border: 2px solid var(--ap-cor);
+  box-shadow: 0 0 0 3px #0d0d0d, 0 0 0 4px rgba(255,255,255,.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: transform .2s, box-shadow .2s;
+}
+.attr-node.up { transform: translate(-50%, -50%) scale(1.1); }
+.attr-node:focus-within { box-shadow: 0 0 0 3px #0d0d0d, 0 0 0 4px #fff, 0 0 14px rgba(255,255,255,.5); }
+
+.attr-node input {
+  width: 70%;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  margin: 0;
+  color: #fff;
+  text-align: center;
+  font-size: 9.5cqw;
+  font-weight: 700;
+  line-height: 1;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.attr-node input::-webkit-outer-spin-button,
+.attr-node input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.attr-node-nome { font-size: 2.3cqw; letter-spacing: .4px; color: #cfcfcf; line-height: 1.1; margin-top: 1px; }
+.attr-node-sigla { font-size: 6cqw; font-weight: 800; color: #fff; line-height: 1; letter-spacing: 1px; }
+
+.attr-node-agi { left: 50%;   top: 17.5%; }
+.attr-node-int { left: 82.1%; top: 40.8%; }
+.attr-node-vig { left: 69.9%; top: 78.5%; }
+.attr-node-pre { left: 30.1%; top: 78.5%; }
+.attr-node-for { left: 17.9%; top: 40.8%; }
+
+/* ===== Barras de Sanidade e Esforço ===== */
+.op-barra-bloco { margin-top: 14px; }
+.op-barra-label {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #9a9a9a;
+  margin-bottom: 4px;
+}
+.op-barra {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.18);
+  background: var(--op-barra-fundo, #222);
+}
+.op-barra-san { --op-barra-fundo: #3a1a66; --op-barra-cor: #8e2de2; }
+.op-barra-pe  { --op-barra-fundo: #5c3406; --op-barra-cor: #ff8a0d; }
+.op-barra-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--op-barra-cor);
+  transition: width .25s ease;
+}
+.op-barra-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  color: #fff;
+}
+.op-barra-texto {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-weight: 600;
+  font-size: 16px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
+.op-barra-texto .op-barra-sep { opacity: 1; }
+.op-barra .op-barra-max {
+  flex: 1 1 0 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #fff !important;
+  font: inherit !important;
+  text-align: left !important;
+  text-shadow: inherit;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.op-barra .op-barra-max::-webkit-outer-spin-button,
+.op-barra .op-barra-max::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.op-barra-overlay button {
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  width: 34px;
+  height: 100%;
+  cursor: pointer;
+  padding: 0;
+}
+.op-barra-overlay button:active { transform: scale(.88); }
+
+/* ===== Barra de Vida (mesmo estilo) ===== */
+.op-barra-vida { --op-barra-fundo: #4a1010; --op-barra-cor: #c0242a; margin-top: 8px; }
+#hpBar.op-barra-vida #hp-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: auto;
+  background: var(--op-barra-cor);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* garante que nenhum estilo antigo de input pinte o máximo */
+#hpBar #vidaMax, #sanBar #sanMaxOP, #peBar #peMaxOP {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  filter: none !important;
+}
+
+/* barra centralizada: o "/" fica no meio exato entre os botões */
+.op-barra-texto > span:first-child { flex: 1 1 0; text-align: right; }
+.op-barra-texto .op-barra-sep { flex: 0 0 auto; padding: 0 1px; }
+
+/* ===== Tema Ígneo para o pentágono (brasa / âmbar, sem branco) ===== */
+.attr-pentagono {
+  --ap-cor: #a94a26;        /* linhas e anéis: brasa */
+  --ap-ouro: #d9a14a;       /* detalhes em âmbar */
+}
+.attr-pentagono-svg .ap-anel-ritual { stroke: #8a3b1f; opacity: .6; }
+.attr-pentagono-svg .ap-anel { stroke: #8a3b1f; opacity: .4; }
+.attr-pentagono-svg .ap-linha { stroke: #b4562a; opacity: .85; }
+.attr-pentagono-svg .ap-linha-int { stroke: #8a3b1f; opacity: .45; }
+.attr-pentagono-svg .ap-raios line { stroke: #8a3b1f; opacity: .6; }
+.attr-pentagono-svg .ap-centro-aro { fill: #140605; stroke: #b4562a; stroke-width: 2; }
+.attr-pentagono-svg .ap-centro { fill: url(#apCentroGrad); stroke: #d9a14a; stroke-width: 1.5; stroke-opacity: .7; }
+
+.attr-centro {
+  color: #f0b565;
+  text-shadow: 0 0 8px rgba(255, 120, 40, .55), 0 1px 2px #000;
+}
+
+.attr-node {
+  background: radial-gradient(circle at 50% 35%, #2a0d08 0%, #120605 75%);
+  border: 2px solid #b4562a;
+  box-shadow: 0 0 0 3px #120605, 0 0 0 4px rgba(217, 161, 74, .55), 0 0 14px rgba(255, 110, 40, .25);
+}
+.attr-node:focus-within {
+  box-shadow: 0 0 0 3px #120605, 0 0 0 4px #d9a14a, 0 0 18px rgba(255, 130, 50, .6);
+}
+.attr-node .attr-node-nome { color: #b98a62; }
+.attr-node .attr-node-sigla { color: #f0b565; text-shadow: 0 0 6px rgba(255, 120, 40, .45); }
+
+/* número sem a caixa escura do estilo antigo de input */
+.attr-node input {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  color: #ffd9a0 !important;
+  -webkit-text-fill-color: #ffd9a0 !important;
+  text-shadow: 0 0 8px rgba(255, 120, 40, .5);
+}
+
+/* número dos atributos sem caixa: vence qualquer estilo antigo de input */
+.attr-pentagono .attr-node #agilidade, .attr-pentagono .attr-node #forca,
+.attr-pentagono .attr-node #intelecto, .attr-pentagono .attr-node #presenca,
+.attr-pentagono .attr-node #vigor {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  backdrop-filter: none !important;
+}
