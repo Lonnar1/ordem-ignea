@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="css/07-paleta-master.css" />
 <link rel="stylesheet" href="css/08-campanhas-master.css" />
 <link rel="stylesheet" href="css/06-final-overrides.css" />
+<link rel="stylesheet" href="css/09-op-atributos-recursos.css" />
    <link
   href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cinzel+Decorative:wght@700&family=MedievalSharp&display=swap"
   rel="stylesheet"
@@ -1483,80 +1484,59 @@
       <!-- ================= ATRIBUTOS ================= -->
       <div class="aba" id="atributos" style="display: none">
         <div class="atributos-layout-novo">
-                    <div class="atributos-compactos">
-            <div class="attr attr-compacto">
-              <span class="attr-sigla">AGI</span>
-              <input
-                id="agilidade"
-                type="number"
-                min="0"
-                max="5"
-                value="0"
-                oninput="
-                  limitarAtributo(this);
-                  atualizarTudo();
-                "
-              />
+                    <div class="attr-pentagono">
+            <svg class="attr-pentagono-svg" viewBox="0 0 400 400" aria-hidden="true">
+              <defs>
+                <radialGradient id="apCentroGrad" cx="50%" cy="42%" r="65%">
+                  <stop offset="0%" stop-color="#7a2512" />
+                  <stop offset="60%" stop-color="#3a110a" />
+                  <stop offset="100%" stop-color="#190705" />
+                </radialGradient>
+              </defs>
+              <circle class="ap-anel-ritual" cx="200" cy="205" r="188" />
+              <circle class="ap-anel" cx="200" cy="205" r="178" />
+              <polygon class="ap-linha" points="200,70 328.4,163.3 279.4,314.2 120.6,314.2 71.6,163.3" />
+              <polygon class="ap-linha ap-linha-int" points="200,70 279.4,314.2 71.6,163.3 328.4,163.3 120.6,314.2" />
+              <g class="ap-raios">
+                <line x1="200" y1="205" x2="200" y2="70" />
+                <line x1="200" y1="205" x2="328.4" y2="163.3" />
+                <line x1="200" y1="205" x2="279.4" y2="314.2" />
+                <line x1="200" y1="205" x2="120.6" y2="314.2" />
+                <line x1="200" y1="205" x2="71.6" y2="163.3" />
+              </g>
+              <circle class="ap-centro-aro" cx="200" cy="205" r="74" />
+              <circle class="ap-centro" cx="200" cy="205" r="62" />
+            </svg>
+            <div class="attr-centro">ATRIBUTOS</div>
+            <div class="attr-node attr-node-agi">
+              <input id="agilidade" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+                oninput="limitarAtributo(this); atualizarTudo();" />
+              <span class="attr-node-nome">AGILIDADE</span>
+              <span class="attr-node-sigla">AGI</span>
             </div>
-
-            <div class="attr attr-compacto">
-              <span class="attr-sigla">FOR</span>
-              <input
-                id="forca"
-                type="number"
-                min="0"
-                max="5"
-                value="0"
-                oninput="
-                  limitarAtributo(this);
-                  atualizarTudo();
-                "
-              />
+            <div class="attr-node attr-node-int">
+              <input id="intelecto" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+                oninput="limitarAtributo(this); atualizarTudo();" />
+              <span class="attr-node-nome">INTELECTO</span>
+              <span class="attr-node-sigla">INT</span>
             </div>
-
-            <div class="attr attr-compacto">
-              <span class="attr-sigla">INT</span>
-              <input
-                id="intelecto"
-                type="number"
-                min="0"
-                max="5"
-                value="0"
-                oninput="
-                  limitarAtributo(this);
-                  atualizarTudo();
-                "
-              />
+            <div class="attr-node attr-node-vig">
+              <input id="vigor" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+                oninput="limitarAtributo(this); atualizarTudo();" />
+              <span class="attr-node-nome">VIGOR</span>
+              <span class="attr-node-sigla">VIG</span>
             </div>
-
-            <div class="attr attr-compacto">
-              <span class="attr-sigla">PRE</span>
-              <input
-                id="presenca"
-                type="number"
-                min="0"
-                max="5"
-                value="0"
-                oninput="
-                  limitarAtributo(this);
-                  atualizarTudo();
-                "
-              />
+            <div class="attr-node attr-node-pre">
+              <input id="presenca" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+                oninput="limitarAtributo(this); atualizarTudo();" />
+              <span class="attr-node-nome">PRESENÇA</span>
+              <span class="attr-node-sigla">PRE</span>
             </div>
-
-            <div class="attr attr-compacto">
-              <span class="attr-sigla">VIG</span>
-              <input
-                id="vigor"
-                type="number"
-                min="0"
-                max="5"
-                value="0"
-                oninput="
-                  limitarAtributo(this);
-                  atualizarTudo();
-                "
-              />
+            <div class="attr-node attr-node-for">
+              <input id="forca" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+                oninput="limitarAtributo(this); atualizarTudo();" />
+              <span class="attr-node-nome">FORÇA</span>
+              <span class="attr-node-sigla">FOR</span>
             </div>
           </div>
 
@@ -1599,14 +1579,7 @@
       <!-- ================= COMBATE ================= -->
       <div class="aba" id="combate" style="display: none">
         <div class="hp-box">
-          <h2 class="titulo-secao">Vida</h2>
-
           <div class="linha-status">
-            <div class="campo">
-              <label>HP MAX</label>
-              <input id="vidaMax" value="50" onchange="atualizarHP()" />
-            </div>
-
             <div class="campo">
               <label>CA</label>
               <input id="ca" value="10" />
@@ -1618,63 +1591,52 @@
             </div>
           </div>
 
-          <div class="op-recursos">
+          <div class="op-barra-bloco">
+            <div class="op-barra-label">VIDA</div>
+            <div class="op-barra op-barra-vida" id="hpBar">
+            <div class="op-barra-fill" id="hp-fill"></div>
 
-  <div class="op-recurso op-recurso-pe">
-    <label class="op-recurso-label" for="peMaxOP">
-      PE MÁX
-    </label>
+            <div class="op-barra-overlay">
+              <button type="button" onclick="alterarVida(-5)">«</button>
+              <button type="button" onclick="alterarVida(-1)">‹</button>
+              <div class="op-barra-texto">
+                <span id="vida-texto">50</span><span class="op-barra-sep">/</span><input id="vidaMax" class="op-barra-max" type="number" min="0" value="50" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;color:#fff!important;-webkit-text-fill-color:#fff!important;" oninput="mudarMaxVida()" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" />
+              </div>
+              <button type="button" onclick="alterarVida(1)">›</button>
+              <button type="button" onclick="alterarVida(5)">»</button>
+            </div>
+          </div>
+          </div>
 
-    <input
-      id="peMaxOP"
-      class="op-recurso-input"
-      type="number"
-      min="0"
-      value="0"
-      oninput="salvarTudo()"
-    />
-  </div>
-
-  <div class="op-recurso op-recurso-san">
-    <label class="op-recurso-label" for="sanMaxOP">
-      SANIDADE
-    </label>
-
-    <input
-      id="sanMaxOP"
-      class="op-recurso-input"
-      type="number"
-      min="0"
-      value="0"
-      oninput="salvarTudo()"
-    />
-  </div>
-
-</div>
-
-          <div class="hp-bar" id="hpBar">
-            <div id="hp-fill"></div>
-
-            <div class="hp-overlay">
-              <button onclick="alterarVida(-1)">-</button>
-              <span id="vida-texto">50</span>
-              <button onclick="alterarVida(1)">+</button>
+          <div class="op-barra-bloco">
+            <div class="op-barra-label">SANIDADE</div>
+            <div class="op-barra op-barra-san" id="sanBar">
+              <div class="op-barra-fill" id="san-fill"></div>
+              <div class="op-barra-overlay">
+                <button type="button" onclick="alterarRecursoOP('san',-5)">«</button>
+                <button type="button" onclick="alterarRecursoOP('san',-1)">‹</button>
+                <div class="op-barra-texto">
+                <span id="san-texto">0</span><span class="op-barra-sep">/</span><input id="sanMaxOP" class="op-barra-max" type="number" min="0" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;color:#fff!important;-webkit-text-fill-color:#fff!important;" oninput="mudarMaxRecursoOP('san')" />
+              </div>
+                <button type="button" onclick="alterarRecursoOP('san',1)">›</button>
+                <button type="button" onclick="alterarRecursoOP('san',5)">»</button>
+              </div>
             </div>
           </div>
 
-          <div class="hp-temp-box">
-            <div class="hp-bar temp" id="tempBar">
-              <div id="temp-fill"></div>
-
-              <div class="hp-overlay">
-                <button onclick="alterarTemp(-1)">-</button>
-                <span id="temp-texto">0</span>
-                <button onclick="alterarTemp(1)">+</button>
+          <div class="op-barra-bloco">
+            <div class="op-barra-label">ESFORÇO</div>
+            <div class="op-barra op-barra-pe" id="peBar">
+              <div class="op-barra-fill" id="pe-fill"></div>
+              <div class="op-barra-overlay">
+                <button type="button" onclick="alterarRecursoOP('pe',-5)">«</button>
+                <button type="button" onclick="alterarRecursoOP('pe',-1)">‹</button>
+                <div class="op-barra-texto">
+                <span id="pe-texto">0</span><span class="op-barra-sep">/</span><input id="peMaxOP" class="op-barra-max" type="number" min="0" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;color:#fff!important;-webkit-text-fill-color:#fff!important;" oninput="mudarMaxRecursoOP('pe')" />
               </div>
-            </div>
-
-            <div class="hp-total" style="display: none">
-              Total: <span id="vida-total">0/0</span>
+                <button type="button" onclick="alterarRecursoOP('pe',1)">›</button>
+                <button type="button" onclick="alterarRecursoOP('pe',5)">»</button>
+              </div>
             </div>
           </div>
         </div>
