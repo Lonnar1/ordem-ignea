@@ -1509,31 +1509,31 @@
             </svg>
             <div class="attr-centro">ATRIBUTOS</div>
             <div class="attr-node attr-node-agi">
-              <input id="agilidade" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="agilidade" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">AGILIDADE</span>
               <span class="attr-node-sigla">AGI</span>
             </div>
             <div class="attr-node attr-node-int">
-              <input id="intelecto" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="intelecto" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">INTELECTO</span>
               <span class="attr-node-sigla">INT</span>
             </div>
             <div class="attr-node attr-node-vig">
-              <input id="vigor" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="vigor" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">VIGOR</span>
               <span class="attr-node-sigla">VIG</span>
             </div>
             <div class="attr-node attr-node-pre">
-              <input id="presenca" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="presenca" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">PRESENÇA</span>
               <span class="attr-node-sigla">PRE</span>
             </div>
             <div class="attr-node attr-node-for">
-              <input id="forca" type="number" min="0" max="5" value="0" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="forca" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">FORÇA</span>
               <span class="attr-node-sigla">FOR</span>
@@ -1543,23 +1543,37 @@
           <div class="pericias pericias-scroll">
             <div class="header-pericias">
               <div class="header-pericias-topo">
-                <span>Perícias</span>
+                <div class="pericias-titulo-linha">
+                  <span>Perícias</span>
 
-                <div class="inspiracao-box">
-                  <label for="inspiracao">Inspiração</label>
-                  <input
-                    id="inspiracao"
-                    type="text"
-                    value="0"
-                    oninput="salvarTudo()"
-                  />
+                  <div class="pericias-filtro-wrap">
+                    <button
+                      type="button"
+                      id="btnFiltroPericias"
+                      class="pericias-filtro-btn"
+                      onclick="toggleMenuFiltroPericias(event)"
+                      title="Filtrar / ordenar perícias"
+                      aria-label="Filtrar perícias"
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+                    </button>
+
+                    <div id="menuFiltroPericias" class="pericias-filtro-menu" hidden>
+                      <button type="button" data-filtro="todas" onclick="setFiltroPericias('todas')">Todas</button>
+                      <button type="button" data-filtro="az" onclick="setFiltroPericias('az')">Ordem alfabética (A–Z)</button>
+                      <button type="button" data-filtro="marcadas" onclick="setFiltroPericias('marcadas')">Marcadas</button>
+                      <button type="button" data-filtro="treinadas" onclick="setFiltroPericias('treinadas')">Treinadas (Treinado, Veterano, Expert)</button>
+                      <button type="button" data-filtro="bonus" onclick="setFiltroPericias('bonus')">Maior bônus primeiro</button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="prof-box">
-                <label>Prof</label>
-                <input id="bonusProf" value="2" oninput="atualizarTudo()" />
-              </div>
+            </div>
+
+            <div class="pericias-legenda">
+              <span><b>*</b> somente treinada</span>
+              <span><b>+</b> penalidade de carga</span>
             </div>
 
             <div id="pericias"></div>
