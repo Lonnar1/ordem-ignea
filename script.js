@@ -313,6 +313,11 @@ let filtroPoderesOrdem = "todos";
 let editandoAliado = -1;
 let vidaAtual = 50;
 let vidaTemp = 0;
+let vidaMaxPrev = 50;
+let peAtual = null;
+let sanAtual = null;
+let peMaxPrev = 0;
+let sanMaxPrev = 0;
 let inventario = [];
 let veiculos = [];
 let armas = [];
@@ -3949,7 +3954,10 @@ if (classeOPEl) {
 if (nexEl) {
   nexEl.value = p.nex ?? 5;
 }
-  document.getElementById("vidaMax").value = p.vidaMax ?? 50;
+  document.getElementById("vidaMax").value =
+    p.vidaMax !== "" && p.vidaMax != null && Number.isFinite(Number(p.vidaMax))
+      ? p.vidaMax
+      : 50;
   document.getElementById("ca").value = p.ca ?? "";
   document.getElementById("deslocamento").value = p.deslocamento ?? 9;
   const antecedenteSelect = document.getElementById("antecedenteSelect");
@@ -4006,6 +4014,9 @@ if (pePorTurno) {
   dominio = p.dominio || [false, false, false, false, false, false];
   vidaAtual = p.vidaAtual ?? 50;
   vidaTemp = p.vidaTemp ?? 0;
+  peAtual = p.peAtual ?? null;
+  sanAtual = p.sanAtual ?? null;
+  if (typeof atualizarRecursosOP === "function") atualizarRecursosOP();
   inventario = p.inventario || [];
   veiculos =
   Array.isArray(p.veiculos)
@@ -4108,6 +4119,8 @@ function salvarTudo() {
   p.classeOP = document.getElementById("classeOP")?.value || "combatente";
   p.peMaxOP = document.getElementById("peMaxOP")?.value || 0;
 p.sanMaxOP = document.getElementById("sanMaxOP")?.value || 0;
+p.peAtual = peAtual;
+p.sanAtual = sanAtual;
   const nexValor = parseInt(document.getElementById("nex")?.value);
 
 p.nex = Number.isNaN(nexValor)
@@ -8777,14 +8790,15 @@ function atualizarHP() {
   const texto = document.getElementById("vida-texto");
 
   if (fill) fill.style.width = `${porcentagem}%`;
-  if (texto) texto.innerText = `${vidaAtual}/${max}`;
+  if (texto) texto.innerText = vidaAtual;
+  vidaMaxPrev = max;
 
   atualizarTotal();
   atualizarEstadoLowHP();
 }
 
 function animarAttr(id) {
-  const el = document.getElementById(id).closest(".attr");
+  const el = document.getElementById(id).closest(".attr, .attr-node");
   el.classList.add("up");
 
   setTimeout(() => {
@@ -8822,6 +8836,18 @@ function atualizarTotal() {
   }
 }
 
+
+function mudarMaxVida() {
+  const max = Math.max(0, parseInt(document.getElementById("vidaMax")?.value) || 0);
+
+  // se estava cheia continua cheia; senão só limita ao novo máximo
+  if (vidaAtual >= vidaMaxPrev) vidaAtual = max;
+  if (vidaAtual > max) vidaAtual = max;
+
+  atualizarHP();
+  salvarTudo();
+}
+
 function alterarVida(v) {
   const max = get("vidaMax");
   vidaAtual += v;
@@ -8838,6 +8864,61 @@ function alterarTemp(v) {
   if (vidaTemp < 0) vidaTemp = 0;
 
   atualizarTemp();
+  salvarTudo();
+}
+
+
+/* ================= SANIDADE / ESFORÇO (barras) ================= */
+
+function maxRecursoOP(tipo) {
+  const el = document.getElementById(tipo === "san" ? "sanMaxOP" : "peMaxOP");
+  return Math.max(0, parseInt(el?.value) || 0);
+}
+
+function atualizarRecursosOP() {
+  ["san", "pe"].forEach((t) => {
+    const max = maxRecursoOP(t);
+    let atual = t === "san" ? sanAtual : peAtual;
+
+    if (atual === null || isNaN(atual)) atual = max;
+    atual = Math.max(0, Math.min(atual, max));
+
+    if (t === "san") { sanAtual = atual; sanMaxPrev = max; }
+    else { peAtual = atual; peMaxPrev = max; }
+
+    const fill = document.getElementById(`${t}-fill`);
+    const texto = document.getElementById(`${t}-texto`);
+    if (fill) fill.style.width = `${max > 0 ? (atual / max) * 100 : 0}%`;
+    if (texto) texto.innerText = atual;
+  });
+}
+
+function alterarRecursoOP(tipo, v) {
+  const max = maxRecursoOP(tipo);
+  let atual = tipo === "san" ? sanAtual : peAtual;
+  if (atual === null || isNaN(atual)) atual = max;
+
+  atual = Math.max(0, Math.min(max, atual + v));
+
+  if (tipo === "san") sanAtual = atual;
+  else peAtual = atual;
+
+  atualizarRecursosOP();
+  salvarTudo();
+}
+
+// quando o máximo muda: se a barra estava cheia, continua cheia
+function mudarMaxRecursoOP(tipo) {
+  const prev = tipo === "san" ? sanMaxPrev : peMaxPrev;
+  const atual = tipo === "san" ? sanAtual : peAtual;
+  const novoMax = maxRecursoOP(tipo);
+
+  if (atual === null || atual >= prev) {
+    if (tipo === "san") sanAtual = novoMax;
+    else peAtual = novoMax;
+  }
+
+  atualizarRecursosOP();
   salvarTudo();
 }
 
