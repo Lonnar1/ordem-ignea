@@ -369,23 +369,23 @@ let _ultimoSwipeCarrossel = 0;
 /* ================= DADOS FIXOS ================= */
 
 const pericias = [
-  { nome: "Acrobacia", attr: "agilidade", soTreinada: true },
+  { nome: "Acrobacia", attr: "agilidade", carga: true },
   { nome: "Adestramento", attr: "presenca", soTreinada: true },
   { nome: "Artes", attr: "presenca", soTreinada: true },
   { nome: "Atletismo", attr: "forca" },
   { nome: "Atualidades", attr: "intelecto" },
   { nome: "Ciências", attr: "intelecto", soTreinada: true },
-  { nome: "Crime", attr: "agilidade", soTreinada: true },
+  { nome: "Crime", attr: "agilidade", soTreinada: true, carga: true },
   { nome: "Diplomacia", attr: "presenca" },
   { nome: "Enganação", attr: "presenca" },
   { nome: "Fortitude", attr: "vigor" },
-  { nome: "Furtividade", attr: "agilidade" },
+  { nome: "Furtividade", attr: "agilidade", carga: true },
   { nome: "Iniciativa", attr: "agilidade" },
   { nome: "Intimidação", attr: "presenca" },
   { nome: "Intuição", attr: "presenca" },
   { nome: "Investigação", attr: "intelecto" },
   { nome: "Luta", attr: "forca" },
-  { nome: "Medicina", attr: "intelecto", soTreinada: true },
+  { nome: "Medicina", attr: "intelecto" },
   { nome: "Ocultismo", attr: "intelecto", soTreinada: true },
   { nome: "Percepção", attr: "presenca" },
   { nome: "Pilotagem", attr: "agilidade", soTreinada: true },
@@ -3976,11 +3976,11 @@ if (sanMaxOP) sanMaxOP.value = p.sanMaxOP ?? 0;
   if (resistenciasEl) resistenciasEl.value = p.resistencias || "";
   if (diarioEl) diarioEl.value = p.diario || "";
 
-  document.getElementById("agilidade").value = p.agilidade ?? 0;
-  document.getElementById("forca").value = p.forca ?? 0;
-  document.getElementById("intelecto").value = p.intelecto ?? 0;
-  document.getElementById("presenca").value = p.presenca ?? 0;
-  document.getElementById("vigor").value = p.vigor ?? 0;
+  document.getElementById("agilidade").value = p.agilidade ?? 1;
+  document.getElementById("forca").value = p.forca ?? 1;
+  document.getElementById("intelecto").value = p.intelecto ?? 1;
+  document.getElementById("presenca").value = p.presenca ?? 1;
+  document.getElementById("vigor").value = p.vigor ?? 1;
 
   const inspiracao = document.getElementById("inspiracao");
   if (inspiracao) inspiracao.value = p.inspiracao ?? 0;
@@ -9045,6 +9045,223 @@ function toggleCargaPoder(index, i) {
   salvarTudo();
 }
 
+
+/* ================= FILTRO / ORDEM DAS PERÍCIAS ================= */
+
+let filtroPericiasOP = "todas";
+try {
+  filtroPericiasOP = localStorage.getItem("filtroPericiasOP") || "todas";
+} catch (e) {}
+
+function listaPericiasFiltrada() {
+  let lista = pericias.slice();
+
+  switch (filtroPericiasOP) {
+    case "az":
+      lista.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+      break;
+    case "marcadas":
+      lista = lista.filter((p) => periciasSelecionadasOP.includes(p.nome));
+      break;
+    case "treinadas":
+      lista = lista.filter((p) => (profs[p.nome] || 0) >= 1);
+      break;
+    case "bonus":
+      lista = lista
+        .map((p, i) => ({ p, i }))
+        .sort(
+          (x, y) =>
+            (profs[y.p.nome] || 0) - (profs[x.p.nome] || 0) || x.i - y.i,
+        )
+        .map((x) => x.p);
+      break;
+  }
+
+  return lista;
+}
+
+function atualizarVisualFiltroPericias() {
+  const btn = document.getElementById("btnFiltroPericias");
+  if (btn) btn.classList.toggle("ativo", filtroPericiasOP !== "todas");
+
+  document
+    .querySelectorAll("#menuFiltroPericias [data-filtro]")
+    .forEach((b) => {
+      b.classList.toggle("ativo", b.dataset.filtro === filtroPericiasOP);
+    });
+}
+
+function setFiltroPericias(filtro) {
+  filtroPericiasOP = filtro;
+  try {
+    localStorage.setItem("filtroPericiasOP", filtro);
+  } catch (e) {}
+
+  const menu = document.getElementById("menuFiltroPericias");
+  if (menu) menu.hidden = true;
+
+  atualizarVisualFiltroPericias();
+  atualizarTudo();
+}
+
+function toggleMenuFiltroPericias(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById("menuFiltroPericias");
+  if (!menu) return;
+  menu.hidden = !menu.hidden;
+  atualizarVisualFiltroPericias();
+}
+
+document.addEventListener("click", (e) => {
+  const menu = document.getElementById("menuFiltroPericias");
+  if (menu && !menu.hidden && !e.target.closest(".pericias-filtro-wrap")) {
+    menu.hidden = true;
+  }
+});
+
+document.addEventListener("DOMContentLoaded", atualizarVisualFiltroPericias);
+
+const SIGLA_ATTR_PERICIA = {
+  agilidade: "AGI",
+  forca: "FOR",
+  intelecto: "INT",
+  presenca: "PRE",
+  vigor: "VIG",
+};
+
+
+/* ================= ROLAGEM AUTOMÁTICA DE PERÍCIAS ================= */
+/* Regra: rola (valor do atributo) d20 e fica com o MAIOR.
+   Atributo 0: rola 2d20 e fica com o MENOR. Soma o bônus de treino (+5/+10/+15). */
+
+let rolagensRecentesOP = [];
+let _rolagemTimer = null;
+let _rolagemAnim = null;
+
+function _d20() {
+  return 1 + Math.floor(Math.random() * 20);
+}
+
+function rolarPericia(nome, event) {
+  if (event) event.stopPropagation();
+
+  const pericia = pericias.find((p) => p.nome === nome);
+  if (!pericia) return;
+
+  const valorAttr = get(pericia.attr);
+  const grau = profs[nome] || 0;
+  const bonus = BONUS_TREINO[grau] || 0;
+
+  const desvantagem = valorAttr <= 0;
+  const qtd = desvantagem ? 2 : valorAttr;
+
+  const dados = Array.from({ length: qtd }, _d20);
+  const escolhido = desvantagem ? Math.min(...dados) : Math.max(...dados);
+  const total = escolhido + bonus;
+
+  const rolagem = {
+    nome,
+    sigla: SIGLA_ATTR_PERICIA[pericia.attr] || "",
+    dados,
+    escolhido,
+    bonus,
+    total,
+    desvantagem,
+  };
+
+  rolagensRecentesOP.unshift({ nome, total });
+  rolagensRecentesOP = rolagensRecentesOP.slice(0, 5);
+
+  mostrarRolagemOP(rolagem);
+}
+
+function _painelRolagemOP() {
+  let painel = document.getElementById("rolagemPainelOP");
+  if (!painel) {
+    painel = document.createElement("div");
+    painel.id = "rolagemPainelOP";
+    painel.className = "rolagem-painel";
+    document.body.appendChild(painel);
+  }
+  return painel;
+}
+
+function fecharRolagemOP() {
+  const painel = document.getElementById("rolagemPainelOP");
+  if (painel) painel.classList.remove("aberto");
+  clearTimeout(_rolagemTimer);
+  clearInterval(_rolagemAnim);
+}
+
+function mostrarRolagemOP(r) {
+  const painel = _painelRolagemOP();
+  clearTimeout(_rolagemTimer);
+  clearInterval(_rolagemAnim);
+
+  const formula = r.desvantagem
+    ? `menor de 2d20 (atributo 0)`
+    : `maior de ${r.dados.length}d20`;
+
+  const historico = rolagensRecentesOP
+    .slice(1)
+    .map((h) => `<span>${h.nome} <b>${h.total}</b></span>`)
+    .join("");
+
+  const montar = (valores, final) => {
+    const marcado = final
+      ? r.dados.indexOf(r.escolhido)
+      : -1;
+
+    const chips = valores
+      .map(
+        (v, i) =>
+          `<span class="rolagem-dado ${final && i === marcado ? "escolhido" : ""} ${
+            final && i !== marcado ? "descartado" : ""
+          }">${v}</span>`,
+      )
+      .join("");
+
+    const natural =
+      final && r.escolhido === 20
+        ? '<div class="rolagem-natural">20 natural</div>'
+        : final && r.escolhido === 1
+          ? '<div class="rolagem-natural ruim">1 natural</div>'
+          : "";
+
+    painel.innerHTML = `
+      <button type="button" class="rolagem-fechar" onclick="fecharRolagemOP()" aria-label="Fechar">×</button>
+      <div class="rolagem-titulo">${r.nome} <span class="rolagem-attr">${r.sigla}</span></div>
+      <div class="rolagem-dados">${chips}</div>
+      <div class="rolagem-total ${final ? "" : "girando"}">${
+        final ? r.total : "…"
+      }</div>
+      ${
+        final
+          ? `<div class="rolagem-formula">${formula} → ${r.escolhido}${
+              r.bonus ? ` + ${r.bonus}` : ""
+            }</div>${natural}`
+          : ""
+      }
+      ${final && historico ? `<div class="rolagem-historico">${historico}</div>` : ""}
+    `;
+  };
+
+  painel.classList.add("aberto");
+
+  // animação rápida de "dados girando"
+  const qtd = r.dados.length;
+  let ticks = 0;
+  _rolagemAnim = setInterval(() => {
+    ticks++;
+    montar(Array.from({ length: qtd }, _d20), false);
+    if (ticks >= 8) {
+      clearInterval(_rolagemAnim);
+      montar(r.dados, true);
+      _rolagemTimer = setTimeout(fecharRolagemOP, 9000);
+    }
+  }, 60);
+}
+
 const NOMES_TREINO = ["Não treinado", "Treinado", "Veterano", "Expert"];
 const BONUS_TREINO = [0, 5, 10, 15];
 
@@ -9061,7 +9278,14 @@ function atualizarTudo() {
   if (lista) {
     lista.innerHTML = "";
 
-    pericias.forEach((pericia) => {
+    const listaFiltrada = listaPericiasFiltrada();
+
+    if (listaFiltrada.length === 0) {
+      lista.innerHTML =
+        '<div class="pericias-vazio">Nenhuma perícia encontrada para este filtro.</div>';
+    }
+
+    listaFiltrada.forEach((pericia) => {
   const grau = profs[pericia.nome] || 0;
 
   const dados =
@@ -9094,9 +9318,19 @@ function atualizarTudo() {
           title="${selecionada ? "Selecionada" : "Não selecionada"}"
         ></div>
 
-        <span class="pericia-nome">
-          ${pericia.nome}
+        <span class="pericia-nome pericia-clicavel" onclick="rolarPericia('${pericia.nome}', event)" title="Clique para rolar">
+          ${pericia.nome}${
+            pericia.soTreinada
+              ? '<span class="pericia-marca" title="Somente treinada: só pode ser usada se você for treinado nela">*</span>'
+              : ""
+          }${
+            pericia.carga
+              ? '<span class="pericia-marca" title="Penalidade de carga: o peso do equipamento atrapalha o teste">+</span>'
+              : ""
+          }
         </span>
+
+        <span class="pericia-attr" title="Atributo base da perícia">${SIGLA_ATTR_PERICIA[pericia.attr] || ""}</span>
 
       </div>
 
@@ -9119,8 +9353,8 @@ function atualizarTudo() {
       </button>
 
 
-      <span class="pericia-rolagem">
-        ${dados}d20${bonus > 0 ? ` +${bonus}` : ""}
+      <span class="pericia-rolagem pericia-clicavel" onclick="rolarPericia('${pericia.nome}', event)" title="Clique para rolar">
+        ${(atributos[pericia.attr] || 0) <= 0 ? "2d20↓" : dados + "d20"}${bonus > 0 ? ` +${bonus}` : ""}
       </span>
 
     </div>
@@ -13048,7 +13282,6 @@ function init() {
     "idade",
     "altura",
     "nivel",
-    "inspiracao",
     "pePorTurno",
     "racaSelect",
     "antecedentes",
