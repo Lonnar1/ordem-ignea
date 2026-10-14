@@ -245,3 +245,219 @@
   outline: 0 !important;
   backdrop-filter: none !important;
 }
+
+/* ===== Filtro das perícias ===== */
+.pericias-titulo-linha { display: flex; align-items: center; gap: 10px; }
+.pericias-filtro-wrap { position: relative; }
+.pericias-filtro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(217, 161, 74, .35);
+  background: rgba(20, 8, 6, .8);
+  color: #d9a14a;
+  cursor: pointer;
+}
+.pericias-filtro-btn.ativo { background: #7a2512; border-color: #d9a14a; color: #ffd9a0; box-shadow: 0 0 10px rgba(255,120,40,.35); }
+.pericias-filtro-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  min-width: 230px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 12px;
+  background: #160807;
+  border: 1px solid rgba(217, 161, 74, .4);
+  box-shadow: 0 8px 24px rgba(0,0,0,.6);
+}
+.pericias-filtro-menu[hidden] { display: none; }
+.pericias-filtro-menu button {
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #cdb79a;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pericias-filtro-menu button:hover { background: rgba(255,255,255,.06); }
+.pericias-filtro-menu button.ativo { background: rgba(169, 74, 38, .35); color: #ffd9a0; }
+.pericias-vazio { padding: 18px 8px; text-align: center; color: #8d7a66; font-size: 13px; }
+
+/* ===== Símbolos e atributo nas perícias ===== */
+.pericia-marca {
+  color: #d9a14a;
+  font-weight: 700;
+  margin-left: 1px;
+  cursor: help;
+}
+.pericia-attr {
+  margin-left: 6px;
+  font-size: 11px;
+  letter-spacing: .5px;
+  color: #a58a6c;
+  white-space: nowrap;
+  align-self: center;
+}
+.pericias-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 6px 4px 10px;
+  font-size: 11px;
+  color: #8d7a66;
+}
+.pericias-legenda b { color: #d9a14a; }
+
+/* ===== Ajuste fino: símbolos e atributo discretos, no estilo do site ===== */
+#pericias .pericia .pericia-nome { display: inline; }
+
+#pericias .pericia .pericia-marca {
+  font-family: inherit !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: #d9a14a !important;
+  margin-left: 2px !important;
+  vertical-align: super;
+  opacity: .9;
+}
+
+#pericias .pericia .pericia-attr {
+  font-family: inherit !important;
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: .8px !important;
+  color: #b4562a !important;
+  background: rgba(180, 86, 42, .12);
+  border: 1px solid rgba(180, 86, 42, .35);
+  border-radius: 999px;
+  padding: 1px 6px !important;
+  margin-left: 6px !important;
+  white-space: nowrap;
+  align-self: center;
+  flex: 0 0 auto;
+  text-shadow: none !important;
+}
+.pericias-legenda .legenda-attr {
+  font-size: 9px;
+  letter-spacing: .8px;
+  color: #b4562a;
+  border: 1px solid rgba(180, 86, 42, .35);
+  background: rgba(180, 86, 42, .12);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+/* ===== Etiqueta do atributo: compacta, centralizada e mais afastada do nome ===== */
+#pericias .pericia .pericia-attr {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin-left: 14px !important;
+  /* o letter-spacing sobra no fim do texto: o padding esquerdo maior compensa */
+  padding: 2px 8px 2px calc(8px + .8px) !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  background: rgba(180, 86, 42, .14) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(180, 86, 42, .4) !important;
+}
+
+/* ===== Filtro das perícias na extrema direita ===== */
+.header-pericias-topo { width: 100%; }
+.pericias-titulo-linha {
+  width: 100% !important;
+  justify-content: space-between !important;
+  gap: 16px;
+}
+.pericias-filtro-wrap { margin-left: auto; }
+.pericias-filtro-menu { left: auto !important; right: 0 !important; }
+
+/* ===== Etiqueta acompanha o nome: mesma distância para nome curto ou longo ===== */
+#pericias .pericia .pericia-nome {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  white-space: nowrap;
+}
+#pericias .pericia .pericia-esquerda {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+#pericias .pericia .pericia-attr { margin-left: 12px !important; }
+
+/* ===== Rolagem de perícias ===== */
+.pericia-clicavel { cursor: pointer; }
+#pericias .pericia .pericia-rolagem.pericia-clicavel {
+  transition: color .15s, text-shadow .15s;
+}
+#pericias .pericia .pericia-rolagem.pericia-clicavel:hover,
+#pericias .pericia .pericia-nome.pericia-clicavel:hover {
+  color: #ffd9a0;
+  text-shadow: 0 0 8px rgba(255, 120, 40, .45);
+}
+
+.rolagem-painel {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translate(-50%, 20px);
+  width: min(92vw, 340px);
+  z-index: 9999;
+  padding: 14px 16px 12px;
+  border-radius: 16px;
+  text-align: center;
+  color: #f1e3cf;
+  background: radial-gradient(circle at 50% 0%, #3a110a 0%, #160807 70%);
+  border: 1px solid rgba(217, 161, 74, .55);
+  box-shadow: 0 10px 34px rgba(0,0,0,.7), 0 0 22px rgba(255, 110, 40, .25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+}
+.rolagem-painel.aberto { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.rolagem-fechar {
+  position: absolute; top: 6px; right: 10px;
+  background: transparent; border: 0; color: #b98a62;
+  font-size: 22px; line-height: 1; cursor: pointer;
+}
+.rolagem-titulo { font-size: 14px; letter-spacing: .5px; color: #d9a14a; }
+.rolagem-attr {
+  margin-left: 6px; font-size: 9.5px; letter-spacing: .8px; color: #b4562a;
+  border: 1px solid rgba(180, 86, 42, .4); border-radius: 999px; padding: 1px 6px;
+}
+.rolagem-dados { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0 4px; }
+.rolagem-dado {
+  min-width: 34px; height: 34px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px; font-weight: 700; font-size: 16px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+}
+.rolagem-dado.escolhido { background: #7a2512; border-color: #d9a14a; color: #ffd9a0; box-shadow: 0 0 10px rgba(255,120,40,.45); }
+.rolagem-dado.descartado { opacity: .4; text-decoration: line-through; }
+.rolagem-total { font-size: 44px; font-weight: 800; line-height: 1.1; color: #ffd9a0; text-shadow: 0 0 14px rgba(255,120,40,.6); }
+.rolagem-total.girando { opacity: .6; }
+.rolagem-formula { font-size: 12px; color: #a58a6c; margin-top: 2px; }
+.rolagem-natural { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #ffd9a0; text-transform: uppercase; }
+.rolagem-natural.ruim { color: #e0524a; }
+.rolagem-historico {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px;
+  margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 11px; color: #8d7a66;
+}
+.rolagem-historico b { color: #cdb79a; }
