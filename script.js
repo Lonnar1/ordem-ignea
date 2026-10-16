@@ -4112,6 +4112,7 @@ entrarFicha();
   renderDominio();
 restaurarSecoes();
 renderArmaduras();
+if (typeof carregarOP === "function") carregarOP(p);
 
 atualizarDerivadosOP();
 
@@ -4151,6 +4152,7 @@ p.sanAtual = sanAtual;
 p.nex = Number.isNaN(nexValor)
   ? 5
   : nexValor;
+  if (typeof salvarOP === "function") salvarOP(p);
   p.racaSelect = document.getElementById("racaSelect")?.value || "custom";
   p.raca = p.racaSelect;
   p.bonusRacaCustom = bonusRacaCustom;
@@ -9444,6 +9446,7 @@ async function removerPoder(index) {
 
   poderes.splice(index, 1);
   renderPoderes();
+  if (typeof aoMudarPoderesOP === "function") aoMudarPoderesOP();
   salvarTudo();
 }
 
