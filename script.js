@@ -120,6 +120,7 @@ function sanitizarPersonagem(p) {
   if (Array.isArray(p.armaduras))  p.armaduras.forEach(a  => { a.nome = limparTags(a.nome) || "";  a.desc = limparTags(a.desc) || ""; a.ca = limparTags(a.ca) || ""; });
   if (Array.isArray(p.armas))      p.armas.forEach(a      => { a.nome = limparTags(a.nome) || "";  a.desc = limparTags(a.desc) || ""; a.dano = limparTags(a.dano) || ""; });
   if (Array.isArray(p.poderes))    p.poderes.forEach(p2   => { p2.nome = limparTags(p2.nome) || ""; p2.desc = limparTags(p2.desc) || ""; p2.dano = limparTags(p2.dano) || ""; });
+  if (Array.isArray(p.documentos)) p.documentos.forEach(d => { d.nome = limparTags(d.nome) || ""; d.texto = limparTags(d.texto) || ""; d.tipo = limparTags(d.tipo) || ""; });
   if (Array.isArray(p.mapas))      p.mapas.forEach(m      => { m.nome = limparTags(m.nome) || "";  m.desc = limparTags(m.desc) || ""; });
   if (p.aliados && Array.isArray(p.aliados)) p.aliados.forEach(a => { a.nome = limparTags(a.nome) || ""; a.desc = limparTags(a.desc) || ""; a.local = limparTags(a.local) || ""; });
   return p;
@@ -320,6 +321,7 @@ let peMaxPrev = 0;
 let sanMaxPrev = 0;
 let inventario = [];
 let veiculos = [];
+let recipientes = [];
 let armas = [];
 let poderes = [];
 let profs = {};
@@ -329,6 +331,8 @@ let imagemBase64 = "";
 let imagemOriginalBase64 = "";
 let imagemDeleteUrl = "";
 let mapas = [];
+let documentos = [];
+let docBase64Temp = "";
 let mapaAtual = null;
 let mapaZoom = 1;
 let mapaOffsetX = 0;
@@ -1610,6 +1614,8 @@ function editarArma(index) {
 >
 
 
+${htmlExtrasItem("editArma", "arma", arma)}
+
 <label class="popup-label">
   Descrição
 </label>
@@ -2177,6 +2183,7 @@ async function salvarEdicaoArma(index) {
 
  armas[index] = {
     ...armaAnterior,
+    ...lerExtrasItem("editArma", "arma"),
 
   nome,
   dano,
@@ -2514,25 +2521,31 @@ function toggleSecao(id, titulo) {
 }
 
 function restaurarSecoes() {
-  const secoes = document.querySelectorAll(".conteudo-toggle");
-
-  secoes.forEach((box) => {
+  document.querySelectorAll(".conteudo-toggle").forEach((box) => {
     const id = box.id;
     if (!id) return;
 
     const estado = localStorage.getItem("secao_" + id);
-    const titulo = document.querySelector(`[onclick*="${id}"]`);
+    const titulo = document.querySelector(`[onclick*="'${id}'"]`);
 
+    // sem estado salvo: mantém como está no HTML
     if (estado === "fechada") {
       box.classList.remove("aberto");
       box.classList.add("fechado");
       if (titulo) titulo.classList.add("fechado");
-    } else {
+    } else if (estado === "aberta") {
       box.classList.add("aberto");
       box.classList.remove("fechado");
       if (titulo) titulo.classList.remove("fechado");
     }
   });
+
+  // Diário
+  const diario = document.getElementById("diario-box");
+  const estadoDiario = localStorage.getItem("secao_diario-box");
+  if (diario && estadoDiario) {
+    diario.style.display = estadoDiario === "aberta" ? "block" : "none";
+  }
 }
 
 function renderAliados() {
@@ -3363,11 +3376,10 @@ function toggleDiario() {
   const box = document.getElementById("diario-box");
   if (!box) return;
 
-  if (box.style.display === "none" || box.style.display === "") {
-    box.style.display = "block";
-  } else {
-    box.style.display = "none";
-  }
+  const abrir = box.style.display === "none" || box.style.display === "";
+  box.style.display = abrir ? "block" : "none";
+
+  localStorage.setItem("secao_diario-box", abrir ? "aberta" : "fechada");
 }
 
 async function addArmadura() {
@@ -3409,6 +3421,7 @@ async function addArmadura() {
   const sintonizado = requerSintonia && !!document.getElementById("armaduraSintonizado")?.checked;
 
   const novaArmadura = {
+    ...lerExtrasItem("armadura", "vestimenta"),
     nome,
     ca,
     desc,
@@ -3446,6 +3459,7 @@ async function addArmadura() {
 
   document.getElementById("armaduraNome").value = "";
   document.getElementById("armaduraCA").value = "";
+  montarExtrasForm("armadura", "vestimenta");
   document.getElementById("armaduraDesc").value = "";
   
   const armaduraEspacosEl = document.getElementById("armaduraEspacos");
@@ -3580,6 +3594,8 @@ function renderArmaduras() {
 </div>
 </div>
 
+${extrasCardHTML(armadura, "vestimenta")}
+
 <p class="armadura-desc-preview">
   ${armadura.desc ? esc(armadura.desc).substring(0, 60) + (armadura.desc.length > 60 ? "..." : "") : "Sem descrição"}
 </p>
@@ -3646,6 +3662,8 @@ function verArmadura(index) {
 
       </div>
 
+      ${extrasPopupHTML(armadura, "vestimenta")}
+
       <div style="margin-top: 12px;">
         <span class="popup-label">Descrição</span>
         <div class="popup-descricao">${esc(armadura.desc) || "Sem descrição"}</div>
@@ -3701,6 +3719,8 @@ function editarArmadura(index) {
         placeholder="0, I, II, III ou IV"
         value="${esc(armadura.categoria || "")}"
       >
+
+      ${htmlExtrasItem("editArmadura", "vestimenta", armadura)}
 
       <label class="popup-label">Descrição</label>
       <textarea id="editArmaduraDesc">${armadura.desc || ""}</textarea>
@@ -3887,6 +3907,7 @@ const sintonizado =
   }
 
   armaduras[index] = {
+  ...lerExtrasItem("editArmadura", "vestimenta"),
   nome,
   ca,
   categoria,
@@ -4018,6 +4039,7 @@ if (pePorTurno) {
   sanAtual = p.sanAtual ?? null;
   if (typeof atualizarRecursosOP === "function") atualizarRecursosOP();
   inventario = p.inventario || [];
+  recipientes = Array.isArray(p.recipientes) ? p.recipientes : [];
   veiculos =
   Array.isArray(p.veiculos)
     ? p.veiculos
@@ -4043,6 +4065,8 @@ armas = p.armas || [];
   armaduras = p.armaduras || [];
   mapas = p.mapas || [];
   renderMapas();
+  documentos = Array.isArray(p.documentos) ? p.documentos : [];
+  renderDocumentos();
   nomeRacaCustom = p.nomeRacaCustom || "";
   atualizarNomeOpcaoCustom();
   gastosCirculos = p.gastosCirculos || {
@@ -4073,6 +4097,7 @@ armas = p.armas || [];
 
   renderInv();
 renderVeiculos();
+renderRecipientes();
 renderArmas();
   renderPoderes();
   atualizarTudo();
@@ -4137,6 +4162,7 @@ p.nivel = document.getElementById("nivel")?.value || "";
   p.idiomas = document.getElementById("idiomas").value;
   p.armaduras = armaduras;
   p.mapas = mapas;
+  p.documentos = documentos;
   p.proficienciasExtras =
     document.getElementById("proficienciasExtras")?.value || "";
     p.imagens = imagensPersonagem;
@@ -4165,6 +4191,7 @@ p.nivel = document.getElementById("nivel")?.value || "";
 
   p.inventario = inventario;
   p.veiculos = veiculos;
+p.recipientes = recipientes;
 
 p.capacidadeInventario =
   numeroInventario(
@@ -5180,7 +5207,8 @@ function calcularEspacosInventario() {
   return (
     espacosItens +
     calcularEspacosArmas() +
-    calcularEspacosArmaduras()
+    calcularEspacosArmaduras() +
+    recipientes.reduce((t, r) => t + calcularEspacosRecipiente(r), 0)
   );
 }
 
@@ -5896,6 +5924,7 @@ function addVeiculo() {
   }
 
   veiculos.push({
+    ...lerExtrasItem("veiculo", "veiculo"),
     nome,
     icone,
     desc,
@@ -5917,6 +5946,7 @@ function addVeiculo() {
   document.getElementById("veiculoNome").value = "";
 document.getElementById("veiculoIcone").value = "🚗";
 document.getElementById("veiculoDesc").value = "";
+  montarExtrasForm("veiculo", "veiculo");
   document.getElementById("veiculoVidaMax").value = "";
   document.getElementById("veiculoGasolinaMax").value = "";
   document.getElementById("veiculoPassageirosMax").value = "";
@@ -6001,6 +6031,8 @@ function renderVeiculos() {
             `
             : ""
         }
+
+        ${extrasCardHTML(veiculo, "veiculo")}
 
         <div class="veiculo-resumo-grid">
 
@@ -6258,6 +6290,8 @@ function verVeiculo(index) {
           : ""
       }
 
+      ${extrasPopupHTML(veiculo, "veiculo")}
+
       <div class="veiculo-status-box">
 
         <div class="veiculo-status-topo">
@@ -6389,6 +6423,12 @@ function verVeiculo(index) {
           >
             Transferir
           </button>
+
+          ${
+            (veiculo.itens || []).length
+              ? `<button type="button" onclick="abrirRetirarVariosVeiculo(${index})">Retirar vários</button>`
+              : ""
+          }
 
           <button
             type="button"
@@ -6568,6 +6608,8 @@ function editarVeiculo(index) {
 </select>
 
 
+${htmlExtrasItem("editVeiculo", "veiculo", veiculo)}
+
 <label class="popup-label">
   Descrição
 </label>
@@ -6700,6 +6742,8 @@ veiculo.icone =
   document.getElementById(
     "editVeiculoIcone"
   )?.value || "🚗";
+
+Object.assign(veiculo, lerExtrasItem("editVeiculo", "veiculo"));
 
 veiculo.desc =
     document.getElementById(
@@ -7393,11 +7437,18 @@ function itemDoVeiculoPara(item, destino, primeiro = true) {
       : [],
   };
 
+  // detalhes de combate e modificações (arrays/objetos) voltam junto
+  const extras = {
+    detalhes: JSON.parse(JSON.stringify(o.detalhes || {})),
+    modificacoes: JSON.parse(JSON.stringify(_modsDoItem(o))),
+  };
+
   // Saída 2: vai para as armas
   if (destino === "armas") {
     return {
       ...comum,
       ...cargas,
+      ...extras,
       desc,
       dano: o.dano || "",
       espacos: numeroInventario(item.espacos),
@@ -7409,6 +7460,7 @@ function itemDoVeiculoPara(item, destino, primeiro = true) {
   return {
     ...comum,
     ...cargas,
+    ...extras,
     desc,
     ca: o.ca || "",
     espacos: numeroInventario(item.espacos),
@@ -7457,50 +7509,730 @@ function mesmoItem(a, b) {
 
 /* ---------- Transferir da ficha para o veículo ---------- */
 
-function abrirGuardarNoVeiculo(veiculoIndex) {
-  if (!veiculos[veiculoIndex]) return;
 
-  const grupos = [
-    { tipo: "inventario", titulo: "Inventário", lista: inventario },
-    { tipo: "armas", titulo: "Armas", lista: armas },
-    { tipo: "armaduras", titulo: "Vestimentas", lista: armaduras },
-  ];
+
+/* ================= ÍCONES DOS RECIPIENTES (SVG, estilo do site) ================= */
+
+const SVG_RECIPIENTE = {"mochila": "<path d=\"M9.5 4.2a2.5 2.5 0 0 1 5 0\"/><path d=\"M6.5 10a4.5 4.5 0 0 1 4.5-4.5h2A4.5 4.5 0 0 1 17.5 10v8.5a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2z\"/><path d=\"M6.5 11.5h11\"/><path d=\"M9.2 15h5.6v3.2a.8.8 0 0 1-.8.8h-4a.8.8 0 0 1-.8-.8z\"/><path d=\"M6.5 14H5a1 1 0 0 0-1 1v2.5a1 1 0 0 0 1 1h1.5M17.5 14H19a1 1 0 0 1 1 1v2.5a1 1 0 0 1-1 1h-1.5\"/>", "bolsa": "<path d=\"M8 8.5V7a4 4 0 0 1 8 0v1.5\"/><path d=\"M5.5 8.5h13l1.2 10.4a1.6 1.6 0 0 1-1.6 1.8H5.9a1.6 1.6 0 0 1-1.6-1.8z\"/><path d=\"M9.2 12.5h5.6\"/>", "maleta": "<path d=\"M9 7V5.6A1.6 1.6 0 0 1 10.6 4h2.8A1.6 1.6 0 0 1 15 5.6V7\"/><rect x=\"3\" y=\"7\" width=\"18\" height=\"12.5\" rx=\"2.2\"/><path d=\"M3 12.5h18\"/><path d=\"M10.5 12.5v2h3v-2\"/>", "mala": "<path d=\"M9.5 7V4.8A1.3 1.3 0 0 1 10.8 3.5h2.4a1.3 1.3 0 0 1 1.3 1.3V7\"/><rect x=\"5.5\" y=\"7\" width=\"13\" height=\"12\" rx=\"2.2\"/><path d=\"M9.5 7v12M14.5 7v12\"/><path d=\"M8 19v1.7M16 19v1.7\"/>", "caixa": "<path d=\"M12 3.2 20 7.4v9.2l-8 4.2-8-4.2V7.4z\"/><path d=\"M4 7.4l8 4.2 8-4.2M12 11.6v9.2\"/><path d=\"M8 5.3l8 4.2\"/>", "ferramentas": "<path d=\"M9 7V5.6A1.6 1.6 0 0 1 10.6 4h2.8A1.6 1.6 0 0 1 15 5.6V7\"/><rect x=\"3\" y=\"7\" width=\"18\" height=\"12.5\" rx=\"1.8\"/><path d=\"M3 12h18\"/><path d=\"M8 12v2.2M16 12v2.2\"/>"};
+
+const ICONES_RECIPIENTE = [["mochila", "Mochila"], ["bolsa", "Bolsa"], ["maleta", "Maleta"], ["mala", "Mala"], ["caixa", "Caixa"], ["ferramentas", "Caixa de ferramentas"]];
+
+/* emojis antigos continuam funcionando e viram os ícones novos */
+const EMOJI_PARA_SVG_RECIPIENTE = {
+  "🎒": "mochila", "👜": "bolsa", "💼": "maleta", "🧳": "mala", "📦": "caixa", "🧰": "ferramentas",
+};
+
+function iconeRecipienteHTML(icone, classe = "rec-ico") {
+  let chave = String(icone || "");
+  if (chave.startsWith("svg:")) chave = chave.slice(4);
+  else if (EMOJI_PARA_SVG_RECIPIENTE[chave]) chave = EMOJI_PARA_SVG_RECIPIENTE[chave];
+  else if (!SVG_RECIPIENTE[chave]) return `<span class="${classe}-emoji">${esc(icone || "🎒")}</span>`;
+
+  return `<svg class="${classe}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SVG_RECIPIENTE[chave]}</svg>`;
+}
+
+function _chaveIconeRecipiente(icone) {
+  let c = String(icone || "mochila");
+  if (c.startsWith("svg:")) c = c.slice(4);
+  return EMOJI_PARA_SVG_RECIPIENTE[c] || c;
+}
+
+function _opcoesIconeRecipiente(atual) {
+  const sel = _chaveIconeRecipiente(atual);
+  const lista = ICONES_RECIPIENTE.slice();
+  if (atual && !SVG_RECIPIENTE[sel]) lista.unshift([atual, "Personalizado"]);
+  return lista
+    .map(([v, n]) => `<option value="${esc(v)}" ${v === sel || v === atual ? "selected" : ""}>${n}</option>`)
+    .join("");
+}
+
+/* ================= RECIPIENTES (MOCHILAS, BOLSAS, MALAS...) ================= */
+/* Itens de carga: guardam outros itens do inventário e somam o espaço sozinhos.
+   O espaço dos itens guardados continua contando na carga do inventário. */
+
+function calcularEspacosDentroRecipiente(rec) {
+  return (rec?.itens || []).reduce((t, it) => t + calcularEspacosItem(it), 0);
+}
+
+function calcularEspacosRecipiente(rec) {
+  return numeroInventario(rec?.espacos) + calcularEspacosDentroRecipiente(rec);
+}
+
+function _atualizarTudoItensOP(recIndex = null) {
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderRecipientes();
+  renderVeiculos();
+  salvarTudo();
+  if (recIndex !== null && recipientes[recIndex]) {
+    fecharSubPopupVeiculo();
+    verRecipiente(recIndex);
+  }
+}
+
+function addRecipiente() {
+  const nome = document.getElementById("recNome")?.value.trim() || "";
+  if (!nome) {
+    alertBonito("Digite o nome do recipiente.");
+    return;
+  }
+
+  recipientes.push({
+    nome,
+    icone: document.getElementById("recIcone")?.value || "mochila",
+    espacos: numeroInventario(document.getElementById("recEspacos")?.value),
+    capacidade: numeroInventario(document.getElementById("recCapacidade")?.value),
+    itens: [],
+  });
+
+  ["recNome", "recEspacos", "recCapacidade"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  const ic = document.getElementById("recIcone");
+  if (ic) ic.value = "mochila";
+
+  renderRecipientes();
+  atualizarResumoInventario();
+  salvarTudo();
+}
+
+function renderRecipientes() {
+  const ul = document.getElementById("listaRecipientes");
+  if (!ul) return;
+  ul.innerHTML = "";
+
+  recipientes.forEach((rec, index) => {
+    if (!Array.isArray(rec.itens)) rec.itens = [];
+
+    const usado = calcularEspacosDentroRecipiente(rec);
+    const cap = numeroInventario(rec.capacidade);
+    const excedeu = cap > 0 && usado > cap;
+
+    const card = document.createElement("li");
+    card.className = "veiculo-card recipiente-card";
+    card.onclick = () => verRecipiente(index);
+
+    card.innerHTML = `
+      <div class="veiculo-card-principal">
+        <div class="veiculo-card-topo">
+          <strong class="veiculo-card-nome">
+            <span class="veiculo-card-icone rec-card-icone">${iconeRecipienteHTML(rec.icone)}</span>
+            ${esc(rec.nome || "Recipiente")}
+          </strong>
+          <button class="item-remover" type="button"
+            onclick="event.stopPropagation(); removerRecipiente(${index})">×</button>
+        </div>
+
+        <div class="veiculo-resumo-grid">
+          <span class="${excedeu ? "rec-excedeu" : ""}">
+            🎒 ${formatarNumeroInventario(usado)}${cap > 0 ? ` / ${formatarNumeroInventario(cap)}` : ""} espaços
+          </span>
+          <span>📦 ${rec.itens.length} ${rec.itens.length === 1 ? "item" : "itens"}</span>
+        </div>
+
+        ${
+          cap > 0
+            ? `<div class="rec-barra"><div class="rec-barra-fill ${excedeu ? "excedeu" : ""}" style="width:${Math.min(100, (usado / cap) * 100)}%"></div></div>`
+            : ""
+        }
+
+        <div class="rec-card-itens">
+          ${
+            rec.itens.length
+              ? rec.itens
+                  .slice(0, 6)
+                  .map(
+                    (it) =>
+                      `<span class="rec-card-chip">${esc(it.nome || "Item")}${(parseInt(it.qtd) || 1) > 1 ? ` <b>x${parseInt(it.qtd)}</b>` : ""}</span>`,
+                  )
+                  .join("") +
+                (rec.itens.length > 6
+                  ? `<span class="rec-card-chip">+${rec.itens.length - 6}</span>`
+                  : "")
+              : `<span class="rec-card-vazio">Vazio · toque para colocar itens</span>`
+          }
+        </div>
+      </div>`;
+
+    ul.appendChild(card);
+  });
+
+  atualizarResumoInventario();
+}
+
+function verRecipiente(index) {
+  const rec = recipientes[index];
+  if (!rec) return;
+  if (!Array.isArray(rec.itens)) rec.itens = [];
+
+  const usado = calcularEspacosDentroRecipiente(rec);
+  const cap = numeroInventario(rec.capacidade);
+
+  const itensHTML = rec.itens.length
+    ? rec.itens
+        .map(
+          (it, i) => `
+        <div class="rec-item">
+          <div class="rec-item-info">
+            <strong>${esc(it.nome || "Item")}</strong>
+            ${(parseInt(it.qtd) || 1) > 1 ? `<span class="rec-item-qtd">x${parseInt(it.qtd)}</span>` : ""}
+            <small>🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}${it.categoria ? ` · Cat. ${esc(it.categoria)}` : ""}</small>
+          </div>
+          <button type="button" class="rec-item-tirar" onclick="tirarDoRecipiente(${index}, ${i})">Tirar</button>
+        </div>`,
+        )
+        .join("")
+    : `<div class="veiculo-sem-itens">Vazio. Use “+ Colocar item”.</div>`;
 
   const html = `
-    <div class="veiculo-transf">
+    <div class="popup-bloco">
+      <div class="rec-resumo">
+        <span>🎒 ${formatarNumeroInventario(usado)}${cap > 0 ? ` / ${formatarNumeroInventario(cap)}` : ""} espaços dentro</span>
+        ${numeroInventario(rec.espacos) > 0 ? `<span>Próprio: ${formatarNumeroInventario(rec.espacos)}</span>` : ""}
+      </div>
+
+      <div class="rec-acoes">
+        <button type="button" onclick="abrirColocarNoRecipiente(${index})">+ Colocar item</button>
+        ${rec.itens.length ? `<button type="button" onclick="abrirTirarVariosRecipiente(${index})">Tirar vários</button>` : ""}
+        <button type="button" onclick="editarRecipiente(${index})">✏️ Editar</button>
+      </div>
+
+      <div class="rec-lista">${itensHTML}</div>
+    </div>`;
+
+  abrirPopup(rec.nome || "Recipiente", html, true);
+}
+
+async function colocarNoRecipiente(recIndex, tipo, itemIndex) {
+  const rec = recipientes[recIndex];
+  const origem = { inventario, armas, armaduras }[tipo];
+  const original = origem?.[itemIndex];
+  if (!rec || !original) return;
+  if (!Array.isArray(rec.itens)) rec.itens = [];
+
+  const qtdTotal = tipo === "inventario" ? Math.max(1, parseInt(original.qtd) || 1) : 1;
+  const quantidade = await pedirQuantidadeTransferencia(original.nome || "item", qtdTotal);
+  if (quantidade === null) return;
+
+  const novo = itemParaVeiculo(original, tipo);
+  novo.qtd = quantidade;
+  if (tipo === "inventario") novo.origemDados.qtd = quantidade;
+
+  const cap = numeroInventario(rec.capacidade);
+  if (cap > 0 && calcularEspacosDentroRecipiente(rec) + calcularEspacosItem(novo) > cap) {
+    const ok = await confirmBonito(`"${novo.nome}" passa da capacidade do recipiente. Colocar mesmo assim?`);
+    if (!ok) return;
+  }
+
+  if (quantidade < qtdTotal) original.qtd = qtdTotal - quantidade;
+  else origem.splice(itemIndex, 1);
+
+  const igual = tipo === "inventario" ? rec.itens.find((it) => mesmoItem(it, novo)) : null;
+  if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+  else rec.itens.push(novo);
+
+  _atualizarTudoItensOP(recIndex);
+}
+
+async function tirarDoRecipiente(recIndex, itemIndex) {
+  const rec = recipientes[recIndex];
+  const item = rec?.itens?.[itemIndex];
+  if (!rec || !item) return;
+
+  const destino = item.origemTipo || "inventario";
+  const alvo = { inventario, armas, armaduras }[destino];
+  if (!alvo) return;
+
+  const qtdTotal = Math.max(1, parseInt(item.qtd) || 1);
+  const quantidade = await pedirQuantidadeTransferencia(item.nome || "item", qtdTotal);
+  if (quantidade === null) return;
+
+  if (destino === "inventario") {
+    const novo = itemDoVeiculoPara(item, "inventario");
+    novo.qtd = quantidade;
+    const igual = alvo.find((it) => mesmoItem(it, novo));
+    if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+    else alvo.push(novo);
+  } else {
+    for (let i = 0; i < quantidade; i++) alvo.push(itemDoVeiculoPara(item, destino, i === 0));
+  }
+
+  if (quantidade < qtdTotal) item.qtd = qtdTotal - quantidade;
+  else rec.itens.splice(itemIndex, 1);
+
+  _atualizarTudoItensOP(recIndex);
+}
+
+function editarRecipiente(index) {
+  const rec = recipientes[index];
+  if (!rec) return;
+
+  const html = `
+    <div class="popup-form">
+      <label class="popup-label">Nome</label>
+      <input id="editRecNome" value="${esc(rec.nome || "")}" />
+
+      <label class="popup-label">Tipo / ícone</label>
+      <select id="editRecIcone" class="input-personagem">
+        ${_opcoesIconeRecipiente(rec.icone)}
+      </select>
+
+      <label class="popup-label">Espaços do próprio recipiente</label>
+      <input id="editRecEspacos" type="number" min="0" step="any" value="${numeroInventario(rec.espacos)}" />
+
+      <label class="popup-label">Capacidade (0 = sem limite)</label>
+      <input id="editRecCapacidade" type="number" min="0" step="any" value="${numeroInventario(rec.capacidade)}" />
+
+      <button type="button" class="rec-salvar" onclick="salvarEdicaoRecipiente(${index})">Salvar</button>
+    </div>`;
+
+  abrirSubPopupVeiculo("Editar recipiente", html);
+}
+
+function salvarEdicaoRecipiente(index) {
+  const rec = recipientes[index];
+  if (!rec) return;
+
+  rec.nome = document.getElementById("editRecNome")?.value.trim() || rec.nome;
+  rec.icone = document.getElementById("editRecIcone")?.value || "mochila";
+  rec.espacos = numeroInventario(document.getElementById("editRecEspacos")?.value);
+  rec.capacidade = numeroInventario(document.getElementById("editRecCapacidade")?.value);
+
+  _atualizarTudoItensOP(index);
+}
+
+async function removerRecipiente(index) {
+  const rec = recipientes[index];
+  if (!rec) return;
+
+  const temItens = Array.isArray(rec.itens) && rec.itens.length > 0;
+  const ok = await confirmBonito(
+    temItens
+      ? `Remover "${rec.nome}"? Os itens de dentro voltam para o inventário.`
+      : `Remover "${rec.nome}"?`,
+  );
+  if (!ok) return;
+
+  if (temItens) {
+    rec.itens.forEach((item) => {
+      const destino = item.origemTipo || "inventario";
+      const alvo = { inventario, armas, armaduras }[destino] || inventario;
+      const qtd = Math.max(1, parseInt(item.qtd) || 1);
+
+      if (destino === "inventario") {
+        const novo = itemDoVeiculoPara(item, "inventario");
+        novo.qtd = qtd;
+        const igual = alvo.find((it) => mesmoItem(it, novo));
+        if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + qtd;
+        else alvo.push(novo);
+      } else {
+        for (let i = 0; i < qtd; i++) alvo.push(itemDoVeiculoPara(item, destino, i === 0));
+      }
+    });
+  }
+
+  recipientes.splice(index, 1);
+  fecharPopup();
+  _atualizarTudoItensOP();
+}
+
+/* Transferência: tirar itens de um recipiente direto para o veículo */
+async function guardarDoRecipienteNoVeiculo(veiculoIndex, recIndex, itemIndex) {
+  const veiculo = veiculos[veiculoIndex];
+  const rec = recipientes[recIndex];
+  const original = rec?.itens?.[itemIndex];
+  if (!veiculo || !original) return;
+  if (!Array.isArray(veiculo.itens)) veiculo.itens = [];
+
+  const qtdTotal = Math.max(1, parseInt(original.qtd) || 1);
+  const quantidade = await pedirQuantidadeTransferencia(original.nome || "item", qtdTotal);
+  if (quantidade === null) return;
+
+  const novo = copiaProfunda(original);
+  novo.qtd = quantidade;
+  if (novo.origemTipo === "inventario" && novo.origemDados) novo.origemDados.qtd = quantidade;
+
+  const max = numeroInventario(veiculo.espacosMax);
+  if (max > 0 && calcularEspacosVeiculo(veiculo) + calcularEspacosItem(novo) > max) {
+    const ok = await confirmBonito(`"${novo.nome}" passa da capacidade do veículo. Guardar mesmo assim?`);
+    if (!ok) return;
+  }
+
+  if (quantidade < qtdTotal) original.qtd = qtdTotal - quantidade;
+  else rec.itens.splice(itemIndex, 1);
+
+  const igual = novo.origemTipo === "inventario" ? veiculo.itens.find((it) => mesmoItem(it, novo)) : null;
+  if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+  else veiculo.itens.push(novo);
+
+  renderInv();
+  renderRecipientes();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+/* ================= SELEÇÃO MÚLTIPLA (colocar / retirar / transferir vários itens) ================= */
+
+let _multiCtx = null;
+
+/* grupos: [{ titulo, itens: [{ chave, nome, qtd, info }] }] */
+function abrirMultiSelecao({ titulo, grupos, confirmar, aoConfirmar }) {
+  _multiCtx = { aoConfirmar, confirmar };
+
+  const linha = (it) => `
+    <div class="multi-linha">
+      <label class="multi-label">
+        <input type="checkbox" class="multi-chk" data-chave="${esc(it.chave)}" onchange="multiAtualizar()" />
+        <span class="multi-nome">${esc(it.nome || "Sem nome")}</span>
+        ${it.info ? `<small class="multi-info">${esc(it.info)}</small>` : ""}
+      </label>
+      ${
+        (parseInt(it.qtd) || 1) > 1
+          ? `<span class="multi-qtd"><input type="number" class="multi-qtd-input" data-chave="${esc(it.chave)}" min="1" max="${parseInt(it.qtd)}" value="${parseInt(it.qtd)}" inputmode="numeric" /><small>/ ${parseInt(it.qtd)}</small></span>`
+          : ""
+      }
+    </div>`;
+
+  const html = `
+    <div class="multi-sel">
+      <button type="button" class="multi-todos" onclick="multiSelecionarTodos()">Selecionar todos</button>
+
       ${grupos
         .map(
           (g) => `
         <div class="veiculo-transf-grupo">
-          <span class="popup-label">${g.titulo}</span>
-          ${
-            g.lista.length
-              ? g.lista
-                  .map(
-                    (it, i) => `
-                <button
-                  type="button"
-                  class="veiculo-transf-btn"
-                  onclick="guardarNoVeiculo(${veiculoIndex}, '${g.tipo}', ${i})"
-                >
-                  <span>${esc(it.nome || "Sem nome")}</span>
-                  ${
-                    g.tipo === "inventario" && (parseInt(it.qtd) || 1) > 1
-                      ? `<small>x${parseInt(it.qtd)}</small>`
-                      : ""
-                  }
-                </button>`
-                  )
-                  .join("")
-              : `<div class="veiculo-sem-itens">Nada por aqui.</div>`
-          }
-        </div>`
+          <span class="popup-label">${esc(g.titulo)}</span>
+          ${g.itens.length ? g.itens.map(linha).join("") : `<div class="veiculo-sem-itens">Nada por aqui.</div>`}
+        </div>`,
         )
         .join("")}
-    </div>
-  `;
 
-  abrirSubPopupVeiculo("Transferir para o veículo", html);
+      <button type="button" class="multi-confirmar" id="multiConfirmar" onclick="multiConfirmar()" disabled>${esc(confirmar)}</button>
+    </div>`;
+
+  abrirSubPopupVeiculo(titulo, html);
+}
+
+function multiAtualizar() {
+  const n = document.querySelectorAll(".multi-sel .multi-chk:checked").length;
+  const btn = document.getElementById("multiConfirmar");
+  if (btn && _multiCtx) {
+    btn.disabled = n === 0;
+    btn.textContent = n ? `${_multiCtx.confirmar} (${n})` : _multiCtx.confirmar;
+  }
+}
+
+function multiSelecionarTodos() {
+  const chks = [...document.querySelectorAll(".multi-sel .multi-chk")];
+  const marcar = chks.some((c) => !c.checked);
+  chks.forEach((c) => (c.checked = marcar));
+  multiAtualizar();
+}
+
+async function multiConfirmar() {
+  if (!_multiCtx) return;
+
+  const sels = [...document.querySelectorAll(".multi-sel .multi-chk:checked")].map((c) => {
+    const chave = c.dataset.chave;
+    const q = document.querySelector(`.multi-qtd-input[data-chave="${CSS.escape(chave)}"]`);
+    const max = parseInt(q?.max) || 1;
+    const quantidade = q ? Math.min(max, Math.max(1, parseInt(q.value) || 1)) : 1;
+    return { chave, quantidade };
+  });
+
+  if (!sels.length) return;
+  await _multiCtx.aoConfirmar(sels);
+}
+
+/* chave -> item real. Formatos: inventario:3 | armas:1 | armaduras:0 | rec:0:2 | vei:1:4 */
+function _resolverChaveMulti(chave) {
+  const p = String(chave).split(":");
+
+  if (p[0] === "rec") {
+    const rec = recipientes[+p[1]];
+    return rec ? { fonte: "rec", lista: rec.itens, item: rec.itens[+p[2]] } : null;
+  }
+  if (p[0] === "vei") {
+    const v = veiculos[+p[1]];
+    return v ? { fonte: "vei", lista: v.itens, item: v.itens[+p[2]] } : null;
+  }
+
+  const lista = { inventario, armas, armaduras }[p[0]];
+  return lista ? { fonte: p[0], lista, item: lista[+p[1]] } : null;
+}
+
+function _removerQtdDaLista(lista, item, quantidade, total) {
+  if (quantidade < total) {
+    item.qtd = total - quantidade;
+  } else {
+    const i = lista.indexOf(item);
+    if (i >= 0) lista.splice(i, 1);
+  }
+}
+
+/* manda um item no formato "veículo" de volta para a ficha (inventário / armas / vestimentas) */
+function _enviarItemParaFicha(item, quantidade, destino) {
+  const alvo = { inventario, armas, armaduras }[destino] || inventario;
+
+  if (alvo === inventario) {
+    const novo = itemDoVeiculoPara(item, "inventario");
+    novo.qtd = quantidade;
+    const igual = alvo.find((it) => mesmoItem(it, novo));
+    if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+    else alvo.push(novo);
+  } else {
+    for (let i = 0; i < quantidade; i++) alvo.push(itemDoVeiculoPara(item, destino, i === 0));
+  }
+}
+
+function _itensFichaParaMulti() {
+  const info = (it, tipo) => {
+    const esp = calcularEspacosItem(tipo === "inventario" ? it : { ...it, qtd: 1 });
+    return `🎒 ${formatarNumeroInventario(esp)}`;
+  };
+
+  return [
+    { titulo: "Inventário", tipo: "inventario", lista: inventario },
+    { titulo: "Armas", tipo: "armas", lista: armas },
+    { titulo: "Vestimentas", tipo: "armaduras", lista: armaduras },
+  ].map((g) => ({
+    titulo: g.titulo,
+    itens: g.lista.map((it, i) => ({
+      chave: `${g.tipo}:${i}`,
+      nome: it.nome,
+      qtd: g.tipo === "inventario" ? Math.max(1, parseInt(it.qtd) || 1) : 1,
+      info: info(it, g.tipo),
+    })),
+  }));
+}
+
+/* ---- Colocar vários no recipiente ---- */
+function abrirColocarNoRecipiente(recIndex) {
+  if (!recipientes[recIndex]) return;
+
+  abrirMultiSelecao({
+    titulo: "Colocar no recipiente",
+    grupos: _itensFichaParaMulti(),
+    confirmar: "Colocar selecionados",
+    aoConfirmar: (sels) => colocarVariosNoRecipiente(recIndex, sels),
+  });
+}
+
+async function colocarVariosNoRecipiente(recIndex, sels) {
+  const rec = recipientes[recIndex];
+  if (!rec) return;
+  if (!Array.isArray(rec.itens)) rec.itens = [];
+
+  const prontos = [];
+  let adiciona = 0;
+
+  sels.forEach((s) => {
+    const r = _resolverChaveMulti(s.chave);
+    if (!r?.item) return;
+
+    const total = r.fonte === "inventario" ? Math.max(1, parseInt(r.item.qtd) || 1) : 1;
+    const q = Math.min(s.quantidade, total);
+
+    const novo = itemParaVeiculo(r.item, r.fonte);
+    novo.qtd = q;
+    if (r.fonte === "inventario") novo.origemDados.qtd = q;
+
+    adiciona += calcularEspacosItem(novo);
+    prontos.push({ r, total, q, novo });
+  });
+
+  if (!prontos.length) return;
+
+  const cap = numeroInventario(rec.capacidade);
+  if (cap > 0 && calcularEspacosDentroRecipiente(rec) + adiciona > cap) {
+    const ok = await confirmBonito("Os itens selecionados passam da capacidade do recipiente. Colocar mesmo assim?");
+    if (!ok) return;
+  }
+
+  prontos.forEach(({ r, total, q, novo }) => {
+    _removerQtdDaLista(r.lista, r.item, q, total);
+    const igual = r.fonte === "inventario" ? rec.itens.find((it) => mesmoItem(it, novo)) : null;
+    if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + q;
+    else rec.itens.push(novo);
+  });
+
+  _atualizarTudoItensOP(recIndex);
+}
+
+/* ---- Tirar vários do recipiente ---- */
+function abrirTirarVariosRecipiente(recIndex) {
+  const rec = recipientes[recIndex];
+  if (!rec) return;
+
+  abrirMultiSelecao({
+    titulo: "Tirar do recipiente",
+    grupos: [
+      {
+        titulo: rec.nome || "Recipiente",
+        itens: (rec.itens || []).map((it, i) => ({
+          chave: `rec:${recIndex}:${i}`,
+          nome: it.nome,
+          qtd: Math.max(1, parseInt(it.qtd) || 1),
+          info: `🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}`,
+        })),
+      },
+    ],
+    confirmar: "Tirar selecionados",
+    aoConfirmar: (sels) => tirarVariosDoRecipiente(recIndex, sels),
+  });
+}
+
+async function tirarVariosDoRecipiente(recIndex, sels) {
+  const rec = recipientes[recIndex];
+  if (!rec) return;
+
+  const lista = sels
+    .map((s) => ({ s, r: _resolverChaveMulti(s.chave) }))
+    .filter((x) => x.r?.item);
+
+  lista.forEach(({ s, r }) => {
+    const total = Math.max(1, parseInt(r.item.qtd) || 1);
+    const q = Math.min(s.quantidade, total);
+    _enviarItemParaFicha(r.item, q, r.item.origemTipo || "inventario");
+    _removerQtdDaLista(r.lista, r.item, q, total);
+  });
+
+  _atualizarTudoItensOP(recIndex);
+}
+
+/* ---- Transferir vários para o veículo (inclui itens de dentro dos recipientes) ---- */
+function abrirGuardarNoVeiculo(veiculoIndex) {
+  if (!veiculos[veiculoIndex]) return;
+
+  const grupos = _itensFichaParaMulti();
+
+  recipientes.forEach((rec, r) => {
+    if (!(rec.itens || []).length) return;
+    grupos.push({
+      titulo: `Dentro de: ${rec.nome || "Recipiente"}`,
+      itens: rec.itens.map((it, i) => ({
+        chave: `rec:${r}:${i}`,
+        nome: it.nome,
+        qtd: Math.max(1, parseInt(it.qtd) || 1),
+        info: `🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}`,
+      })),
+    });
+  });
+
+  abrirMultiSelecao({
+    titulo: "Transferir para o veículo",
+    grupos,
+    confirmar: "Transferir selecionados",
+    aoConfirmar: (sels) => guardarVariosNoVeiculo(veiculoIndex, sels),
+  });
+}
+
+async function guardarVariosNoVeiculo(veiculoIndex, sels) {
+  const veiculo = veiculos[veiculoIndex];
+  if (!veiculo) return;
+  if (!Array.isArray(veiculo.itens)) veiculo.itens = [];
+
+  const prontos = [];
+  let adiciona = 0;
+
+  sels.forEach((s) => {
+    const r = _resolverChaveMulti(s.chave);
+    if (!r?.item) return;
+
+    const doRecipiente = r.fonte === "rec";
+    const total = doRecipiente
+      ? Math.max(1, parseInt(r.item.qtd) || 1)
+      : r.fonte === "inventario"
+        ? Math.max(1, parseInt(r.item.qtd) || 1)
+        : 1;
+    const q = Math.min(s.quantidade, total);
+
+    const novo = doRecipiente ? copiaProfunda(r.item) : itemParaVeiculo(r.item, r.fonte);
+    novo.qtd = q;
+    if (novo.origemTipo === "inventario" && novo.origemDados) novo.origemDados.qtd = q;
+
+    adiciona += calcularEspacosItem(novo);
+    prontos.push({ r, total, q, novo });
+  });
+
+  if (!prontos.length) return;
+
+  const max = numeroInventario(veiculo.espacosMax);
+  if (max > 0 && calcularEspacosVeiculo(veiculo) + adiciona > max) {
+    const ok = await confirmBonito("Os itens selecionados passam da capacidade do veículo. Transferir mesmo assim?");
+    if (!ok) return;
+  }
+
+  prontos.forEach(({ r, total, q, novo }) => {
+    _removerQtdDaLista(r.lista, r.item, q, total);
+    const empilha = novo.origemTipo === "inventario";
+    const igual = empilha ? veiculo.itens.find((it) => mesmoItem(it, novo)) : null;
+    if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + q;
+    else veiculo.itens.push(novo);
+  });
+
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderRecipientes();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+/* ---- Retirar vários do veículo (cada um volta para onde veio) ---- */
+function abrirRetirarVariosVeiculo(veiculoIndex) {
+  const veiculo = veiculos[veiculoIndex];
+  if (!veiculo) return;
+
+  abrirMultiSelecao({
+    titulo: "Retirar do veículo",
+    grupos: [
+      {
+        titulo: veiculo.nome || "Veículo",
+        itens: (veiculo.itens || []).map((it, i) => ({
+          chave: `vei:${veiculoIndex}:${i}`,
+          nome: it.nome,
+          qtd: Math.max(1, parseInt(it.qtd) || 1),
+          info: `🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}`,
+        })),
+      },
+    ],
+    confirmar: "Retirar selecionados",
+    aoConfirmar: (sels) => retirarVariosDoVeiculo(veiculoIndex, sels),
+  });
+}
+
+async function retirarVariosDoVeiculo(veiculoIndex, sels) {
+  const veiculo = veiculos[veiculoIndex];
+  if (!veiculo) return;
+
+  sels
+    .map((s) => ({ s, r: _resolverChaveMulti(s.chave) }))
+    .filter((x) => x.r?.item)
+    .forEach(({ s, r }) => {
+      const total = Math.max(1, parseInt(r.item.qtd) || 1);
+      const q = Math.min(s.quantidade, total);
+      _enviarItemParaFicha(r.item, q, r.item.origemTipo || "inventario");
+      _removerQtdDaLista(r.lista, r.item, q, total);
+    });
+
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderRecipientes();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
 }
 
 async function guardarNoVeiculo(veiculoIndex, tipo, itemIndex) {
@@ -7712,6 +8444,7 @@ const descEl =
   const sintonizado = requerSintonia && !!document.getElementById("armaSintonizado")?.checked;
 
   const novaArma = {
+    ...lerExtrasItem("arma", "arma"),
     nome,
     dano,
     espacos,
@@ -7749,6 +8482,7 @@ const descEl =
 
   document.getElementById("armaNome").value = "";
 document.getElementById("armaDano").value = "";
+montarExtrasForm("arma", "arma");
 
 const armaEspacosEl =
   document.getElementById("armaEspacos");
@@ -7855,6 +8589,8 @@ function renderArmas() {
   }
 </div>
 
+${extrasCardHTML(arma, "arma")}
+
 <p class="arma-desc-preview">
   ${arma.desc ? esc(arma.desc).substring(0, 60) + (arma.desc.length > 60 ? "..." : "") : "Sem descrição"}
 </p>
@@ -7917,6 +8653,8 @@ function verArma(index) {
         </div>
 
       </div>
+
+      ${extrasPopupHTML(arma, "arma")}
 
       <div style="margin-top: 12px;">
         <span class="popup-label">Descrição</span>
@@ -9119,7 +9857,11 @@ document.addEventListener("click", (e) => {
   }
 });
 
-document.addEventListener("DOMContentLoaded", atualizarVisualFiltroPericias);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", atualizarVisualFiltroPericias);
+} else {
+  atualizarVisualFiltroPericias();
+}
 
 const SIGLA_ATTR_PERICIA = {
   agilidade: "AGI",
@@ -9260,6 +10002,268 @@ function mostrarRolagemOP(r) {
       _rolagemTimer = setTimeout(fecharRolagemOP, 9000);
     }
   }, 60);
+}
+
+
+/* ================= DETALHES E MODIFICADORES (ARMAS / VESTIMENTAS) ================= */
+/* Só informativo: aparece no card e no popup, não altera cálculos da ficha. */
+
+const CAMPOS_DETALHES_ARMA = [
+  { id: "critico", label: "Crítico", ph: "20", curto: true },
+  { id: "multiplicador", label: "Multiplicador", ph: "2", curto: true },
+  { id: "ataqueBonus", label: "Ataque bônus", ph: "0", curto: true },
+  { id: "tipoDano", label: "Tipo de dano", ph: "Balístico", meio: true, lista: "dlTipoDanoOP" },
+  { id: "alcance", label: "Alcance", ph: "Curto", meio: true, lista: "dlAlcanceOP" },
+  { id: "pericia", label: "Perícia", ph: "Luta", meio: true, lista: "dlPericiaOP" },
+  { id: "atributoDano", label: "Atributo do dano", ph: "Força", meio: true, lista: "dlAtributoOP" },
+  { id: "danoExtra", label: "Dano extra", ph: "Ex.: +1d6 de fogo" },
+];
+
+const CAMPOS_DETALHES_VEICULO = [
+  { id: "categoria", label: "Categoria", ph: "3", curto: true },
+  { id: "tamanho", label: "Tamanho", ph: "Médio", curto: true },
+  { id: "defesa", label: "Defesa", ph: "17", curto: true },
+  { id: "reducaoDano", label: "Redução de dano", ph: "5", meio: true },
+  { id: "combustivel", label: "Combustível", ph: "Ex.: 5d6", meio: true },
+];
+
+function _camposExtras(tipo) {
+  return tipo === "arma"
+    ? CAMPOS_DETALHES_ARMA
+    : tipo === "veiculo"
+      ? CAMPOS_DETALHES_VEICULO
+      : CAMPOS_DETALHES_VESTIMENTA;
+}
+
+function _rotulosExtras(tipo) {
+  if (tipo === "arma")
+    return { det: "⚔ Detalhes de combate", detPopup: "Detalhes de combate", mods: "🔧 Modificações", modsPopup: "Modificações", add: "+ Adicionar modificação", nomePh: "Nome da modificação (ex.: Carregador Rápido)", cat: true };
+  if (tipo === "veiculo")
+    return { det: "🏍 Características", detPopup: "Características", mods: "⚙ Aprimoramentos", modsPopup: "Aprimoramentos", add: "+ Adicionar aprimoramento", nomePh: "Nome (ex.: Aprimoramentos de Velocidade)", cat: false };
+  return { det: "🛡 Detalhes da vestimenta", detPopup: "Detalhes", mods: "🔧 Modificações", modsPopup: "Modificações", add: "+ Adicionar modificação", nomePh: "Nome da modificação", cat: true };
+}
+
+const CAMPOS_DETALHES_VESTIMENTA = [
+  { id: "resistencias", label: "Resistências", ph: "Ex.: Balístico 5, Fogo 2" },
+  { id: "penalidades", label: "Penalidades", ph: "Ex.: -3m deslocamento" },
+  { id: "requisitos", label: "Requisitos", ph: "Ex.: Força 3" },
+];
+
+function garantirDatalistsOP() {
+  if (document.getElementById("dlTipoDanoOP")) return;
+  const dl = (id, itens) =>
+    `<datalist id="${id}">${itens.map((i) => `<option value="${i}"></option>`).join("")}</datalist>`;
+  const html =
+    dl("dlTipoDanoOP", ["Balístico", "Corte", "Impacto", "Perfuração", "Fogo", "Frio", "Eletricidade", "Químico", "Mental", "Sangue", "Morte", "Conhecimento", "Energia"]) +
+    dl("dlAlcanceOP", ["Corpo a corpo", "Curto", "Médio", "Longo", "Extremo"]) +
+    dl("dlPericiaOP", ["Luta", "Pontaria", "Atletismo", "Ocultismo", "Tecnologia"]) +
+    dl("dlAtributoOP", ["Força", "Agilidade", "Intelecto", "Presença", "Vigor"]) +
+    dl("dlAlvoModOP", ["Defesa", "Deslocamento", "PV", "PE", "SAN", "Agilidade", "Força", "Intelecto", "Presença", "Vigor", "Acrobacia", "Atletismo", "Furtividade", "Luta", "Pontaria", "Percepção", "Reflexos", "Fortitude", "Vontade", "Dano", "Ataque"]);
+
+  const caixa = document.createElement("div");
+  caixa.id = "datalistsOP";
+  caixa.style.display = "none";
+  caixa.innerHTML = html;
+  document.body.appendChild(caixa);
+}
+
+function _linhaModHTML(prefix, nome = "", desc = "", cat = 0, tipo = "arma") {
+  const rot = _rotulosExtras(tipo);
+  return `
+    <div class="mod-linha">
+      <div class="mod-linha-topo">
+        <input class="mod-nome" placeholder="${rot.nomePh}" value="${esc(nome)}" />
+        <button type="button" class="mod-remover" onclick="this.closest('.mod-linha').remove()" aria-label="Remover">×</button>
+      </div>
+      ${
+        rot.cat
+          ? `<div class="mod-cat-linha">
+        <label>Aumenta a categoria em</label>
+        <input class="mod-cat" type="number" min="0" max="9" step="1" value="${Number(cat) > 0 ? Number(cat) : 0}" />
+        <span>(0 = não aumenta)</span>
+      </div>`
+          : ""
+      }
+      <textarea class="mod-desc" placeholder="Descreva...">${esc(desc)}</textarea>
+    </div>`;
+}
+
+/* aceita o formato antigo {nome, valor} também */
+function _modsDoItem(item) {
+  const lista = Array.isArray(item.modificacoes)
+    ? item.modificacoes
+    : Array.isArray(item.modificadores)
+      ? item.modificadores
+      : [];
+  return lista
+    .map((m) => ({
+      nome: m.nome || "",
+      desc: m.desc ?? m.valor ?? "",
+      cat: Math.max(0, parseInt(m.cat) || 0),
+    }))
+    .filter((m) => m.nome || m.desc || m.cat);
+}
+
+function addLinhaModificador(prefix) {
+  const box = document.getElementById(`${prefix}ModLista`);
+  if (box)
+    box.insertAdjacentHTML(
+      "beforeend",
+      _linhaModHTML(prefix, "", "", 0, box.dataset.tipo || "arma"),
+    );
+}
+
+/* tipo: "arma" | "vestimenta" ; prefix: "arma", "editArma", "armadura", "editArmadura" */
+function htmlExtrasItem(prefix, tipo, item = {}) {
+  garantirDatalistsOP();
+  const campos = _camposExtras(tipo);
+  const rot = _rotulosExtras(tipo);
+  const det = item.detalhes || {};
+  const mods = _modsDoItem(item);
+  const temDet = campos.some((c) => (det[c.id] || "").toString().trim());
+
+  const camposHTML = campos
+    .map(
+      (c) => `
+      <div class="extra-campo ${c.curto ? "curto" : c.meio ? "meio" : ""}">
+        <label for="${prefix}Det_${c.id}">${c.label}</label>
+        <input id="${prefix}Det_${c.id}" ${c.lista ? `list="${c.lista}"` : ""} placeholder="${c.ph}" value="${esc(det[c.id] || "")}" />
+      </div>`,
+    )
+    .join("");
+
+  return `
+    <details class="item-extra-secao" ${temDet ? "open" : ""}>
+      <summary>${rot.det}</summary>
+      <div class="extra-grid">${camposHTML}</div>
+    </details>
+
+    <details class="item-extra-secao" ${mods.length ? "open" : ""}>
+      <summary>${rot.mods}</summary>
+      <div id="${prefix}ModLista" class="mod-lista" data-tipo="${tipo}">
+        ${mods.map((m) => _linhaModHTML(prefix, m.nome, m.desc, m.cat, tipo)).join("")}
+      </div>
+      <button type="button" class="mod-add" onclick="addLinhaModificador('${prefix}')">${rot.add}</button>
+    </details>
+  `;
+}
+
+function lerExtrasItem(prefix, tipo) {
+  const campos = _camposExtras(tipo);
+  const detalhes = {};
+  campos.forEach((c) => {
+    const v = document.getElementById(`${prefix}Det_${c.id}`)?.value.trim() || "";
+    if (v) detalhes[c.id] = v;
+  });
+
+  const modificacoes = [];
+  document.querySelectorAll(`#${prefix}ModLista .mod-linha`).forEach((l) => {
+    const nome = l.querySelector(".mod-nome")?.value.trim() || "";
+    const desc = l.querySelector(".mod-desc")?.value.trim() || "";
+    const cat = Math.max(0, parseInt(l.querySelector(".mod-cat")?.value) || 0);
+    if (nome || desc || cat) modificacoes.push({ nome, desc, cat });
+  });
+
+  return { detalhes, modificacoes };
+}
+
+function montarExtrasForm(prefix, tipo) {
+  const box = document.getElementById(`${prefix}ExtrasBox`);
+  if (box) box.innerHTML = htmlExtrasItem(prefix, tipo, {});
+}
+
+/* chips resumidos para o card */
+function extrasCardHTML(item, tipo) {
+  const d = item.detalhes || {};
+  const chips = [];
+
+  if (tipo === "arma") {
+    if (d.critico || d.multiplicador)
+      chips.push(`🎯 Crít. ${esc(d.critico || "20")}/x${esc(d.multiplicador || "2")}`);
+    if (d.ataqueBonus && d.ataqueBonus !== "0") chips.push(`Atq ${esc(d.ataqueBonus)}`);
+    if (d.tipoDano) chips.push(esc(d.tipoDano));
+    if (d.alcance) chips.push(`📏 ${esc(d.alcance)}`);
+    if (d.pericia) chips.push(esc(d.pericia) + (d.atributoDano ? ` · ${esc(d.atributoDano)}` : ""));
+    if (d.danoExtra) chips.push(`+ ${esc(d.danoExtra)}`);
+  } else if (tipo === "veiculo") {
+    if (d.categoria) chips.push(`Cat. ${esc(d.categoria)}`);
+    if (d.tamanho) chips.push(esc(d.tamanho));
+    if (d.defesa) chips.push(`🛡 Def. ${esc(d.defesa)}`);
+    if (d.reducaoDano) chips.push(`RD ${esc(d.reducaoDano)}`);
+    if (d.combustivel) chips.push(`⛽ ${esc(d.combustivel)}`);
+  } else {
+    if (d.resistencias) chips.push(`🛡 ${esc(d.resistencias)}`);
+    if (d.penalidades) chips.push(`⚠ ${esc(d.penalidades)}`);
+    if (d.requisitos) chips.push(`Req. ${esc(d.requisitos)}`);
+  }
+
+  const mods = _modsDoItem(item);
+  const modsChips = mods
+    .slice(0, 3)
+    .map((m) => `<span class="item-subtag mod-chip">${tipo === "veiculo" ? "⚙" : "🔧"} ${esc(m.nome || "Aprimoramento")}${m.cat ? ` <b>+${m.cat} cat.</b>` : ""}</span>`);
+  if (mods.length > 3) modsChips.push(`<span class="item-subtag mod-chip">+${mods.length - 3}</span>`);
+
+  if (!chips.length && !modsChips.length) return "";
+
+  return `<div class="item-subtags item-extras-card">${chips
+    .map((c) => `<span class="item-subtag extra-chip">${c}</span>`)
+    .join("")}${modsChips.join("")}</div>`;
+}
+
+/* seções completas para o popup de visualização */
+function extrasPopupHTML(item, tipo) {
+  const campos = _camposExtras(tipo);
+  const rot = _rotulosExtras(tipo);
+  const d = item.detalhes || {};
+  const linhas = campos
+    .filter((c) => d[c.id])
+    .map(
+      (c) => `<div><span class="popup-label">${c.label}</span>
+        <div class="popup-descricao popup-descricao-pequena">${esc(d[c.id])}</div></div>`,
+    )
+    .join("");
+
+  const mods = _modsDoItem(item);
+
+  return `
+    ${
+      linhas
+        ? `<div class="popup-secao-extra">
+            <div class="popup-secao-titulo">${rot.detPopup}</div>
+            <div class="popup-info-grid">${linhas}</div>
+          </div>`
+        : ""
+    }
+    ${
+      mods.length
+        ? `<div class="popup-secao-extra">
+            <div class="popup-secao-titulo">${rot.modsPopup}${
+              mods.reduce((s, m) => s + (m.cat || 0), 0) > 0
+                ? ` · +${mods.reduce((s, m) => s + (m.cat || 0), 0)} categoria${mods.reduce((s, m) => s + (m.cat || 0), 0) > 1 ? "s" : ""} no total`
+                : ""
+            }</div>
+            ${mods
+              .map(
+                (m) => `<div class="popup-mod">
+                  <div class="popup-mod-nome">${esc(m.nome || rot.modsPopup)}${m.cat ? `<span class="popup-mod-cat">+${m.cat} categoria${m.cat > 1 ? "s" : ""}</span>` : ""}</div>
+                  ${m.desc ? `<div class="popup-mod-desc">${esc(m.desc)}</div>` : ""}
+                </div>`,
+              )
+              .join("")}
+          </div>`
+        : ""
+    }`;
+}
+
+function _iniciarExtrasItensOP() {
+  montarExtrasForm("arma", "arma");
+  montarExtrasForm("armadura", "vestimenta");
+  montarExtrasForm("veiculo", "veiculo");
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", _iniciarExtrasItensOP);
+} else {
+  _iniciarExtrasItensOP();
 }
 
 const NOMES_TREINO = ["Não treinado", "Treinado", "Veterano", "Expert"];
@@ -10924,6 +11928,285 @@ async function removerMapa(index) {
   mapas.splice(index, 1);
   salvarTudo();
   renderMapas();
+}
+
+
+/* ================= VISUALIZADOR DE IMAGEM COM ZOOM ================= */
+
+let _zoomEstado = null;
+
+function abrirImagemZoom(url) {
+  fecharImagemZoom();
+
+  const ov = document.createElement("div");
+  ov.id = "imagemZoomOverlay";
+  ov.className = "zoom-overlay";
+  ov.innerHTML = `
+    <div class="zoom-barra">
+      <button type="button" onclick="zoomImagem(1.4)" aria-label="Aumentar">＋</button>
+      <button type="button" onclick="zoomImagem(1 / 1.4)" aria-label="Diminuir">－</button>
+      <button type="button" onclick="resetarZoomImagem()" aria-label="Ajustar">⤢</button>
+      <button type="button" onclick="fecharImagemZoom()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="zoom-palco" id="zoomPalco">
+      <img id="zoomImg" class="zoom-img" src="${esc(url)}" alt="" draggable="false" />
+    </div>
+    <div class="zoom-dica">Pinça ou roda do mouse para dar zoom · arraste para mover · toque duplo amplia</div>`;
+  document.body.appendChild(ov);
+
+  _zoomEstado = { escala: 1, x: 0, y: 0, ponteiros: new Map(), distInicial: 0, escalaInicial: 1, ultimoToque: 0 };
+
+  const palco = document.getElementById("zoomPalco");
+  const aplicar = () => {
+    const img = document.getElementById("zoomImg");
+    if (img && _zoomEstado)
+      img.style.transform = `translate(${_zoomEstado.x}px, ${_zoomEstado.y}px) scale(${_zoomEstado.escala})`;
+  };
+  _zoomEstado.aplicar = aplicar;
+
+  palco.addEventListener("pointerdown", (e) => {
+    palco.setPointerCapture(e.pointerId);
+    _zoomEstado.ponteiros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (_zoomEstado.ponteiros.size === 2) {
+      const [a, b] = [..._zoomEstado.ponteiros.values()];
+      _zoomEstado.distInicial = Math.hypot(a.x - b.x, a.y - b.y);
+      _zoomEstado.escalaInicial = _zoomEstado.escala;
+    }
+
+    const agora = Date.now();
+    if (_zoomEstado.ponteiros.size === 1 && agora - _zoomEstado.ultimoToque < 300) {
+      if (_zoomEstado.escala > 1.2) resetarZoomImagem();
+      else zoomImagem(2.5 / _zoomEstado.escala);
+    }
+    _zoomEstado.ultimoToque = agora;
+  });
+
+  palco.addEventListener("pointermove", (e) => {
+    const s = _zoomEstado;
+    if (!s || !s.ponteiros.has(e.pointerId)) return;
+
+    const anterior = s.ponteiros.get(e.pointerId);
+    s.ponteiros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (s.ponteiros.size === 2) {
+      const [a, b] = [...s.ponteiros.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if (s.distInicial > 0) {
+        s.escala = Math.min(8, Math.max(0.5, s.escalaInicial * (dist / s.distInicial)));
+      }
+    } else if (s.ponteiros.size === 1) {
+      s.x += e.clientX - anterior.x;
+      s.y += e.clientY - anterior.y;
+    }
+    s.aplicar();
+  });
+
+  const soltar = (e) => {
+    if (!_zoomEstado) return;
+    _zoomEstado.ponteiros.delete(e.pointerId);
+    _zoomEstado.distInicial = 0;
+    if (_zoomEstado.escala < 1) resetarZoomImagem();
+  };
+  palco.addEventListener("pointerup", soltar);
+  palco.addEventListener("pointercancel", soltar);
+
+  palco.addEventListener(
+    "wheel",
+    (e) => {
+      e.preventDefault();
+      zoomImagem(e.deltaY < 0 ? 1.15 : 1 / 1.15);
+    },
+    { passive: false },
+  );
+}
+
+function zoomImagem(fator) {
+  const s = _zoomEstado;
+  if (!s) return;
+  s.escala = Math.min(8, Math.max(0.5, s.escala * fator));
+  if (s.escala <= 1) { s.x = 0; s.y = 0; }
+  s.aplicar();
+}
+
+function resetarZoomImagem() {
+  const s = _zoomEstado;
+  if (!s) return;
+  s.escala = 1; s.x = 0; s.y = 0;
+  s.aplicar();
+}
+
+function fecharImagemZoom() {
+  document.getElementById("imagemZoomOverlay")?.remove();
+  _zoomEstado = null;
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") fecharImagemZoom();
+});
+
+/* ================= DOCUMENTOS ================= */
+
+const ICONE_TIPO_DOC = {
+  "Documento": "📄", "Carta": "✉️", "Relatório": "📋", "Pista": "🔎",
+  "Contrato": "📜", "Diário": "📖", "Código / Cifra": "🔐", "Outro": "📁",
+};
+
+function previewDocImagem() {
+  const input = document.getElementById("docImagem");
+  const preview = document.getElementById("docPreview");
+  const box = document.getElementById("docPreviewBox");
+  if (!input?.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    docBase64Temp = e.target.result;
+    preview.src = docBase64Temp;
+    box.style.display = "block";
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function addDocumento() {
+  const nome = document.getElementById("docNome").value.trim();
+  const tipo = document.getElementById("docTipo").value || "Documento";
+  const texto = document.getElementById("docTexto").value.trim();
+
+  if (!nome) { alertBonito("Coloque o título do documento."); return; }
+  if (!texto && !docBase64Temp) { alertBonito("Escreva o conteúdo ou anexe uma imagem."); return; }
+  if (documentos.length >= 40) { alertBonito("Limite de 40 documentos por personagem."); return; }
+
+  const btn = document.querySelector("#boxDocumentosForm .inv-add-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "..."; }
+
+  let imagemUrl = "";
+  let imagemDeleteUrl = "";
+
+  if (docBase64Temp) {
+    const resultado = await uploadImagemFirebase(docBase64Temp, "documento");
+    if (resultado.erro || !resultado.url) {
+      alertBonito(_mensagemErroUpload("O documento não foi salvo."));
+      if (btn) { btn.disabled = false; btn.textContent = "+"; }
+      return;
+    }
+    imagemUrl = resultado.url;
+    imagemDeleteUrl = resultado.deleteUrl;
+  }
+
+  documentos.push({ nome, tipo, texto, imagemUrl, imagemDeleteUrl });
+
+  document.getElementById("docNome").value = "";
+  document.getElementById("docTexto").value = "";
+  document.getElementById("docImagem").value = "";
+  document.getElementById("docTipo").value = "Documento";
+  document.getElementById("docPreviewBox").style.display = "none";
+  docBase64Temp = "";
+
+  if (btn) { btn.disabled = false; btn.textContent = "+"; }
+
+  salvarTudo();
+  renderDocumentos();
+}
+
+function renderDocumentos() {
+  const ul = document.getElementById("listaDocumentos");
+  if (!ul) return;
+  ul.innerHTML = "";
+
+  documentos.forEach((doc, index) => {
+    const li = document.createElement("li");
+    li.className = "veiculo-card doc-card";
+    li.onclick = () => verDocumento(index);
+
+    const previa = (doc.texto || "").trim();
+
+    li.innerHTML = `
+      <div class="doc-card-linha">
+        ${
+          doc.imagemUrl
+            ? `<img class="doc-card-thumb" src="${esc(doc.imagemUrl)}" alt="" loading="lazy" />`
+            : `<div class="doc-card-thumb doc-card-thumb-icone">${ICONE_TIPO_DOC[doc.tipo] || "📄"}</div>`
+        }
+
+        <div class="doc-card-info">
+          <div class="doc-card-nome">${esc(doc.nome)}</div>
+          <div class="doc-card-tipo">${esc(doc.tipo || "Documento")}</div>
+          ${previa ? `<p class="doc-card-previa">${esc(previa)}</p>` : ""}
+        </div>
+
+        <button class="item-remover" type="button"
+          onclick="event.stopPropagation(); removerDocumento(${index})">×</button>
+      </div>`;
+
+    ul.appendChild(li);
+  });
+}
+
+function verDocumento(index) {
+  const doc = documentos[index];
+  if (!doc) return;
+
+  const img = doc.imagemUrl
+    ? `<div class="doc-imagem-wrap" onclick="abrirImagemZoom('${esc(doc.imagemUrl)}')">
+         <img src="${esc(doc.imagemUrl)}" class="doc-imagem" alt="" />
+         <span class="doc-imagem-dica">🔍 Toque para ampliar</span>
+       </div>`
+    : "";
+
+  const html = `
+    <div class="popup-bloco">
+      <div class="doc-tipo-tag">${ICONE_TIPO_DOC[doc.tipo] || "📄"} ${esc(doc.tipo || "Documento")}</div>
+      ${img}
+      ${
+        doc.texto
+          ? `<div class="popup-descricao doc-texto">${esc(doc.texto)}</div>`
+          : ""
+      }
+    </div>`;
+
+  abrirPopup(doc.nome, html, true, () => editarDocumento(index));
+}
+
+function editarDocumento(index) {
+  const doc = documentos[index];
+  if (!doc) return;
+
+  const tipos = Object.keys(ICONE_TIPO_DOC);
+  const html = `
+    <div class="popup-bloco">
+      <input id="editDocNome" value="${esc(doc.nome)}" placeholder="Título" style="margin-bottom:8px" />
+      <select id="editDocTipo" class="input-personagem" style="margin-bottom:8px">
+        ${tipos.map((t) => `<option value="${esc(t)}" ${t === doc.tipo ? "selected" : ""}>${ICONE_TIPO_DOC[t]} ${esc(t)}</option>`).join("")}
+      </select>
+      <textarea id="editDocTexto" placeholder="Conteúdo" style="min-height:160px">${esc(doc.texto || "")}</textarea>
+      <button onclick="salvarEdicaoDocumento(${index})"
+        style="margin-top:10px;width:100%;padding:11px;border-radius:12px;background:#b89654;color:#1b1411;font-weight:bold;border:none;cursor:pointer">
+        Salvar
+      </button>
+    </div>`;
+
+  abrirPopup("Editar documento", html, true, null);
+}
+
+function salvarEdicaoDocumento(index) {
+  const nome = document.getElementById("editDocNome")?.value.trim();
+  if (!nome) { alertBonito("Título obrigatório."); return; }
+  const doc = documentos[index];
+  if (!doc) return;
+
+  doc.nome = nome;
+  doc.tipo = document.getElementById("editDocTipo")?.value || doc.tipo;
+  doc.texto = document.getElementById("editDocTexto")?.value.trim() || "";
+
+  salvarTudo();
+  renderDocumentos();
+  fecharPopup();
+}
+
+async function removerDocumento(index) {
+  if (!(await confirmBonito("Remover este documento?"))) return;
+  documentos.splice(index, 1);
+  salvarTudo();
+  renderDocumentos();
 }
 
 function abrirMapaViewer(index) {
@@ -13325,6 +14608,12 @@ if ("serviceWorker" in navigator) {
 window.onload = function () {
   restaurarSecoes();
 };
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", restaurarSecoes);
+} else {
+  restaurarSecoes();
+}
 
 atualizarDropdownRacas();
 
