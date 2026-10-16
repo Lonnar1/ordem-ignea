@@ -1719,6 +1719,8 @@
 
 </div>
 
+<div id="armaExtrasBox"></div>
+
 <textarea
   id="armaDesc"
   placeholder="Descrição da arma"
@@ -1835,6 +1837,8 @@
                 </div>
 
               </div>
+              <div id="armaduraExtrasBox"></div>
+
               <textarea
                 id="armaduraDesc"
                 placeholder="Descrição da vestimenta"
@@ -1912,109 +1916,6 @@
           </div>
 
           <ul id="listaArmaduras" class="lista-sempre-visivel"></ul>
-        </div>
-
-        <div class="secao-toggle">
-          <h2
-            class="titulo-secao titulo-toggle"
-            onclick="toggleSecao('boxDominio', this)"
-          >
-            <span>Pontos de Domínio</span>
-            <span class="setinha">▼</span>
-          </h2>
-
-            <div id="boxDominio" class="conteudo-toggle aberto">
-            <div class="dominio-box">
-              <div class="dominio-topo">
-                <span>Pontos</span>
-                <button
-                  class="btn-editar-slots"
-                  onclick="editarQuantidadePontosDominio()"
-                >
-                  ✏️
-                </button>
-              </div>
-              <div class="dominio-checks" id="dominioChecks"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="secao-toggle">
-          <h2
-            class="titulo-secao titulo-toggle"
-            onclick="toggleSecao('boxExaustao', this)"
-          >
-            <span>Exaustão</span>
-            <span class="setinha">▼</span>
-          </h2>
-
-          <div id="boxExaustao" class="conteudo-toggle aberto">
-            <div class="exaustao-box">
-              <div class="exaustao-inline">
-                <div class="exaustao-checks">
-                  <div class="exaustao-check" onclick="setExaustao(0)">0</div>
-                  <div class="exaustao-check" onclick="setExaustao(1)">1</div>
-                  <div class="exaustao-check" onclick="setExaustao(2)">2</div>
-                  <div class="exaustao-check" onclick="setExaustao(3)">3</div>
-                  <div class="exaustao-check" onclick="setExaustao(4)">4</div>
-                  <div class="exaustao-check" onclick="setExaustao(5)">5</div>
-                  <div class="exaustao-check" onclick="setExaustao(6)">6</div>
-                </div>
-              </div>
-
-              <p id="exaustao-desc">Sem exaustão</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="secao-toggle">
-          <h2
-            class="titulo-secao titulo-toggle"
-            onclick="toggleSecao('boxMorte', this)"
-          >
-            <span>Teste de morte</span>
-            <span class="setinha">▼</span>
-          </h2>
-
-          <div id="boxMorte" class="conteudo-toggle aberto">
-            <div class="morte-box">
-              <div class="morte-linha">
-                <span>Sucessos</span>
-                <div class="morte-checks">
-                  <div
-                    class="morte-check"
-                    onclick="toggleMorte('sucessos', 0)"
-                  ></div>
-                  <div
-                    class="morte-check"
-                    onclick="toggleMorte('sucessos', 1)"
-                  ></div>
-                  <div
-                    class="morte-check"
-                    onclick="toggleMorte('sucessos', 2)"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="morte-linha">
-                <span>Falhas</span>
-                <div class="morte-checks">
-                  <div
-                    class="morte-check falha"
-                    onclick="toggleMorte('falhas', 0)"
-                  ></div>
-                  <div
-                    class="morte-check falha"
-                    onclick="toggleMorte('falhas', 1)"
-                  ></div>
-                  <div
-                    class="morte-check falha"
-                    onclick="toggleMorte('falhas', 2)"
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="secao-toggle">
@@ -2323,6 +2224,66 @@
 
 
   <!-- =====================================================
+       RECIPIENTES (MOCHILAS, BOLSAS...)
+  ====================================================== -->
+
+  <div class="secao-toggle">
+
+    <h2
+      class="titulo-secao titulo-toggle"
+      onclick="toggleSecao('boxRecipientesForm', this)"
+    >
+      <span>Recipientes</span>
+      <span class="setinha">▼</span>
+    </h2>
+
+    <div id="boxRecipientesForm" class="conteudo-toggle aberto">
+
+      <div class="veiculo-add">
+
+        <input id="recNome" placeholder="Nome (ex.: Mochila tática)" />
+
+        <div class="inv-campos-duplos">
+          <div class="inv-campo">
+            <label for="recIcone">Tipo / ícone</label>
+            <select id="recIcone" class="input-personagem">
+              <option value="mochila" selected>Mochila</option>
+              <option value="bolsa">Bolsa</option>
+              <option value="maleta">Maleta</option>
+              <option value="mala">Mala</option>
+              <option value="caixa">Caixa</option>
+              <option value="ferramentas">Caixa de ferramentas</option>
+            </select>
+          </div>
+
+          <div class="inv-campo">
+            <label for="recEspacos">Espaços dele</label>
+            <input id="recEspacos" type="number" min="0" step="any" placeholder="0" />
+          </div>
+
+          <div class="inv-campo">
+            <label for="recCapacidade">Capacidade</label>
+            <input id="recCapacidade" type="number" min="0" step="any" placeholder="0 = livre" />
+          </div>
+        </div>
+
+        <div class="add-linha">
+          <button class="inv-add-btn" onclick="addRecipiente()">+</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RECIPIENTES CRIADOS (sempre visíveis, mesmo com a seção fechada) -->
+
+    <ul id="listaRecipientes" class="lista-sempre-visivel"></ul>
+
+  </div>
+
+
+
+  <!-- =====================================================
        VEÍCULOS
   ====================================================== -->
 
@@ -2410,6 +2371,8 @@
 
 </div>
 
+
+<div id="veiculoExtrasBox"></div>
 
 <!-- DESCRIÇÃO -->
 
@@ -2614,6 +2577,65 @@
       id="listaMapas"
       class="lista-sempre-visivel"
     ></ul>
+
+    <!-- =====================================================
+         DOCUMENTOS
+    ====================================================== -->
+
+    <h2
+      class="titulo-secao titulo-toggle"
+      onclick="toggleSecao('boxDocumentosForm', this)"
+    >
+      <span>Documentos</span>
+      <span class="setinha">▼</span>
+    </h2>
+
+    <div id="boxDocumentosForm" class="conteudo-toggle aberto">
+
+      <div class="mapa-add">
+
+        <input id="docNome" placeholder="Título do documento" />
+
+        <select id="docTipo" class="input-personagem">
+          <option value="Documento">📄 Documento</option>
+          <option value="Carta">✉️ Carta</option>
+          <option value="Relatório">📋 Relatório</option>
+          <option value="Pista">🔎 Pista</option>
+          <option value="Contrato">📜 Contrato</option>
+          <option value="Diário">📖 Diário</option>
+          <option value="Código / Cifra">🔐 Código / Cifra</option>
+          <option value="Outro">📁 Outro</option>
+        </select>
+
+        <textarea
+          id="docTexto"
+          placeholder="Conteúdo ou anotações sobre o documento"
+        ></textarea>
+
+        <label class="botao-upload mapa-upload-label">
+          Anexar imagem (opcional)
+          <input
+            type="file"
+            id="docImagem"
+            accept="image/*"
+            onchange="previewDocImagem()"
+            style="display:none"
+          />
+        </label>
+
+        <div id="docPreviewBox" style="display:none">
+          <img id="docPreview" class="mapa-preview-thumb" />
+        </div>
+
+        <div class="add-linha">
+          <button class="inv-add-btn" onclick="addDocumento()">+</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <ul id="listaDocumentos" class="lista-sempre-visivel"></ul>
 
   </div>
 
