@@ -461,3 +461,330 @@
   font-size: 11px; color: #8d7a66;
 }
 .rolagem-historico b { color: #cdb79a; }
+
+/* ===== Detalhes e modificadores de armas / vestimentas ===== */
+.item-extra-secao {
+  margin: 10px 0;
+  border: 1px solid rgba(217, 161, 74, .28);
+  border-radius: 12px;
+  background: rgba(20, 8, 6, .55);
+  overflow: hidden;
+}
+.item-extra-secao > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .4px;
+  color: #d9a14a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.item-extra-secao > summary::-webkit-details-marker { display: none; }
+.item-extra-secao > summary::after { content: "▾"; opacity: .7; transition: transform .2s; }
+.item-extra-secao[open] > summary::after { transform: rotate(180deg); }
+.item-extra-secao[open] > summary { border-bottom: 1px solid rgba(217, 161, 74, .18); }
+
+.extra-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  padding: 12px;
+}
+.extra-campo { grid-column: span 6; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.extra-campo.curto { grid-column: span 2; }
+.extra-campo.meio { grid-column: span 3; }
+.extra-campo label { font-size: 11px; color: #a58a6c; letter-spacing: .4px; }
+.extra-campo input { width: 100%; box-sizing: border-box; min-width: 0; }
+
+.mod-lista { display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 4px; }
+.mod-linha { display: flex; gap: 8px; align-items: center; }
+.mod-linha .mod-nome { flex: 1 1 auto; min-width: 0; }
+.mod-linha .mod-valor { flex: 0 0 64px; width: 64px; text-align: center; }
+.mod-remover {
+  flex: 0 0 30px; height: 30px;
+  background: transparent; border: 1px solid rgba(255,255,255,.15);
+  color: #b98a62; border-radius: 8px; cursor: pointer; font-size: 18px; line-height: 1;
+}
+.mod-add {
+  margin: 8px 12px 12px;
+  background: transparent;
+  border: 1px dashed rgba(217, 161, 74, .5);
+  color: #d9a14a;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* chips no card */
+.item-extras-card { margin-top: 6px; }
+.item-extras-card .extra-chip { color: #e8d3b3; border-color: rgba(217, 161, 74, .35); }
+.item-extras-card .mod-chip { color: #ffd9a0; border-color: rgba(180, 86, 42, .5); background: rgba(180, 86, 42, .14); }
+.item-extras-card .mod-chip b { color: #f0b565; }
+
+/* popup de visualização */
+.popup-secao-extra { margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); }
+.popup-secao-titulo { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: #d9a14a; margin-bottom: 8px; }
+
+/* ===== Modificações (nome + descrição) ===== */
+.mod-linha {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(217, 161, 74, .22);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .03);
+}
+.mod-linha-topo { display: flex; gap: 8px; align-items: center; }
+.mod-linha .mod-nome { flex: 1 1 auto; min-width: 0; width: auto; text-align: left; }
+.mod-linha .mod-desc {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 64px;
+  resize: vertical;
+}
+
+.popup-mod { margin-bottom: 10px; }
+.popup-mod-nome { font-weight: 700; color: #f0b565; font-size: 14px; }
+.popup-mod-desc { margin-top: 3px; font-size: 13px; line-height: 1.45; color: #d9cbb8; white-space: pre-wrap; }
+
+/* ===== Categoria das modificações ===== */
+.mod-cat-linha { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #a58a6c; }
+.mod-cat-linha .mod-cat { width: 56px; flex: 0 0 56px; text-align: center; }
+.popup-mod-cat {
+  margin-left: 8px;
+  font-size: 10px;
+  letter-spacing: .6px;
+  color: #ffd9a0;
+  background: rgba(180, 86, 42, .25);
+  border: 1px solid rgba(180, 86, 42, .5);
+  border-radius: 999px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
+
+/* ===== Recipientes (mochilas, bolsas...) ===== */
+.recipiente-card .rec-excedeu { color: #e0524a; }
+
+.rec-resumo {
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+  font-size: 13px; color: #cdb79a; margin-bottom: 10px;
+}
+.rec-acoes { display: flex; gap: 8px; margin-bottom: 12px; }
+.rec-acoes button, .rec-salvar {
+  flex: 1;
+  background: rgba(217, 161, 74, .12);
+  border: 1px solid rgba(217, 161, 74, .45);
+  color: #f0b565;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.rec-salvar { width: 100%; margin-top: 12px; }
+.rec-lista { display: flex; flex-direction: column; gap: 8px; }
+.rec-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .03);
+}
+.rec-item-info { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.rec-item-info strong { color: #f1e3cf; font-size: 14px; }
+.rec-item-info small { width: 100%; color: #a58a6c; font-size: 11px; }
+.rec-item-qtd { font-size: 11px; color: #ffd9a0; background: rgba(255,255,255,.08); border-radius: 999px; padding: 1px 7px; }
+.rec-item-tirar {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1px solid rgba(180, 86, 42, .6);
+  color: #e0894a;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* picker de transferência do veículo */
+.rec-transf { margin-top: 6px; border: 1px solid rgba(217, 161, 74, .22); border-radius: 10px; padding: 6px 8px; }
+.rec-transf > summary { cursor: pointer; font-size: 13px; color: #d9a14a; padding: 4px 2px; }
+.rec-transf > summary small { color: #8d7a66; margin-left: 6px; }
+
+/* ===== Card grande do recipiente ===== */
+#listaRecipientes { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 14px; }
+#listaRecipientes > li { list-style: none; margin: 0; width: 100%; box-sizing: border-box; }
+.recipiente-card { cursor: pointer; }
+.recipiente-card .veiculo-card-principal { padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+.recipiente-card .veiculo-card-nome { font-size: 22px; }
+.recipiente-card .veiculo-card-icone { font-size: 26px; margin-right: 6px; }
+.recipiente-card .veiculo-resumo-grid { font-size: 14px; }
+
+.rec-barra { height: 8px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+.rec-barra-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #b4562a, #d9a14a); transition: width .25s; }
+.rec-barra-fill.excedeu { background: #c0242a; }
+
+.rec-card-itens { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+.rec-card-chip {
+  font-size: 12px; color: #e8d3b3;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(217,161,74,.28);
+}
+.rec-card-chip b { color: #f0b565; }
+.rec-card-vazio { font-size: 12px; color: #8d7a66; font-style: italic; }
+
+/* ===== Ícones SVG dos recipientes ===== */
+.rec-ico { width: 1em; height: 1em; color: #d9a14a; vertical-align: -0.12em; filter: drop-shadow(0 0 6px rgba(255, 120, 40, .35)); }
+.rec-ico-mini { width: 1.1em; height: 1.1em; color: #d9a14a; vertical-align: -0.2em; }
+.rec-card-icone { display: inline-flex; align-items: center; font-size: 30px; line-height: 1; }
+.rec-card-icone .rec-ico { width: 1em; height: 1em; }
+
+/* ===== Seleção múltipla (colocar / retirar / transferir vários) ===== */
+.multi-sel { display: flex; flex-direction: column; gap: 12px; }
+.multi-todos {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed rgba(217, 161, 74, .5);
+  color: #d9a14a;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.multi-linha {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 10px; margin-top: 6px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .03);
+}
+.multi-label { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; flex: 1; min-width: 0; cursor: pointer; }
+.multi-nome { font-size: 14px; color: #f1e3cf; }
+.multi-info { color: #a58a6c; font-size: 11px; }
+.multi-chk {
+  appearance: none; -webkit-appearance: none;
+  flex: 0 0 20px; width: 20px; height: 20px; margin: 0;
+  border: 1.5px solid rgba(217, 161, 74, .6);
+  border-radius: 6px; background: transparent; cursor: pointer; position: relative;
+}
+.multi-chk:checked { background: #b4562a; border-color: #d9a14a; }
+.multi-chk:checked::after {
+  content: "✓"; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #ffd9a0; font-size: 14px; font-weight: 700;
+}
+.multi-qtd { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; color: #8d7a66; }
+.multi-qtd-input {
+  width: 52px; text-align: center; padding: 4px 6px !important;
+  background: rgba(0,0,0,.35) !important; border: 1px solid rgba(255,255,255,.15) !important;
+  color: #f1e3cf !important; border-radius: 8px !important;
+}
+.multi-confirmar {
+  position: sticky; bottom: 0;
+  background: #7a2512; border: 1px solid #d9a14a; color: #ffd9a0;
+  border-radius: 12px; padding: 12px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 -8px 16px rgba(0,0,0,.45);
+}
+.multi-confirmar:disabled { opacity: .45; cursor: default; }
+
+/* ===== Documentos ===== */
+.doc-tipo-tag {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 3px 10px;
+  font-size: 11px;
+  letter-spacing: .8px;
+  color: #ffd9a0;
+  background: rgba(180, 86, 42, .18);
+  border: 1px solid rgba(180, 86, 42, .45);
+  border-radius: 999px;
+}
+.doc-texto { white-space: pre-wrap; line-height: 1.5; min-height: auto; padding: 12px; }
+#listaDocumentos { margin-top: 10px; }
+
+/* ===== Card de documento no estilo dos outros cards (preto) ===== */
+#listaDocumentos { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 14px; }
+#listaDocumentos > li.doc-card {
+  list-style: none; margin: 0; width: 100%; box-sizing: border-box; cursor: pointer;
+  display: block !important;
+  background: #0b0b0b !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+}
+.doc-card .veiculo-card-principal { padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+.doc-card .veiculo-card-nome { font-size: 20px; }
+.doc-card-imagem {
+  width: 100%; max-height: 190px; object-fit: cover;
+  border-radius: 12px; border: 1px solid rgba(255, 255, 255, .08);
+}
+.doc-card-previa {
+  margin: 0; font-size: 13px; line-height: 1.45; color: #a99d8c;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* imagem no popup */
+.doc-imagem-wrap { position: relative; margin-bottom: 12px; cursor: zoom-in; }
+.doc-imagem { width: 100%; display: block; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .1); }
+.doc-imagem-dica {
+  position: absolute; right: 8px; bottom: 8px;
+  font-size: 11px; color: #ffd9a0;
+  background: rgba(0, 0, 0, .7); border: 1px solid rgba(217, 161, 74, .45);
+  border-radius: 999px; padding: 3px 10px;
+}
+
+/* visualizador com zoom */
+.zoom-overlay {
+  position: fixed; inset: 0; z-index: 2147483100;
+  background: rgba(0, 0, 0, .95);
+  display: flex; flex-direction: column;
+}
+.zoom-barra {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
+}
+.zoom-barra button {
+  width: 42px; height: 42px; border-radius: 12px; font-size: 18px; cursor: pointer;
+  background: rgba(20, 8, 6, .85); color: #f0b565; border: 1px solid rgba(217, 161, 74, .45);
+}
+.zoom-palco {
+  flex: 1; position: relative; overflow: hidden; touch-action: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.zoom-img {
+  max-width: 100%; max-height: 100%;
+  transform-origin: center center; user-select: none; -webkit-user-drag: none;
+  will-change: transform;
+}
+.zoom-dica {
+  text-align: center; font-size: 11px; color: #8d7a66;
+  padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ===== Card de documento compacto ===== */
+.doc-card .doc-card-linha { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
+.doc-card-thumb {
+  flex: 0 0 62px; width: 62px; height: 62px;
+  border-radius: 10px; object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, .1);
+}
+.doc-card-thumb-icone {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; background: rgba(255, 255, 255, .04);
+}
+.doc-card-info { flex: 1; min-width: 0; }
+.doc-card-nome {
+  font-size: 15px; font-weight: 700; color: #f1e3cf;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.doc-card-tipo { font-size: 11px; letter-spacing: .6px; color: #b89654; margin-top: 2px; }
+.doc-card .doc-card-previa { font-size: 12px; margin-top: 3px; -webkit-line-clamp: 2; }
+.doc-card .item-remover { flex: 0 0 auto; align-self: flex-start; }
+
+/* o botão de salvar flutuante sempre à frente dos cards */
+#btnSalvarFlutuante { z-index: 2147483000 !important; }
+#listaDocumentos > li.doc-card,
+#listaRecipientes > li,
+#listaVeiculos > li { z-index: auto !important; }
