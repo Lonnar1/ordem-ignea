@@ -426,7 +426,7 @@ function buscarItemCatalogoOP(id) {
     const h = (t.habilidades || []).find((x) => x.id === id);
     if (h) return { ...h, classe: t.classe, trilha: t.nome, tipo: "trilha", fonte: h.fonte || t.fonte, pagina: h.pagina || t.pagina };
   }
-  return cat.poderes.find((p) => p.id === id) || null;
+  return cat.poderes.find((p) => p.id === id) || (/^ori\./.test(id) ? CATALOGO_OP_PADRAO.poderes.find((p) => p.id === id) : null) || null;
 }
 
 function _fonteTextoOP(item) {
@@ -454,8 +454,9 @@ function somarEfeitosCatalogoOP(nivel) {
       if (e.tipo !== "recurso" || !(e.alvo in total)) return;
       const valor = Number(e.valor) || 0;
       const porNivel = (Number(e.porNivel) || 0) * nivel + (e.cadaNiveis ? Math.floor(nivel / e.cadaNiveis) * (Number(e.porCada) || 1) : 0);
+      const impares = e.impares ? Math.floor((nivel - 1) / 2) * (Number(e.impares) || 1) : 0;
       const porAtributo = e.porAtributo ? _atributoOP(e.porAtributo) : 0;
-      total[e.alvo] += valor + porNivel + porAtributo;
+      total[e.alvo] += valor + porNivel + porAtributo + impares;
     });
   });
 
@@ -602,6 +603,7 @@ function atualizarSeletorTrilhaOP() {
   if (info) {
     info.textContent = t ? t.resumo + (t.nota ? ` (Exige: ${t.nota})` : "") : "";
   }
+  sel.title = t ? t.resumo + (t.nota ? ` (Exige: ${t.nota})` : "") : "";
 }
 
 async function aoMudarTrilhaOP() {
@@ -623,6 +625,9 @@ async function aoMudarTrilhaOP() {
     }
   }
 
+  const anterior = buscarTrilhaOP(trilhaOP);
+  if (novaId === trilhaOP) return;
+
   trilhaOP = novaId;
   sincronizarTrilhaOP();
   atualizarSeletorTrilhaOP();
@@ -630,6 +635,42 @@ async function aoMudarTrilhaOP() {
   if (typeof atualizarResumoAutoOP === "function") atualizarResumoAutoOP();
   atualizarContadorPoderesClasseOP();
   salvarTudo();
+  mostrarResumoTrilhaOP(t, anterior);
+}
+
+function mostrarResumoTrilhaOP(t, anterior) {
+  const nex = nexClasseOP();
+  const linha = (h, ok) => `
+    <div class="evo-marco">${ok ? "🧭" : "🔒"} <b>${esc(h.nome)}</b> <em>(${esc(rotuloNivelNexOP(h.nex))})</em><br>${esc(h.resumo || "")}</div>`;
+
+  let html;
+  if (t) {
+    const habs = t.habilidades || [];
+    const ja = habs.filter((h) => Number(h.nex) <= nex);
+    const futuras = habs.filter((h) => Number(h.nex) > nex);
+    html = `
+      <div class="popup-bloco evo-popup">
+        <div class="evo-titulo">${esc(t.nome)} <small>(${t.fonte === "sah" ? "Sobrevivendo ao Horror" : "Livro de Regras"}${t.pagina ? `, p. ${esc(t.pagina)}` : ""})</small></div>
+        ${t.resumo ? `<div class="evo-bloco"><div class="evo-marco">${esc(t.resumo)}${t.nota ? ` <b>(Exige: ${esc(t.nota)})</b>` : ""}</div></div>` : ""}
+        ${anterior ? `<div class="evo-bloco"><div class="evo-sub">Saiu da ficha (${esc(anterior.nome)})</div><div class="evo-marco">❌ As habilidades da trilha anterior foram removidas.</div></div>` : ""}
+        <div class="evo-bloco">
+          <div class="evo-sub">Recebido agora</div>
+          ${ja.length ? ja.map((h) => linha(h, true)).join("") : `<div class="evo-marco">Nada ainda: a primeira habilidade vem no ${esc(rotuloNivelNexOP(habs[0]?.nex ?? 10))}.</div>`}
+        </div>
+        ${futuras.length ? `<div class="evo-bloco"><div class="evo-sub">Vem depois</div>${futuras.map((h) => linha(h, false)).join("")}</div>` : ""}
+        <small class="evo-dica">As habilidades foram para a aba Poderes (categoria Trilha) e as próximas entram sozinhas conforme o NEX.</small>
+        <button type="button" class="evo-ok" onclick="fecharPopup()">OK, continuar</button>
+      </div>`;
+    abrirPopup("Trilha escolhida", html, true);
+  } else if (anterior) {
+    html = `
+      <div class="popup-bloco evo-popup">
+        <div class="evo-titulo">${esc(anterior.nome)} <small>removida</small></div>
+        <div class="evo-bloco"><div class="evo-marco">❌ As habilidades dessa trilha saíram da ficha.</div></div>
+        <button type="button" class="evo-ok" onclick="fecharPopup()">OK, continuar</button>
+      </div>`;
+    abrirPopup("Trilha removida", html, true);
+  }
 }
 
 /* ---------- poderes de classe: quantos já usou / quantos tem direito ---------- */
@@ -672,7 +713,6 @@ async function escolherTrilhaCatalogoOP(id) {
   if (!sel) return;
   sel.value = id;
   await aoMudarTrilhaOP();
-  abrirCatalogoPoderesOP(true);
 }
 
 function _blocoTrilhasCatOP(classe, nex, busca) {
@@ -853,7 +893,7 @@ function _ehGeralCatOP(p) {
 }
 
 function _nomeAtivacaoOP(v) {
-  return { passiva: "Passiva", padrao: "Ação padrão", movimento: "Movimento", completa: "Completa", livre: "Livre", reacao: "Reação", especial: "Especial" }[v] || v;
+  return { passiva: "Passiva", padrao: "Ação padrão", interludio: "Interlúdio", movimento: "Movimento", completa: "Completa", livre: "Livre", reacao: "Reação", especial: "Especial" }[v] || v;
 }
 
 async function adquirirPoderCatalogoOP(id) {
@@ -924,18 +964,21 @@ function montarBarraCatalogoOP() {
 
 function montarSeletorTrilhaOP() {
   if (document.getElementById("trilhaOP")) return;
-  const linha = document.querySelector(".personagem-campos > .op-identidade-linha");
-  if (!linha) return;
+  let linha = document.querySelector(".personagem-campos > .op-linha-trilha");
+  if (!linha) {
+    const base = document.querySelector(".personagem-campos > .op-identidade-linha");
+    if (!base) return;
+    linha = document.createElement("div");
+    linha.className = "op-identidade-linha op-linha-trilha";
+    base.insertAdjacentElement("afterend", linha);
+  }
 
-  const bloco = document.createElement("div");
-  bloco.className = "op-identidade-linha op-linha-trilha";
-  bloco.innerHTML = `
-    <div class="op-campo">
-      <span class="op-label">TRILHA</span>
-      <select id="trilhaOP" onchange="aoMudarTrilhaOP()"></select>
-      <small id="trilhaInfoOP" class="op-trilha-info"></small>
-    </div>`;
-  linha.insertAdjacentElement("afterend", bloco);
+  const campo = document.createElement("div");
+  campo.className = "op-campo";
+  campo.innerHTML = `
+    <span class="op-label">TRILHA</span>
+    <select id="trilhaOP" onchange="aoMudarTrilhaOP()"></select>`;
+  linha.appendChild(campo);
   atualizarSeletorTrilhaOP();
 }
 
