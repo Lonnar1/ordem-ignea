@@ -903,3 +903,409 @@
 }
 .cat-add:disabled { opacity: .4; cursor: default; background: transparent; border-color: rgba(255,255,255,.15); color: #8d7a66; }
 .evo-alerta { color: #e0b46a; }
+
+/* ===== Regra de progressão, nível e exposição (NEX) ===== */
+.op-regra-linha { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.op-regra-linha label { font-size: 11px; letter-spacing: .6px; color: #a58a6c; text-transform: uppercase; }
+.op-regra-linha select { width: 100%; }
+
+.op-nex-painel {
+  margin-top: 12px; padding: 12px; border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .09); background: rgba(255, 255, 255, .03);
+}
+.op-nex-titulo { font-size: 13px; color: #f0b565; margin-bottom: 10px; }
+.op-nex-botoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
+.op-nex-botoes button {
+  background: rgba(217, 161, 74, .12); border: 1px solid rgba(217, 161, 74, .45); color: #f0b565;
+  border-radius: 10px; padding: 7px 10px; font-size: 12px; cursor: pointer;
+}
+.op-nex-sub { font-size: 11px; color: #8d7a66; width: 100%; }
+.op-nex-campo { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+.op-nex-campo label { font-size: 11px; color: #a58a6c; }
+.op-nex-lista { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.op-nex-item {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; font-size: 12px; color: #d9cbb8;
+  border-left: 2px solid #b4562a; background: rgba(180, 86, 42, .08); border-radius: 0 8px 8px 0;
+}
+.op-nex-item b { color: #ffd9a0; font-size: 11px; letter-spacing: .4px; }
+.op-campo-nivel select { min-width: 64px; }
+
+/* ===== Cabeçalho da ficha em grade horizontal ===== */
+.personagem-topo {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+  grid-template-areas: "foto campos";
+  gap: 18px 22px !important;
+  align-items: start !important;
+  width: 100% !important;
+}
+.personagem-topo > .personagem-imagem-box { grid-area: foto; width: 100% !important; max-width: 280px; margin: 0 auto; }
+.personagem-topo > .personagem-campos {
+  grid-area: campos;
+  width: 100% !important; max-width: none !important; min-width: 0;
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px 12px !important;
+  align-items: end;
+}
+.personagem-campos > * { min-width: 0; margin: 0 !important; width: 100% !important; box-sizing: border-box; }
+/* classe (texto) e nome ocupam metade; raça, idade, altura em linha */
+.personagem-campos > #classe { grid-column: span 3; }
+.personagem-campos > #nome { grid-column: span 3; }
+.personagem-campos > .select-wrapper { grid-column: span 2; }
+.personagem-campos > #idade, .personagem-campos > #altura { grid-column: span 2; }
+.personagem-campos > .linha-nivel-antecedente {
+  grid-column: span 6; display: grid !important; grid-template-columns: 90px minmax(0, 1fr); gap: 10px;
+}
+.personagem-campos > .linha-nivel-antecedente > * { width: 100% !important; min-width: 0; margin: 0 !important; }
+
+/* CLASSE / NÍVEL / NEX lado a lado */
+.personagem-campos > .op-identidade-linha {
+  grid-column: span 6;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px 12px;
+}
+.op-identidade-linha > .op-campo { width: 100% !important; min-width: 0; margin: 0 !important; }
+.op-identidade-linha select { width: 100% !important; }
+
+/* painel de regra de progressão ocupa a largura toda e vira grade */
+.personagem-campos > .op-auto-box {
+  grid-column: span 6; margin: 0 !important;
+  display: grid; gap: 12px 18px; align-items: end;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "regra toggle trilha"
+    "resumo resumo resumo"
+    "nex nex nex"
+    "extras extras extras";
+}
+.op-auto-box > .op-regra-linha { grid-area: regra; margin: 0 !important; }
+.op-auto-box > .op-auto-toggle { grid-area: toggle; align-self: center; }
+.op-auto-box > .op-trilha-bloco { grid-area: trilha; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.op-auto-box > .op-trilha-bloco label { font-size: 11px; letter-spacing: .6px; color: #a58a6c; text-transform: uppercase; }
+.op-auto-box > .op-trilha-bloco select { width: 100% !important; margin: 0 !important; }
+.op-auto-box > #opAutoResumo { grid-area: resumo; margin: 0; }
+.op-auto-box > #opNexPainel { grid-area: nex; margin: 0; }
+.op-auto-box > .op-auto-extras { grid-area: extras; margin: 0; }
+.op-auto-box #opAutoResumo .op-auto-chips { gap: 8px; }
+
+/* telas médias */
+@media (max-width: 900px) {
+  .personagem-topo { grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); }
+  .personagem-campos > .op-auto-box {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "regra regra" "toggle trilha" "resumo resumo" "nex nex" "extras extras";
+  }
+}
+/* celular: foto em cima, campos em 2 colunas */
+@media (max-width: 640px) {
+  .personagem-topo {
+    grid-template-columns: 1fr;
+    grid-template-areas: "foto" "campos";
+  }
+  .personagem-topo > .personagem-imagem-box { max-width: 220px; }
+  .personagem-topo > .personagem-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .personagem-campos > #classe, .personagem-campos > #nome,
+  .personagem-campos > .select-wrapper { grid-column: span 2; }
+  .personagem-campos > #idade, .personagem-campos > #altura { grid-column: span 1; }
+  .personagem-campos > .linha-nivel-antecedente,
+  .personagem-campos > .op-identidade-linha,
+  .personagem-campos > .op-auto-box { grid-column: span 2; }
+  .personagem-campos > .op-identidade-linha { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+  .personagem-campos > .op-auto-box {
+    grid-template-columns: 1fr;
+    grid-template-areas: "regra" "toggle" "trilha" "resumo" "nex" "extras";
+  }
+}
+.personagem-campos .select-wrapper select { width: 100% !important; }
+.op-identidade-linha .op-label { display: block; font-size: 11px; letter-spacing: .6px; color: #a58a6c; margin-bottom: 4px; }
+
+/* foto mais larga */
+.personagem-topo > .personagem-imagem-box { max-width: 380px !important; }
+@media (max-width: 900px) { .personagem-topo { grid-template-columns: minmax(200px, 300px) minmax(0, 1fr); } .personagem-topo > .personagem-imagem-box { max-width: 300px !important; } }
+@media (max-width: 640px) { .personagem-topo > .personagem-imagem-box { max-width: 100% !important; } }
+.personagem-imagem-box #carrosselWrapper, .personagem-imagem-box #preview { width: 100% !important; }
+
+/* NEX: etiqueta não pode ficar por cima do valor */
+.op-identidade-linha > .op-campo {
+  display: flex !important; flex-direction: column !important; justify-content: flex-start;
+  height: auto !important; min-height: 0 !important; gap: 4px;
+}
+.op-identidade-linha > .op-campo .op-label {
+  position: static !important; transform: none !important; display: block; line-height: 1.15;
+  white-space: normal; margin: 0 0 2px !important;
+}
+.op-identidade-linha > .op-campo select { position: static !important; height: auto !important; min-height: 34px; }
+
+/* botão de engrenagem */
+.btn-engrenagem-op {
+  width: 40px; height: 40px; border-radius: 50%; flex: 0 0 40px; cursor: pointer; font-size: 18px; line-height: 1;
+  background: rgba(20, 14, 8, .75); border: 1px solid rgba(196, 169, 91, .5); color: #C4A95B;
+  display: flex; align-items: center; justify-content: center; padding: 0; transition: transform .25s, background .2s;
+}
+.btn-engrenagem-op.ativo { background: rgba(180, 86, 42, .45); transform: rotate(60deg); }
+
+/* ===== v3: layout volta ao grande; regras abrem em janela pela engrenagem ===== */
+.personagem-topo > .personagem-imagem-box { max-width: none !important; }
+@media (min-width: 901px) {
+  .personagem-topo { grid-template-columns: minmax(260px, 420px) minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .personagem-topo { grid-template-columns: 1fr !important; grid-template-areas: "foto" "campos" !important; }
+  .personagem-topo > .personagem-imagem-box { max-width: none !important; }
+  .personagem-topo > .personagem-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .personagem-campos > #classe, .personagem-campos > #nome, .personagem-campos > .select-wrapper { grid-column: span 2; }
+  .personagem-campos > #idade, .personagem-campos > #altura { grid-column: span 1; }
+  .personagem-campos > .linha-nivel-antecedente, .personagem-campos > .op-identidade-linha { grid-column: span 2; }
+}
+.op-identidade-linha { grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+
+.btn-engrenagem-op { order: 3; margin-left: 8px; }
+#personagem > div:first-child > div:last-child { order: 2; margin-left: auto; }
+
+.op-auto-fundo { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 100002; }
+.op-auto-fundo.aberto { display: block; }
+.op-auto-box.op-auto-pop {
+  display: none !important; position: fixed; z-index: 100003; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(560px, 94vw); max-height: 88vh; overflow-y: auto; margin: 0 !important;
+  background: #14090a; border: 1px solid rgba(217,161,74,.5); box-shadow: 0 10px 40px rgba(0,0,0,.7);
+  grid-template-columns: 1fr; grid-template-areas: "topo" "regra" "toggle" "trilha" "resumo" "nex" "extras";
+}
+.op-auto-box.op-auto-pop.aberto { display: grid !important; }
+.op-pop-topo { grid-area: topo; display: flex; justify-content: space-between; align-items: center; color: #f0b565; }
+.op-pop-fechar { background: none; border: 1px solid rgba(217,161,74,.4); color: #f0b565; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+
+/* ===== v4: cartões CLASSE / NÍVEL / NEX temáticos e centralizados ===== */
+.op-identidade-linha { gap: 10px !important; }
+.op-identidade-linha > .op-campo {
+  align-items: center !important; justify-content: center !important; text-align: center;
+  padding: 10px 8px 12px !important;
+  background: linear-gradient(180deg, rgba(60, 20, 14, .85), rgba(18, 8, 6, .95)) !important;
+  border: 1px solid rgba(196, 169, 91, .45) !important; border-radius: 14px !important;
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, .55), 0 0 10px rgba(180, 60, 30, .15);
+}
+.op-identidade-linha > .op-campo .op-label {
+  width: 100%; min-height: 2.3em; display: flex !important; align-items: center; justify-content: center;
+  text-align: center; font-size: 10px !important; letter-spacing: 1.2px !important; font-weight: 700;
+  color: #C4A95B !important; text-transform: uppercase;
+}
+.op-identidade-linha > .op-campo select {
+  appearance: none; -webkit-appearance: none; width: 100% !important; text-align: center; text-align-last: center;
+  padding: 8px 6px !important; font-size: 14px !important; font-weight: 700; color: #f1e6cf !important;
+  background: rgba(8, 4, 3, .85) !important; border: 1px solid rgba(196, 169, 91, .35) !important; border-radius: 10px !important;
+  background-image: none !important; text-overflow: ellipsis;
+}
+.op-identidade-linha > .op-campo select:focus { outline: none; border-color: #C4A95B !important; box-shadow: 0 0 8px rgba(196, 169, 91, .45); }
+
+/* ===== v5: CLASSE / NÍVEL / NEX iguais aos outros campos ===== */
+.op-identidade-linha > .op-campo {
+  background: none !important; border: none !important; box-shadow: none !important;
+  padding: 0 !important; gap: 4px !important; align-items: stretch !important;
+}
+.op-identidade-linha > .op-campo .op-label {
+  min-height: 0 !important; justify-content: flex-start; text-align: left; padding-left: 4px;
+  font-size: 10px !important; color: #8d7a66 !important;
+}
+.op-identidade-linha > .op-campo select {
+  text-align: left !important; text-align-last: left !important; font-weight: 600; font-size: 14px !important;
+  padding: 11px 12px !important; min-height: 0 !important;
+  background: #141414 !important; border: 1px solid rgba(255, 255, 255, .08) !important; border-radius: 12px !important;
+  color: #f1e6cf !important; box-shadow: none !important;
+}
+.op-identidade-linha > .op-campo select:focus { border-color: rgba(196, 169, 91, .6) !important; box-shadow: none !important; }
+
+.evo-ok {
+  display: block; width: 100%; margin-top: 16px; padding: 14px; border-radius: 14px; cursor: pointer;
+  font-size: 15px; font-weight: 700; letter-spacing: .5px; color: #1a0d08;
+  background: linear-gradient(180deg, #e6c36a, #c4a95b); border: 1px solid #f0d58a;
+  box-shadow: 0 0 14px rgba(196, 169, 91, .35);
+}
+.evo-ok + .evo-desfazer { margin-top: 10px; }
+.evo-perda{color:#e07a6a !important;font-style:normal}
+
+.op-salvar-regras {
+  grid-area: salvar; width: 100%; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 14px;
+  color: #1a0d08; background: linear-gradient(180deg, #e6c36a, #c4a95b); border: 1px solid #f0d58a;
+}
+.op-salvar-regras:disabled { opacity: .7; cursor: default; }
+.op-auto-box.op-auto-pop {
+  grid-template-areas: "topo" "regra" "toggle" "trilha" "resumo" "nex" "salvar" "extras" !important;
+}
+
+/* ===== Grimório de rituais ===== */
+.rit-regra { margin: 10px 0; display: flex; flex-direction: column; gap: 4px; }
+.rit-regra label { font-size: 11px; letter-spacing: .6px; color: #a58a6c; text-transform: uppercase; }
+.rit-busca { width: 100%; box-sizing: border-box; margin: 6px 0; }
+.rit-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.rit-chip {
+  padding: 6px 11px; border-radius: 999px; font-size: 12px; cursor: pointer; color: #cdb79a;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+}
+.rit-chip.ativo { color: #1a0d08; background: #C4A95B; border-color: #f0d58a; font-weight: 700; }
+.rit-detalhes { margin: 6px 0; font-size: 12px; color: #d9cbb8; }
+.rit-detalhes > summary { cursor: pointer; color: #d9a14a; font-size: 12px; }
+.rit-detalhes p { margin: 6px 0; line-height: 1.45; }
+.rit-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 8px 0; color: #cdb79a; }
+.rit-meta b { color: #f0b565; margin-right: 4px; font-weight: 600; }
+.rit-acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.rit-sel { flex: 1 1 140px; min-width: 0; padding: 8px; font-size: 12px; background: #141414; color: #f1e6cf; border: 1px solid rgba(255,255,255,.1); border-radius: 10px; }
+.rit-acoes .cat-add { flex: 0 0 auto; }
+.rit-el-sangue { border-color: rgba(200,60,60,.6) !important; }
+.rit-el-morte { border-color: rgba(150,150,150,.6) !important; }
+.rit-el-conhecimento { border-color: rgba(220,180,70,.6) !important; }
+.rit-el-energia { border-color: rgba(170,90,220,.6) !important; }
+.rit-el-medo { border-color: rgba(255,255,255,.5) !important; }
+.rit-alem { color: #e0b46a; }
+
+/* ===== Aba 💀 Rituais ===== */
+.rit-aba-topo { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.rit-aba-resumo { font-size: 12px; color: #cdb79a; text-align: center; }
+.rit-aba-botoes { display: flex; gap: 10px; }
+.rit-btn-principal, .rit-btn {
+  flex: 1; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 14px;
+}
+.rit-btn-principal { color: #1a0d08; background: linear-gradient(180deg, #e6c36a, #c4a95b); border: 1px solid #f0d58a; }
+.rit-btn { color: #f0b565; background: rgba(217,161,74,.12); border: 1px solid rgba(217,161,74,.45); }
+.rit-vazio { text-align: center; padding: 34px 10px; color: #8d7a66; font-size: 40px; }
+.rit-vazio p { font-size: 15px; margin: 6px 0 2px; color: #cdb79a; }
+.rit-vazio small { font-size: 12px; }
+.rit-circ { margin-bottom: 18px; }
+.rit-circ-titulo {
+  display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 6px; margin-bottom: 8px;
+  border-bottom: 1px solid rgba(196,169,91,.35); color: #C4A95B; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; font-size: 13px;
+}
+.rit-circ-titulo em { font-style: normal; font-size: 11px; color: #a58a6c; text-transform: none; letter-spacing: 0; }
+.rit-card {
+  padding: 11px 13px; margin-bottom: 8px; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(180deg, rgba(40,14,10,.7), rgba(16,8,6,.9));
+  border: 1px solid rgba(255,255,255,.08); border-left: 4px solid #b4562a;
+}
+.rit-card:active { transform: scale(.99); }
+.rit-card-topo { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.rit-card-topo strong { color: #f1e6cf; font-size: 15px; }
+.rit-card-pe { color: #f0b565; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.rit-card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.rit-tag { padding: 2px 9px; border-radius: 999px; font-size: 11px; color: #cdb79a; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
+.rit-tag-origem { color: #d9a14a; border-color: rgba(217,161,74,.4); }
+.rit-borda-sangue { border-left-color: #c23b3b; }
+.rit-borda-morte { border-left-color: #8a8a8a; }
+.rit-borda-conhecimento { border-left-color: #d9b445; }
+.rit-borda-energia { border-left-color: #a35be0; }
+.rit-borda-medo { border-left-color: #f1e6cf; }
+.rit-form { display: flex; flex-direction: column; gap: 10px; }
+.rit-form label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #a58a6c; text-transform: uppercase; letter-spacing: .5px; flex: 1; }
+.rit-form-linha { display: flex; gap: 10px; }
+
+.rit-excluir {
+  display: block; width: 100%; margin-top: 14px; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 14px;
+  color: #e07a6a; background: rgba(180,50,40,.12); border: 1px solid rgba(224,122,106,.5);
+}
+
+/* ===== botões mais discretos, no estilo do resto do site ===== */
+.rit-btn-principal, .rit-btn, .op-salvar-regras, .evo-ok, .rit-excluir {
+  width: auto !important; flex: 0 0 auto !important; display: inline-flex !important; align-items: center; justify-content: center; gap: 6px;
+  padding: 7px 16px !important; font-size: 12px !important; font-weight: 600 !important; letter-spacing: .6px;
+  border-radius: 10px !important; box-shadow: none !important; background: rgba(20, 14, 10, .85) !important;
+  color: #C4A95B !important; border: 1px solid rgba(196, 169, 91, .55) !important; transition: background .2s, border-color .2s;
+}
+.rit-btn-principal:hover, .rit-btn:hover, .op-salvar-regras:hover, .evo-ok:hover { background: rgba(196, 169, 91, .16) !important; border-color: #C4A95B !important; }
+.rit-aba-botoes { justify-content: center; gap: 8px; }
+.op-salvar-regras { margin: 4px auto; }
+.evo-ok { margin: 14px auto 0 !important; }
+.evo-ok + .evo-desfazer { margin: 8px auto 0 !important; display: block; }
+.rit-excluir { margin: 14px auto 0 !important; color: #e07a6a !important; border-color: rgba(224, 122, 106, .5) !important; }
+.rit-aba-resumo { font-size: 11px; }
+
+/* lápis de edição dos bônus de perícia */
+.pericias-filtro-wrap { display: flex !important; align-items: center; gap: 8px; }
+.pericias-lapis-btn { font-size: 15px; line-height: 1; color: #ff9a3c; }
+
+
+.pericia-botoes-op { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.btn-treino-pericia.tem-extra { color: #ffd9a0 !important; border-color: #ff9a3c !important; box-shadow: 0 0 6px rgba(255,154,60,.35); }
+
+/* popup de bônus das perícias */
+.bp-dica { font-size: 12px; color: #a58a6c; margin: 0 0 10px; line-height: 1.45; }
+.bp-lista { max-height: 52vh; overflow-y: auto; padding-right: 4px; }
+.bp-linha { display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.bp-nome { flex: 1; min-width: 0; font-size: 14px; color: #f1e6cf; }
+.bp-nome em { font-style: normal; font-size: 10px; color: #a58a6c; margin-left: 6px; letter-spacing: .5px; }
+.bp-treino { font-size: 11px; color: #8d7a66; white-space: nowrap; }
+.bp-input { width: 56px; height: 32px; text-align: center; font-size: 14px; font-weight: 700; color: #ffd9a0; background: #141414; border: 1px solid rgba(255,154,60,.55); border-radius: 8px; }
+.bp-rodape { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.bp-btn { padding: 7px 16px; font-size: 12px; font-weight: 600; letter-spacing: .6px; border-radius: 10px; cursor: pointer; color: #C4A95B; background: rgba(20,14,10,.85); border: 1px solid rgba(196,169,91,.55); }
+.bp-btn-salvar { background: rgba(196,169,91,.2); border-color: #C4A95B; }
+
+.evo-mini {
+  margin-left: 8px; padding: 3px 10px; font-size: 11px; border-radius: 8px; cursor: pointer;
+  color: #C4A95B; background: rgba(20,14,10,.85); border: 1px solid rgba(196,169,91,.55);
+}
+.evo-attr {
+  display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 11px 14px; margin-bottom: 8px; cursor: pointer;
+  font-size: 14px; color: #f1e6cf; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 12px;
+}
+.evo-attr b { color: #f0b565; }
+.evo-attr:disabled { opacity: .4; cursor: default; }
+
+
+/* catálogo: filtros e seções */
+.cat-filtros { display: flex; gap: 6px; margin-bottom: 10px; }
+.cat-chip { flex: 1; padding: 6px 8px; font-size: 12px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); color: #cdb791; cursor: pointer; }
+.cat-chip span { opacity: .6; margin-left: 2px; }
+.cat-chip.ativo { background: rgba(196,169,91,0.16); border-color: rgba(196,169,91,0.5); color: #f0dca0; }
+.cat-secao { margin: 12px 2px 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #c4a95b; }
+.cat-secao span { opacity: .6; }
+.cat-tag.classe { color: #cdb791; }
+
+/* botão X do popup sempre visível ao rolar */
+.popup-content .fechar {
+  position: sticky !important;
+  top: 6px !important;
+  right: auto !important;
+  left: auto !important;
+  float: right;
+  z-index: 20;
+  margin: 0 0 0 8px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(20,14,10,0.92);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.cat-item { cursor: pointer; }
+.cat-detalhe { margin: 6px 0 8px; padding: 8px 10px; border-radius: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); font-size: 13px; line-height: 1.5; color: #d9cdb4; }
+.cat-detalhe > div + div { margin-top: 5px; }
+.cat-fonte { font-size: 12px; opacity: .7; }
+.cat-mais { font-size: 11px; color: #c4a95b; opacity: .75; margin: 2px 0 8px; }
+
+/* barra de catálogos: sóbria, alinhada e com ícones de traço */
+.catalogo-op-barra { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; justify-content: stretch; }
+.catalogo-op-barra button {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(180deg, rgba(28,20,16,.95), rgba(14,10,8,.95)) !important;
+  border: 1px solid rgba(196,169,91,.32) !important; color: #d8c9a3 !important;
+  border-radius: 6px !important; padding: 9px 10px !important; font-size: 12px !important;
+  letter-spacing: .06em; text-transform: uppercase; text-align: center;
+}
+.catalogo-op-barra button:hover { border-color: rgba(196,169,91,.6) !important; color: #f0dca0 !important; }
+.catalogo-op-barra .op-ico { flex: none; color: #b8923f; }
+.catalogo-op-barra .catalogo-op-contador { grid-column: 1 / -1; text-align: center; }
+.catalogo-op-contador:empty { display: none; }
+
+/* trilha fica ao lado das outras informações da ficha, em linha própria */
+.personagem-campos > .op-linha-trilha { grid-column: 1 / -1; }
+.op-linha-trilha .op-trilha-info:empty { display: none; }
+
+.cat-filtros { flex-wrap: wrap; }
+.cat-chip { min-width: 64px; }
+.cat-trilha { margin: 8px 0; border: 1px solid rgba(196,169,91,.25); border-radius: 8px; background: rgba(0,0,0,.2); padding: 8px 10px; }
+.cat-trilha > summary { cursor: pointer; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: #e6d8b4; list-style: none; }
+.cat-trilha > summary::-webkit-details-marker { display: none; }
+.cat-trilha > summary::before { content: "▸"; color: #b8923f; }
+.cat-trilha[open] > summary::before { content: "▾"; }
+.cat-trilha .cat-lista { margin: 8px 0; }
