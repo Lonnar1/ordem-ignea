@@ -120,6 +120,7 @@ function sanitizarPersonagem(p) {
   if (Array.isArray(p.armaduras))  p.armaduras.forEach(a  => { a.nome = limparTags(a.nome) || "";  a.desc = limparTags(a.desc) || ""; a.ca = limparTags(a.ca) || ""; });
   if (Array.isArray(p.armas))      p.armas.forEach(a      => { a.nome = limparTags(a.nome) || "";  a.desc = limparTags(a.desc) || ""; a.dano = limparTags(a.dano) || ""; });
   if (Array.isArray(p.poderes))    p.poderes.forEach(p2   => { p2.nome = limparTags(p2.nome) || ""; p2.desc = limparTags(p2.desc) || ""; p2.dano = limparTags(p2.dano) || ""; });
+  if (Array.isArray(p.diarioSessoes)) p.diarioSessoes.forEach(d => { d.titulo = limparTags(d.titulo) || ""; d.texto = limparTags(d.texto) || ""; });
   if (Array.isArray(p.documentos)) p.documentos.forEach(d => { d.nome = limparTags(d.nome) || ""; d.texto = limparTags(d.texto) || ""; d.tipo = limparTags(d.tipo) || ""; });
   if (Array.isArray(p.mapas))      p.mapas.forEach(m      => { m.nome = limparTags(m.nome) || "";  m.desc = limparTags(m.desc) || ""; });
   if (p.aliados && Array.isArray(p.aliados)) p.aliados.forEach(a => { a.nome = limparTags(a.nome) || ""; a.desc = limparTags(a.desc) || ""; a.local = limparTags(a.local) || ""; });
@@ -4119,6 +4120,7 @@ entrarFicha();
 restaurarSecoes();
 renderArmaduras();
 if (typeof carregarOP === "function") carregarOP(p);
+if (typeof carregarDiarioOP === "function") carregarDiarioOP(p);
 
 atualizarDerivadosOP();
 
@@ -4159,6 +4161,7 @@ p.nex = Number.isNaN(nexValor)
   ? 5
   : nexValor;
   if (typeof salvarOP === "function") salvarOP(p);
+  if (typeof salvarDiarioOP === "function") salvarDiarioOP(p);
   p.racaSelect = document.getElementById("racaSelect")?.value || "custom";
   p.raca = p.racaSelect;
   p.bonusRacaCustom = bonusRacaCustom;
@@ -7684,7 +7687,7 @@ function verRecipiente(index) {
         .map(
           (it, i) => `
         <div class="rec-item">
-          <div class="rec-item-info">
+          <div class="rec-item-info" style="cursor:pointer" onclick="verItemRecipiente(${index}, ${i})">
             <strong>${esc(it.nome || "Item")}</strong>
             ${(parseInt(it.qtd) || 1) > 1 ? `<span class="rec-item-qtd">x${parseInt(it.qtd)}</span>` : ""}
             <small>🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}${it.categoria ? ` · Cat. ${esc(it.categoria)}` : ""}</small>
@@ -7712,6 +7715,46 @@ function verRecipiente(index) {
     </div>`;
 
   abrirPopup(rec.nome || "Recipiente", html, true);
+}
+
+/* detalhes de um item que está dentro do recipiente (igual ao do veículo) */
+function verItemRecipiente(recIndex, itemIndex) {
+  const rec = recipientes[recIndex];
+  const item = rec?.itens?.[itemIndex];
+  if (!rec || !item) return;
+
+  const o = item.origemDados || {};
+  const total = calcularEspacosItem(item);
+  const extras = [
+    ["Dano", o.dano], ["Crítico", o.critico], ["Alcance", o.alcance], ["Tipo", o.tipo],
+    ["Proteção", o.ca || o.defesa], ["Penalidade", o.penalidade],
+  ].filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== "");
+
+  const bloco = (rotulo, texto) =>
+    texto ? `<div class="veiculo-item-popup-bloco"><span class="popup-label">${rotulo}</span><div class="veiculo-item-popup-texto">${esc(texto)}</div></div>` : "";
+
+  const html = `
+    <div class="veiculo-item-popup-view">
+      <div class="veiculo-item-popup-grid">
+        <div><span>Quantidade</span><strong>${item.qtd || 1}</strong></div>
+        <div><span>Espaços</span><strong>${formatarNumeroInventario(item.espacos || 0)} / un.</strong></div>
+        <div><span>Total</span><strong>${formatarNumeroInventario(total)}</strong></div>
+        <div><span>Categoria</span><strong>${item.categoria ? esc(item.categoria) : "—"}</strong></div>
+        ${extras.map(([r, v]) => `<div><span>${r}</span><strong>${esc(String(v))}</strong></div>`).join("")}
+      </div>
+      ${bloco("Modificações", item.modificacoes)}
+      ${bloco("Maldições", item.maldicoes)}
+      <div class="veiculo-item-popup-bloco">
+        <span class="popup-label">Descrição</span>
+        <div class="veiculo-item-popup-texto">${item.desc ? esc(item.desc) : "Sem descrição"}</div>
+      </div>
+      <div class="veiculo-item-popup-acoes">
+        <button type="button" class="popup-salvar-btn" onclick="verRecipiente(${recIndex})">← Voltar</button>
+        <button type="button" class="popup-salvar-btn" onclick="tirarDoRecipiente(${recIndex}, ${itemIndex})">Tirar da mochila</button>
+      </div>
+    </div>`;
+
+  abrirPopup(item.nome || "Item", html, true);
 }
 
 async function colocarNoRecipiente(recIndex, tipo, itemIndex) {
@@ -8989,7 +9032,7 @@ function renderPoderes() {
   lista.innerHTML = "";
 
   poderes.forEach((poder, index) => {
-    if (poder && poder.origemRitual) return; // rituais ficam na aba 💀 Rituais
+    if (poder && poder.origemRitual && (typeof ritualNaAbaOP !== "function" || ritualNaAbaOP())) return; // rituais ficam na aba 💀 Rituais (só Ocultista)
 
     const categoria =
       normalizarCategoriaPoder(poder);
@@ -9155,7 +9198,7 @@ function renderPoderes() {
   /* ================= CONTADORES ================= */
 
   const contadores = {
-    todos: poderes.filter((x) => !(x && x.origemRitual)).length,
+    todos: poderes.filter((x) => !(x && x.origemRitual && (typeof ritualNaAbaOP !== "function" || ritualNaAbaOP()))).length,
     classe: 0,
     trilha: 0,
     paranormal: 0,
@@ -9165,7 +9208,7 @@ function renderPoderes() {
   };
 
   poderes.forEach((poder) => {
-    if (poder && poder.origemRitual) return;
+    if (poder && poder.origemRitual && (typeof ritualNaAbaOP !== "function" || ritualNaAbaOP())) return;
     const categoria =
       normalizarCategoriaPoder(poder);
 
