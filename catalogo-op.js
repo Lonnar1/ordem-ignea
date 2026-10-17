@@ -405,6 +405,27 @@ if (typeof REGRAS_OP_PADRAO !== "undefined") REGRAS_OP_PADRAO.catalogo = CATALOG
    MOTOR DO CATÁLOGO: trilha automática, poderes com requisitos, efeitos
    ===================================================================== */
 
+/* nomes e etiquetas das fontes (livros) */
+const FONTES_ROTULO_OP = {
+  livro: ["Livro de Regras", ""],
+  sah: ["Sobrevivendo ao Horror", "SaH"],
+  as1: ["Arquivos Secretos 1", "AS1"],
+  as3: ["Arquivos Secretos 3", "AS3"],
+  as4: ["Arquivos Secretos 4", "AS4"],
+  as5: ["Arquivos Secretos 5", "AS5"],
+  as6: ["Arquivos Secretos 6", "AS6"],
+  as7: ["Arquivos Secretos 7", "AS7"],
+  as9: ["Arquivos Secretos 9", "AS9"],
+  fora: ["Origens fora dos livros", "Extra"],
+};
+function nomeFonteOP(f) {
+  return (FONTES_ROTULO_OP[f] || FONTES_ROTULO_OP.livro)[0];
+}
+function tagFonteOP(f) {
+  const t = (FONTES_ROTULO_OP[f] || ["", ""])[1];
+  return t ? `<em class="cat-tag">${t}</em>` : "";
+}
+
 let trilhaOP = ""; // id da trilha escolhida (salvo na ficha)
 
 function obterCatalogoOP() {
@@ -498,6 +519,10 @@ function verificarRequisitosOP(item) {
     if (!treinado(p)) falhas.push(`treinado em ${p}`);
   });
 
+  (r.periciasVet || []).forEach((p) => {
+    if ((typeof profs !== "undefined" ? profs[p] || 0 : 0) < 2) falhas.push(`veterano em ${p}`);
+  });
+
   if (r.periciasAny?.length && !r.periciasAny.some(treinado)) {
     falhas.push(`treinado em ${r.periciasAny.join(" ou ")}`);
   }
@@ -526,6 +551,8 @@ function _requisitosTextoOP(item) {
   if (r.periciasAny?.length) partes.push(`treinado em ${r.periciasAny.join(" ou ")}`);
   (r.poderes || []).forEach((id) => partes.push(buscarItemCatalogoOP(id)?.nome || id));
   Object.entries(r.elementos || {}).forEach(([el, n]) => partes.push(`${el} ${n}`));
+  if (r.periciasVet?.length) partes.push(`veterano em ${r.periciasVet.join(" e ")}`);
+  if (item.reqTexto) partes.push(item.reqTexto);
   return partes.join(" · ");
 }
 
@@ -617,7 +644,7 @@ function atualizarSeletorTrilhaOP() {
   sel.innerHTML =
     `<option value="">${lista.length ? (classe === "sobrevivente" ? "Sem trilha (escolha no estágio 2)" : "Sem trilha (escolha no NEX 10%)") : "Sem trilhas cadastradas"}</option>` +
     lista
-      .map((t) => `<option value="${esc(t.id)}" ${t.id === trilhaOP ? "selected" : ""}>${esc(t.nome)}${t.fonte === "sah" ? " (SaH)" : ""}</option>`)
+      .map((t) => `<option value="${esc(t.id)}" ${t.id === trilhaOP ? "selected" : ""}>${esc(t.nome)}${(FONTES_ROTULO_OP[t.fonte] || ["", ""])[1] ? ` (${FONTES_ROTULO_OP[t.fonte][1]})` : ""}</option>`)
       .join("");
 
   sel.disabled = !lista.length;
@@ -674,7 +701,7 @@ function mostrarResumoTrilhaOP(t, anterior) {
     const futuras = habs.filter((h) => Number(h.nex) > nex);
     html = `
       <div class="popup-bloco evo-popup">
-        <div class="evo-titulo">${esc(t.nome)} <small>(${t.fonte === "sah" ? "Sobrevivendo ao Horror" : "Livro de Regras"}${t.pagina ? `, p. ${esc(t.pagina)}` : ""})</small></div>
+        <div class="evo-titulo">${esc(t.nome)} <small>(${nomeFonteOP(t.fonte)}${t.pagina ? `, p. ${esc(t.pagina)}` : ""})</small></div>
         ${t.resumo ? `<div class="evo-bloco"><div class="evo-marco">${esc(t.resumo)}${t.nota ? ` <b>(Exige: ${esc(t.nota)})</b>` : ""}</div></div>` : ""}
         ${anterior ? `<div class="evo-bloco"><div class="evo-sub">Saiu da ficha (${esc(anterior.nome)})</div><div class="evo-marco">❌ As habilidades da trilha anterior foram removidas.</div></div>` : ""}
         <div class="evo-bloco">
@@ -767,7 +794,7 @@ function _blocoTrilhasCatOP(classe, nex, busca) {
         <summary>
           <strong>${esc(tr.nome)}</strong>
           ${minha ? `<em class="cat-tag auto">Sua trilha</em>` : ""}
-          ${tr.fonte === "sah" ? `<em class="cat-tag">SaH</em>` : ""}
+          ${tagFonteOP(tr.fonte)}
         </summary>
         <p class="cat-resumo">${esc(tr.resumo || "")}${tr.nota ? ` <b>(Exige: ${esc(tr.nota)})</b>` : ""}</p>
         <div class="cat-lista">${habs}</div>
@@ -837,8 +864,10 @@ function abrirCatalogoPoderesOP(manter) {
       .map((e) => {
         if (e.tipo === "recurso") {
           const a = { pv: "PV", pe: "PE", san: "SAN" }[e.alvo] || e.alvo;
-          if (e.valor) return `⚙ +${e.valor} ${a} (automático)`;
-          if (e.porNivel) return `⚙ +${e.porNivel} ${a} por nível (automático)`;
+          const sn = (n) => (n > 0 ? "+" : "") + n;
+          if (e.valor && e.porNivel) return `⚙ ${sn(e.valor)} ${a} e ${sn(e.porNivel)} por nível (automático)`;
+          if (e.valor) return `⚙ ${sn(e.valor)} ${a} (automático)`;
+          if (e.porNivel) return `⚙ ${sn(e.porNivel)} ${a} por nível (automático)`;
           if (e.cadaNiveis) return `⚙ +${e.porCada} ${a} a cada ${e.cadaNiveis} níveis (automático)`;
           if (e.porAtributo) return `⚙ ${a} por atributo (automático)`;
           return `⚙ Altera ${a} (automático)`;
@@ -855,7 +884,7 @@ function abrirCatalogoPoderesOP(manter) {
       req ? `<div><b>Pré-requisitos:</b> ${esc(req)}</div>` : "",
       p.repetivel ? `<div><b>Pode ser escolhido várias vezes.</b></div>` : "",
       efs.length ? `<div><b>Na ficha:</b><br>${efs.map(esc).join("<br>")}</div>` : "",
-      `<div class="cat-fonte">📖 ${p.fonte === "sah" ? "Sobrevivendo ao Horror" : "Livro de Regras"}${p.pagina ? `, p. ${esc(p.pagina)}` : ""} — o texto completo está no livro.</div>`,
+      `<div class="cat-fonte">📖 ${nomeFonteOP(p.fonte)}${p.pagina ? `, p. ${esc(p.pagina)}` : ""} — o texto completo está no livro.</div>`,
     ].join("");
 
     return `
@@ -864,7 +893,7 @@ function abrirCatalogoPoderesOP(manter) {
           <strong>${esc(p.nome)}</strong>
           <span class="cat-tags">
             ${_ehGeralCatOP(p) ? `<em class="cat-tag auto">Geral</em>` : `<em class="cat-tag classe">${p.tipo === "trilha" ? "Trilha" : "Classe"}</em>`}
-            ${p.fonte === "sah" ? `<em class="cat-tag">SaH</em>` : ""}
+            ${tagFonteOP(p.fonte)}
             ${p.ativacao ? `<em class="cat-tag">${esc(_nomeAtivacaoOP(p.ativacao))}</em>` : ""}
             ${p.custo ? `<em class="cat-tag">${esc(p.custo)}</em>` : ""}
             ${auto ? `<em class="cat-tag auto">⚙ automático</em>` : ""}
@@ -1150,6 +1179,7 @@ function abrirParanormaisOP(manter) {
     const bloqueado = bloqueadoUnico || (falhas.length > 0 && !podeSegunda);
     const tags = [
       el ? `<em class="cat-tag rit-el rit-el-${elLow}">${ICONE_ELEMENTO_PAR_OP[el] || ""} ${esc(el)}</em>` : `<em class="cat-tag">Qualquer elemento</em>`,
+      tagFonteOP(p.fonte),
       p.ativacao ? `<em class="cat-tag">${esc(_nomeAtivacaoOP(p.ativacao))}</em>` : "",
       p.custo ? `<em class="cat-tag">${esc(p.custo)}</em>` : "",
       (p.efeitos || []).some((e) => e.tipo === "recurso") ? `<em class="cat-tag auto">⚙ automático</em>` : "",
@@ -1195,7 +1225,7 @@ function abrirParanormaisOP(manter) {
         ${grupo("Gerais", lista.filter((p) => !p.elemento))}
         ${elementos.map((e) => grupo(`${ICONE_ELEMENTO_PAR_OP[e]} ${e}`, lista.filter((p) => p.elemento === e))).join("")}
       </div>
-      <small class="evo-dica">Livro de Regras, p. 114 a 118. Descrições condensadas: o texto completo está no livro.</small>
+      <small class="evo-dica">Livro de Regras, p. 114 a 118 e Arquivos Secretos (veja a etiqueta AS de cada poder). Descrições condensadas: o texto completo está no livro.</small>
     </div>`;
   abrirPopup("Poderes paranormais", html, true);
 }
