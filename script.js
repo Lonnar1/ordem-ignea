@@ -326,6 +326,7 @@ let armas = [];
 let poderes = [];
 let profs = {};
 let periciasSelecionadasOP = [];
+let bonusPericiasOP = {}; // bônus personalizado por perícia (itens, poderes etc.)
 let saves = {};
 let imagemBase64 = "";
 let imagemOriginalBase64 = "";
@@ -3302,6 +3303,9 @@ function criarPersonagem() {
     exaustao: 0,
     inspiracao: 0,
     pePorTurno: 0,
+    modoNexOP: typeof modoPadraoDaMesaOP === "function" ? modoPadraoDaMesaOP() : "padrao",
+    nivelOP: 1,
+    nex: typeof modoPadraoDaMesaOP === "function" && modoPadraoDaMesaOP() === "separado" ? 0 : 5,
     dominio: [false, false, false, false, false, false],
     morte: {
       sucessos: [false, false, false],
@@ -4062,6 +4066,8 @@ armas = p.armas || [];
   Array.isArray(p.periciasSelecionadasOP)
     ? p.periciasSelecionadasOP
     : [];
+  bonusPericiasOP =
+    p.bonusPericiasOP && typeof p.bonusPericiasOP === "object" ? { ...p.bonusPericiasOP } : {};
   armaduras = p.armaduras || [];
   mapas = p.mapas || [];
   renderMapas();
@@ -4207,6 +4213,7 @@ p.armas = armas;
   p.gastosCirculos = gastosCirculos;
 p.profs = profs;
 p.periciasSelecionadasOP = [...periciasSelecionadasOP];
+p.bonusPericiasOP = { ...bonusPericiasOP };
 p.saves = saves;
   p.exaustao = exaustao;
   p.morte = morte;
@@ -8817,6 +8824,7 @@ function normalizarCategoriaPoder(poder) {
     "trilha",
     "paranormal",
     "origem",
+    "ritual",
     "outros",
   ];
 
@@ -8856,6 +8864,7 @@ function nomeCategoriaPoder(categoria) {
     trilha: "Trilha",
     paranormal: "Paranormal",
     origem: "Origem",
+    ritual: "Ritual",
     outros: "Outros",
   };
 
@@ -8980,6 +8989,8 @@ function renderPoderes() {
   lista.innerHTML = "";
 
   poderes.forEach((poder, index) => {
+    if (poder && poder.origemRitual) return; // rituais ficam na aba 💀 Rituais
+
     const categoria =
       normalizarCategoriaPoder(poder);
 
@@ -9144,15 +9155,17 @@ function renderPoderes() {
   /* ================= CONTADORES ================= */
 
   const contadores = {
-    todos: poderes.length,
+    todos: poderes.filter((x) => !(x && x.origemRitual)).length,
     classe: 0,
     trilha: 0,
     paranormal: 0,
     origem: 0,
+    ritual: 0,
     outros: 0,
   };
 
   poderes.forEach((poder) => {
+    if (poder && poder.origemRitual) return;
     const categoria =
       normalizarCategoriaPoder(poder);
 
@@ -9184,6 +9197,11 @@ function renderPoderes() {
     origem:
       document.getElementById(
         "contadorPoderOrigem"
+      ),
+
+    ritual:
+      document.getElementById(
+        "contadorPoderRitual"
       ),
 
     outros:
@@ -9425,6 +9443,8 @@ function verPoder(index) {
 
       </div>
 
+      ${poder.origemRitual ? `<button type="button" class="rit-excluir" onclick="excluirRitualOP(${index})">🗑️ Excluir ritual</button>` : ""}
+
     </div>
   `;
 
@@ -9444,8 +9464,10 @@ async function removerPoder(index) {
   const confirmar = await confirmBonito(`Remover "${poder.nome}"?`);
   if (!confirmar) return;
 
+  if (typeof reverterTreinoPoderOP === "function") reverterTreinoPoderOP(poder);
   poderes.splice(index, 1);
   renderPoderes();
+  if (typeof atualizarTudo === "function") atualizarTudo();
   if (typeof aoMudarPoderesOP === "function") aoMudarPoderesOP();
   salvarTudo();
 }
@@ -9895,7 +9917,7 @@ function rolarPericia(nome, event) {
 
   const valorAttr = get(pericia.attr);
   const grau = profs[nome] || 0;
-  const bonus = BONUS_TREINO[grau] || 0;
+  const bonus = (BONUS_TREINO[grau] || 0) + (Number(bonusPericiasOP[nome]) || 0);
 
   const desvantagem = valorAttr <= 0;
   const qtd = desvantagem ? 2 : valorAttr;
@@ -9983,7 +10005,7 @@ function mostrarRolagemOP(r) {
       ${
         final
           ? `<div class="rolagem-formula">${formula} → ${r.escolhido}${
-              r.bonus ? ` + ${r.bonus}` : ""
+              r.bonus ? (r.bonus > 0 ? ` + ${r.bonus}` : ` − ${Math.abs(r.bonus)}`) : ""
             }</div>${natural}`
           : ""
       }
@@ -10298,8 +10320,10 @@ function atualizarTudo() {
   const dados =
     Math.max(1, atributos[pericia.attr] || 0);
 
+  const extra = Number(bonusPericiasOP[pericia.nome]) || 0;
+
   const bonus =
-    BONUS_TREINO[grau] || 0;
+    (BONUS_TREINO[grau] || 0) + extra;
 
   const selecionada =
     periciasSelecionadasOP.includes(pericia.nome);
@@ -10342,26 +10366,24 @@ function atualizarTudo() {
       </div>
 
 
+      <div class="pericia-botoes-op">
       <button
         type="button"
-        class="btn-treino-pericia grau-${grau}"
+        class="btn-treino-pericia grau-${grau} ${extra ? "tem-extra" : ""}"
         onclick="toggleProf('${pericia.nome}', event)"
-        title="${NOMES_TREINO[grau]}"
+        title="${NOMES_TREINO[grau]}${extra ? ` · bônus personalizado ${extra > 0 ? "+" : ""}${extra}` : ""}"
       >
         ${
-          grau === 0
+          grau === 0 && !extra
             ? "—"
-            : grau === 1
-              ? "+5"
-              : grau === 2
-                ? "+10"
-                : "+15"
+            : "+" + ((BONUS_TREINO[grau] || 0) + extra)
         }
       </button>
+      </div>
 
 
       <span class="pericia-rolagem pericia-clicavel" onclick="rolarPericia('${pericia.nome}', event)" title="Clique para rolar">
-        ${(atributos[pericia.attr] || 0) <= 0 ? "2d20↓" : dados + "d20"}${bonus > 0 ? ` +${bonus}` : ""}
+        ${(atributos[pericia.attr] || 0) <= 0 ? "2d20↓" : dados + "d20"}${bonus > 0 ? ` +${bonus}` : bonus < 0 ? ` ${bonus}` : ""}
       </span>
 
     </div>
@@ -10370,6 +10392,53 @@ function atualizarTudo() {
   lista.appendChild(div);
 });
   }
+}
+
+function abrirPopupBonusPericiasOP(event) {
+  if (event) event.stopPropagation();
+
+  const linhas = pericias
+    .slice()
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+    .map((per) => {
+      const grau = profs[per.nome] || 0;
+      const extra = Number(bonusPericiasOP[per.nome]) || 0;
+      return `
+        <label class="bp-linha">
+          <span class="bp-nome">${per.nome}<em>${SIGLA_ATTR_PERICIA[per.attr] || ""}</em></span>
+          <span class="bp-treino">treino +${BONUS_TREINO[grau] || 0}</span>
+          <input type="number" inputmode="numeric" class="bp-input" data-bonus-pericia="${per.nome}" value="${extra || ""}" placeholder="0" />
+        </label>`;
+    })
+    .join("");
+
+  const html = `
+    <div class="popup-bloco bp-popup">
+      <p class="bp-dica">Digite o bônus extra que você tem em cada perícia (itens, poderes…). Ele soma com o treino: com treino +5 e bônus 2, a perícia mostra +7. Use número negativo para penalidade.</p>
+      <div class="bp-lista">${linhas}</div>
+      <div class="bp-rodape">
+        <button type="button" class="bp-btn" onclick="limparBonusPericiasOP()">Zerar tudo</button>
+        <button type="button" class="bp-btn bp-btn-salvar" onclick="salvarBonusPericiasOP()">Salvar</button>
+      </div>
+    </div>`;
+
+  abrirPopup("Bônus das perícias", html, true);
+}
+
+function limparBonusPericiasOP() {
+  document.querySelectorAll(".bp-input").forEach((i) => { i.value = ""; });
+}
+
+function salvarBonusPericiasOP() {
+  const novo = {};
+  document.querySelectorAll(".bp-input").forEach((inp) => {
+    const n = Math.max(-99, Math.min(99, parseInt(inp.value, 10) || 0));
+    if (n !== 0) novo[inp.dataset.bonusPericia] = n;
+  });
+  bonusPericiasOP = novo;
+  if (typeof fecharPopup === "function") fecharPopup();
+  atualizarTudo();
+  salvarTudo();
 }
 
 function togglePericiaSelecionadaOP(nome, event) {
@@ -10417,8 +10486,20 @@ function abrirPopupPericiasClasse() {
 
   lista.innerHTML = "";
 
+  const classeSel = document.getElementById("classeOP")?.value || "";
+  const info = typeof infoPericiasClasseOP === "function" ? infoPericiasClasseOP(classeSel) : null;
+  if (info) {
+    const aviso = document.createElement("div");
+    aviso.id = "infoPericiasClasseOP";
+    aviso.style.cssText = "grid-column:1/-1;width:100%;font-size:12px;line-height:1.45;color:#cdb79a;padding:4px 2px 10px;";
+    aviso.innerHTML = `<b style="color:#f0b565">Perícias treinadas da classe: ${info.total}</b><br>${info.texto}.<br><span id="contPericiasClasseOP"></span>`;
+    lista.appendChild(aviso);
+  }
+
   pericias.forEach((pericia) => {
-    const selecionada = periciasSelecionadasOP.includes(pericia.nome);
+    const selecionada =
+      periciasSelecionadasOP.includes(pericia.nome) ||
+      (info && info.fixas.includes(pericia.nome));
 
     const item = document.createElement("label");
 
@@ -10441,8 +10522,25 @@ function abrirPopupPericiasClasse() {
     lista.appendChild(item);
   });
 
+  if (info) {
+    lista.querySelectorAll('input[type="checkbox"]').forEach((c) => {
+      c.addEventListener("change", atualizarContPericiasClasseOP);
+    });
+    atualizarContPericiasClasseOP();
+  }
+
   overlay.style.display = "block";
   modal.style.display = "flex";
+}
+
+function atualizarContPericiasClasseOP() {
+  const el = document.getElementById("contPericiasClasseOP");
+  if (!el) return;
+  const info = infoPericiasClasseOP(document.getElementById("classeOP")?.value || "");
+  if (!info) return;
+  const marcadas = document.querySelectorAll('#listaPericiasClasse input[type="checkbox"]:checked').length;
+  el.textContent = `Marcadas: ${marcadas} de ${info.total}`;
+  el.style.color = marcadas > info.total ? "#e07a6a" : marcadas === info.total ? "#8fd18f" : "#cdb79a";
 }
 
 function fecharPopupPericiasClasse() {
@@ -10463,6 +10561,7 @@ function confirmarPericiasClasse() {
   checkboxes.forEach((checkbox) => {
     if (checkbox.checked) {
       periciasSelecionadasOP.push(checkbox.dataset.pericia);
+      if (!(profs[checkbox.dataset.pericia] >= 1)) profs[checkbox.dataset.pericia] = 1; // classe: treinado
     }
   });
 
