@@ -138,13 +138,18 @@ function buscarOrigemOP(id) {
 }
 
 function _opcoesOrigemOP() {
-  const grupo = (fonte, titulo) =>
-    `<optgroup label="${titulo}">${ORIGENS_OP.filter((o) => o.fonte === fonte)
+  const grupo = (fonte, titulo) => {
+    const lista = ORIGENS_OP.filter((o) => o.fonte === fonte);
+    if (!lista.length) return "";
+    return `<optgroup label="${titulo}">${lista
       .slice()
       .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
       .map((o) => `<option value="${o.id}" ${origemOP && origemOP.id === o.id ? "selected" : ""}>${esc(o.nome)}</option>`)
       .join("")}</optgroup>`;
-  return `<option value="">Selecionar origem</option>${grupo("livro", "Livro de Regras")}${grupo("sah", "Sobrevivendo ao Horror")}`;
+  };
+  const fontes = ["livro", "sah", "as1", "as4", "as5", "as6", "as7", "as9", "fora"];
+  const nome = (f) => (typeof nomeFonteOP === "function" ? nomeFonteOP(f) : f);
+  return `<option value="">Selecionar origem</option>${fontes.map((f) => grupo(f, nome(f))).join("")}`;
 }
 
 function atualizarSeletorOrigemOP() {
@@ -259,7 +264,7 @@ function escolherPericiasOrigemOP(o) {
     abrirPopup(
       `Origem: ${o.nome}`,
       `<div class="popup-bloco">
-        <p class="bp-dica">${o.pericias.length ? `Já treinadas pela origem: <b>${o.pericias.map(esc).join(", ")}</b>.<br>` : ""}Escolha ${o.escolhas} perícia${o.escolhas > 1 ? "s" : ""} para treinar${o.id === "amnesico" ? " (à escolha do mestre)" : " (relacionada à sua premonição)"}.</p>
+        <p class="bp-dica">${o.pericias.length ? `Já treinadas pela origem: <b>${o.pericias.map(esc).join(", ")}</b>.<br>` : ""}Escolha ${o.escolhas} perícia${o.escolhas > 1 ? "s" : ""} para treinar${o.id === "amnesico" ? " (à escolha do mestre)" : o.dicaEscolha ? ` (${o.dicaEscolha})` : " (relacionada à sua premonição)"}.</p>
         <div id="origemPericiasOP" class="origem-pericias">
           ${opcoes.map((p) => `<label><input type="checkbox" value="${esc(p.nome)}" ${(profs[p.nome] || 0) >= 1 ? "disabled checked" : ""} /> <span>${esc(p.nome)}</span></label>`).join("")}
         </div>
@@ -280,7 +285,7 @@ function mostrarResumoOrigemOP(o, escolhas) {
   };
   const html = `
     <div class="popup-bloco evo-popup">
-      <div class="evo-titulo">${esc(o.nome)} <small>(${o.fonte === "sah" ? "Sobrevivendo ao Horror" : "Livro de Regras"}, p. ${o.pagina})</small></div>
+      <div class="evo-titulo">${esc(o.nome)} <small>(${typeof nomeFonteOP === "function" ? nomeFonteOP(o.fonte) : o.fonte}${o.pagina ? `, p. ${o.pagina}` : ""})</small></div>
       <div class="evo-bloco">
         <div class="evo-sub">Perícias treinadas</div>
         <div class="evo-marco">${lista.map(rotulo).join(" · ") || "—"}</div>
