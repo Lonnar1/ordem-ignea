@@ -176,6 +176,7 @@ const REGRAS_OP_PADRAO = {
 let autoRecursosOP = false;
 let bonusRecursosOP = { pv: 0, pe: 0, san: 0 };
 let regrasOPCustom = null;      // regras editadas pelo usuário (ficha)
+let nexExpAnteriorOP = null;     // exposição (NEX) anterior, modo separado
 let nexAnteriorOP = null;       // para detectar evolução
 let _desfazerEvolucaoOP = null; // snapshot para desfazer
 
@@ -587,6 +588,7 @@ async function aoMudarModoNexOP(novoModo) {
   try { localStorage.setItem("modoNexPadraoOP", modoNexOP); } catch (e) {}
 
   nexAnteriorOP = nexClasseOP();
+  nexExpAnteriorOP = nexExposicaoOP();
   if (typeof sincronizarTrilhaOP === "function") sincronizarTrilhaOP();
   atualizarCamposModoOP();
   aplicarRecursosAutomaticosOP();
@@ -702,27 +704,65 @@ function registrarExposicaoOP(valor) {
   atualizarResumoAutoOP();
   salvarTudo();
 
-  if (marcos.length) {
-    const regras = obterRegrasOP();
-    const itens = [];
-    (regras.alteracoesNex?.geral || []).forEach((a) => { if (marcos.includes(_numOP(a.nex))) itens.push({ nex: a.nex, origem: "Geral", texto: a.texto }); });
-    const el = regras.alteracoesNex?.elementos?.[elementoNexOP];
-    if (el) (el.etapas || []).forEach((a) => { if (marcos.includes(_numOP(a.nex))) itens.push({ nex: a.nex, origem: el.nome, texto: a.texto }); });
+  nexExpAnteriorOP = depois;
+  if (marcos.length) mostrarPopupExposicaoOP(antes, depois);
+}
 
-    const precisaElemento = marcos.some((m) => m >= 60) && !el;
-    const html = `
-      <div class="popup-bloco evo-popup">
-        <div class="evo-titulo">NEX ${antes}% → ${depois}%</div>
-        <div class="evo-bloco">
-          <div class="evo-sub">Novas alterações</div>
-          ${itens.map((a) => `<div class="evo-marco"><b>NEX ${a.nex}% · ${esc(a.origem)}</b><br>${esc(a.texto)}</div>`).join("") || `<div class="evo-marco">Sem alterações automáticas para este valor.</div>`}
-          ${marcos.includes(35) ? `<div class="evo-marco evo-alerta">⚠️ Escolha o atributo que soma ao PE no campo "NEX 35%".</div>` : ""}
-          ${marcos.includes(50) ? `<div class="evo-marco evo-alerta">⚠️ A afinidade elemental vem na próxima vez em que Transcender; escolha-a no campo "Afinidade elemental".</div>` : ""}
-          ${precisaElemento ? `<div class="evo-marco evo-alerta">⚠️ Escolha a afinidade elemental para ver as alterações do elemento.</div>` : ""}
-        </div>
-      </div>`;
-    abrirPopup("Exposição ao paranormal", html, true);
+/* popup de evolução da exposição (NEX) no modo de nível separado */
+function mostrarPopupExposicaoOP(antes, depois) {
+  const reducao = depois < antes;
+  const lo = Math.min(antes, depois);
+  const hi = Math.max(antes, depois);
+  const regras = obterRegrasOP();
+  const noIntervalo = (n) => _numOP(n) > lo && _numOP(n) <= hi;
+
+  const itens = [];
+  (regras.alteracoesNex?.geral || []).forEach((a) => { if (noIntervalo(a.nex)) itens.push({ nex: a.nex, origem: "Geral", texto: a.texto }); });
+  const el = regras.alteracoesNex?.elementos?.[elementoNexOP];
+  if (el) (el.etapas || []).forEach((a) => { if (noIntervalo(a.nex)) itens.push({ nex: a.nex, origem: el.nome, texto: a.texto }); });
+
+  let proximaExp = "";
+  if (!reducao) {
+    const futuros = [];
+    (regras.alteracoesNex?.geral || []).forEach((a) => { if (_numOP(a.nex) > hi) futuros.push({ nex: a.nex, origem: "Geral", texto: a.texto }); });
+    (regras.alteracoesNex?.elementos?.[elementoNexOP]?.etapas || []).forEach((a) => { if (_numOP(a.nex) > hi) futuros.push({ nex: a.nex, origem: regras.alteracoesNex.elementos[elementoNexOP].nome, texto: a.texto }); });
+    futuros.sort((a, b) => a.nex - b.nex);
+    const proxNex = futuros[0]?.nex;
+    const doProx = futuros.filter((f) => f.nex === proxNex);
+    if (doProx.length) {
+      proximaExp = `<div class="evo-bloco evo-proximo"><div class="evo-sub">Próxima alteração (NEX ${proxNex}%)</div>${doProx.map((a) => `<div class="evo-marco"><b>${esc(a.origem)}</b><br>${esc(a.texto)}</div>`).join("")}</div>`;
+    }
   }
+
+  const marcos = [25, 35, 50, 60, 75, 90].filter(noIntervalo);
+  const precisaElemento = !reducao && marcos.some((m) => m >= 60) && !el;
+
+  const html = `
+    <div class="popup-bloco evo-popup">
+      <div class="evo-titulo">${reducao ? "⬇️ " : ""}NEX ${antes}% → ${depois}%</div>
+      <div class="evo-bloco">
+        <div class="evo-sub">${reducao ? "Alterações que você perde" : "Novas alterações"}</div>
+        ${itens.map((a) => `<div class="evo-marco">${reducao ? "❌ " : ""}<b>NEX ${a.nex}% · ${esc(a.origem)}</b><br>${esc(a.texto)}</div>`).join("") || `<div class="evo-marco">Nenhuma alteração nova neste intervalo. A próxima ${reducao ? "que você perderia" : "vem"} no NEX ${[25, 35, 50, 60, 75, 90].find((m) => (reducao ? m <= lo : m > hi)) ?? "—"}%.</div>`}
+        ${!reducao && marcos.includes(35) ? `<div class="evo-marco evo-alerta">⚠️ Escolha o atributo que soma ao PE no campo "NEX 35%".</div>` : ""}
+        ${!reducao && marcos.includes(50) ? `<div class="evo-marco evo-alerta">⚠️ A afinidade elemental vem na próxima vez em que Transcender; escolha-a no campo "Afinidade elemental".</div>` : ""}
+        ${precisaElemento ? `<div class="evo-marco evo-alerta">⚠️ Escolha a afinidade elemental para ver as alterações do elemento.</div>` : ""}
+      </div>
+      ${proximaExp}
+      <button type="button" class="evo-ok" onclick="fecharPopup(); salvarTudo();">OK, continuar</button>
+      <button type="button" class="evo-desfazer" onclick="desfazerExposicaoOP(${antes})">Desfazer</button>
+    </div>`;
+  abrirPopup(reducao ? "Exposição reduzida" : "Exposição ao paranormal", html, true);
+}
+
+function desfazerExposicaoOP(valor) {
+  const sel = document.getElementById("nex");
+  if (sel) sel.value = String(valor);
+  nexExpAnteriorOP = valor;
+  atualizarPainelNexOP();
+  aplicarRecursosAutomaticosOP();
+  atualizarResumoAutoOP();
+  salvarTudo();
+  fecharPopup();
 }
 
 function aoMudarAttrNex35OP(v) {
@@ -765,6 +805,32 @@ function aoMudarNexOP(antigo, novo, antes) {
     : [];
   const trilhaPendente = !reducao && !trilha && marcos.some((m) => m.tipo === "trilha");
 
+  // prévia do próximo passo (exatamente o que chega na próxima evolução)
+  let previa = "";
+  const topo = modoSeparadoOP() ? 100 : 99;
+  const prox = _numOP(novo) >= topo ? null : Math.min(topo, _numOP(novo) + 5);
+  if (!reducao && prox) {
+    const prev = calcularRecursosOP(classe, prox, _atributosAtuaisOP());
+    const marcosProx = marcosEntreOP(novo, prox, regras, classe);
+    const habProx = trilha ? (trilha.habilidades || []).filter((h) => _numOP(h.nex) > _numOP(novo) && _numOP(h.nex) <= prox) : [];
+    const ganho = (nome, a, d) => (d !== a ? `<div class="evo-linha"><span>${nome}</span><span>${a} <i>→</i> <b>${d}</b> <em>(${d > a ? "+" : ""}${d - a})</em></span></div>` : "");
+    const itens = [
+      ganho("❤️ PV máximo", depois.pv, prev.pv),
+      ganho("⚡ PE máximo", depois.pe, prev.pe),
+      ganho("🧠 SAN máxima", depois.san, prev.san),
+      ganho("🎯 PE por turno", depois.peTurno, prev.peTurno),
+      ...habProx.map((h) => `<div class="evo-marco">🧭 <b>${esc(h.nome)}</b> — ${esc(h.resumo || "")}</div>`),
+      ...marcosProx.map((m) => `<div class="evo-marco">${_textoMarcoOP(m)}</div>`),
+    ].join("");
+    const trilhaFalta = !trilha && marcosProx.some((m) => m.tipo === "trilha");
+    previa = `
+      <div class="evo-bloco evo-proximo">
+        <div class="evo-sub">Na próxima evolução (${esc(rotuloNivelNexOP(prox))})</div>
+        ${itens || `<div class="evo-marco">Só os aumentos de PV, PE e SAN da classe.</div>`}
+        ${trilhaFalta ? `<div class="evo-marco evo-alerta">⚠️ Escolha uma trilha para receber a habilidade.</div>` : ""}
+      </div>`;
+  }
+
   const linha = (nome, a, d) =>
     `<div class="evo-linha"><span>${nome}</span><span>${a} <i>→</i> <b>${d}</b>${d > a ? ` <em>(+${d - a})</em>` : d < a ? ` <em class="evo-perda">(${d - a})</em>` : ""}</span></div>`;
 
@@ -801,6 +867,8 @@ function aoMudarNexOP(antigo, novo, antes) {
             </div>`
           : ""
       }
+
+      ${previa}
 
       <button type="button" class="evo-ok" onclick="confirmarEvolucaoOP()">OK, continuar</button>
       <button type="button" class="evo-desfazer" onclick="desfazerEvolucaoOP()">${reducao ? "Desfazer redução" : "Desfazer evolução"}</button>
@@ -869,6 +937,18 @@ function _aoMudarClasseOuNexOP(evento) {
   // no modo separado, mexer no NEX (exposição) não é evolução de classe
   const evolucao = evento === "nivel" || (evento === "nex" && !modoSeparadoOP());
   const novo = nexClasseOP();
+
+  if (evento === "nex" && modoSeparadoOP()) {
+    const antesExp = nexExpAnteriorOP;
+    const depoisExp = nexExposicaoOP();
+    nexExpAnteriorOP = depoisExp;
+    atualizarPainelNexOP();
+    aplicarRecursosAutomaticosOP();
+    atualizarResumoAutoOP();
+    salvarTudo();
+    if (antesExp !== null && depoisExp !== antesExp) mostrarPopupExposicaoOP(antesExp, depoisExp);
+    return;
+  }
   const sync = () => {
     if (typeof sincronizarTrilhaOP === "function") sincronizarTrilhaOP();
     if (typeof atualizarContadorPoderesClasseOP === "function") atualizarContadorPoderesClasseOP();
@@ -1012,9 +1092,11 @@ function carregarOP(p) {
 
   nivelOP = Math.max(1, Math.min(20, _numOP(p.nivelOP, nivelPorNexOP(_numOP(p.nex, 5)))));
   nexAnteriorOP = nexClasseOP();
+  nexExpAnteriorOP = nexExposicaoOP();
   _desfazerEvolucaoOP = null;
   if (typeof carregarTrilhaOP === "function") carregarTrilhaOP(p);
   if (typeof carregarRituaisOP === "function") carregarRituaisOP(p);
+  if (typeof carregarOrigemOP === "function") carregarOrigemOP(p);
   atualizarPainelAutoOP();
 }
 
@@ -1030,6 +1112,7 @@ function salvarOP(p) {
   p.attrNex35OP = attrNex35OP;
   if (typeof salvarTrilhaOP === "function") salvarTrilhaOP(p);
   if (typeof salvarRituaisOP === "function") salvarRituaisOP(p);
+  if (typeof salvarOrigemOP === "function") salvarOrigemOP(p);
 }
 
 /* =====================================================================
