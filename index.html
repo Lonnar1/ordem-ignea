@@ -1970,11 +1970,14 @@
     class="diario-box"
     style="display: none"
   >
+    <!-- "Geral" do diário (texto antigo continua aqui); as sessões são montadas por diario-op.js -->
     <textarea
       id="diario"
       oninput="salvarTudo()"
+      style="display: none"
       placeholder="Escreva aqui seu diário, anotações, pistas, missões, nomes, eventos..."
     ></textarea>
+    <div id="diarioOP" class="diario-op"></div>
   </div>
 
 
@@ -3128,6 +3131,8 @@
     <script src="regras-op.js"></script>
     <script src="catalogo-op.js"></script>
     <script src="rituais-op.js"></script>
+    <script src="origens-op.js"></script>
+    <script src="diario-op.js"></script>
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
