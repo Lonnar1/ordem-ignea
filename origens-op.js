@@ -99,8 +99,8 @@ const ORIGENS_OP = [];
   O("explorador", "Explorador", S, 9, ["Fortitude", "Sobrevivência"], 0, "Manual do Sobrevivente", "livre", "2 PE",
     "Ao fazer um teste para resistir a armadilhas, clima, doenças, fome, sede, fumaça, sono, sufocamento ou veneno, incluindo de fontes paranormais, você pode gastar 2 PE para receber +5 nesse teste. Além disso, em cenas de interlúdio, considera condições de sono precárias como normais.");
   O("experimento", "Experimento", S, 9, ["Atletismo", "Fortitude"], 0, "Mutação", "passiva", "",
-    "Você recebe resistência a dano 2 e +2 em uma perícia à sua escolha que seja originalmente baseada em Força, Agilidade ou Vigor. Entretanto, sofre −2 em Diplomacia.",
-    [man("RD 2, +2 em uma perícia à escolha e −2 em Diplomacia: ajuste no bônus personalizado (lápis)")]);
+    "Você recebe resistência a dano 2 e +2 em uma perícia à sua escolha que seja originalmente baseada em Força, Agilidade ou Vigor. Entretanto, sofre −1 dado em Diplomacia.",
+    [man("RD 2 e +2 em uma perícia à escolha: use o bônus personalizado (lápis). Diplomacia: −1 dado")]);
   O("fanatico", "Fanático por Criaturas", S, 10, ["Investigação", "Ocultismo"], 0, "Conhecimento Oculto", "passiva", "",
     "Você pode fazer testes de Ocultismo para identificar criatura a partir de informações como uma imagem, rastros, indícios de sua presença ou outras pistas que o mestre considere suficientes. Se passar, descobre as características da criatura, mas não sua identidade ou tipo específico. Além disso, quando passa nesse teste, recebe +2 em todos os testes contra a criatura até o fim da missão.");
   O("fotografo", "Fotógrafo", S, 10, ["Artes", "Percepção"], 0, "Através da Lente", "livre", "2 PE",
