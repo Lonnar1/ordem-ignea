@@ -1309,3 +1309,45 @@
 .cat-trilha > summary::before { content: "▸"; color: #b8923f; }
 .cat-trilha[open] > summary::before { content: "▾"; }
 .cat-trilha .cat-lista { margin: 8px 0; }
+
+/* origem: escolha de perícias */
+.origem-pericias { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; margin: 10px 0; max-height: 40vh; overflow-y: auto; }
+.origem-pericias label { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; font-size: 13px; cursor: pointer; }
+.origem-pericias input:disabled + span { opacity: .5; }
+.op-linha-trilha .op-campo { min-width: 0; }
+
+/* ===== diário por sessões ===== */
+.diario-op { display: flex; flex-direction: column; gap: 8px; }
+.diario-abas { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.diario-aba {
+  flex: 0 0 auto; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 7px 12px; border-radius: 6px; font-size: 12px; letter-spacing: .05em; cursor: pointer;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: #bfae8a;
+}
+.diario-aba.ativa { background: rgba(196,169,91,.16); border-color: rgba(196,169,91,.55); color: #f0dca0; }
+.diario-aba.diario-nova { border-style: dashed; color: #b8923f; }
+.diario-cab { display: flex; gap: 8px; align-items: center; }
+.diario-titulo {
+  flex: 1; min-width: 0; padding: 8px 10px; border-radius: 6px; font-size: 14px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: #eadfc4;
+}
+.diario-excluir {
+  flex: 0 0 auto; padding: 7px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  background: transparent; border: 1px solid rgba(180,60,50,.5); color: #d27a6e;
+}
+.diario-info { color: #8d7a66; font-size: 11px; }
+.diario-editor { width: 100%; box-sizing: border-box; min-height: 260px; resize: vertical; }
+
+.diario-op, .diario-abas, .diario-cab { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.diario-box { overflow-x: hidden; }
+
+/* foto do personagem: um pouco mais larga que antes, sem ocupar a tela toda */
+.personagem-topo > .personagem-imagem-box {
+  width: 100% !important; max-width: 230px !important; min-width: 0 !important; margin-left: auto !important; margin-right: auto !important; box-sizing: border-box;
+}
+.personagem-topo > .personagem-imagem-box #carrosselWrapper { width: 100% !important; max-width: none !important; box-sizing: border-box; }
+.personagem-topo > .personagem-imagem-box #preview {
+  display: block; width: 100% !important; max-width: none !important; height: auto !important;
+  aspect-ratio: 7 / 10; object-fit: cover; box-sizing: border-box;
+}
+.evo-proximo { border-top: 1px dashed rgba(196,169,91,.3); padding-top: 8px; margin-top: 8px; opacity: .92; }
