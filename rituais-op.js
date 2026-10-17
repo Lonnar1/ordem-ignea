@@ -2400,6 +2400,11 @@ function montarAbaRituaisOP() {
   if (typeof ORDEM_ABAS_FICHA !== "undefined" && !ORDEM_ABAS_FICHA.includes("rituais")) ORDEM_ABAS_FICHA.push("rituais");
 }
 
+/* a aba 💀 Rituais existe só para Ocultista; nas outras classes os rituais aparecem na lista de poderes */
+function ritualNaAbaOP() {
+  return (document.getElementById("classeOP")?.value || "") === "ocultista";
+}
+
 function _temRituaisOP() {
   return (typeof poderes !== "undefined" ? poderes : []).some(_ritualDaFichaOP);
 }
@@ -2407,7 +2412,7 @@ function _temRituaisOP() {
 function atualizarAbaRituaisOP() {
   montarAbaRituaisOP();
   const classe = document.getElementById("classeOP")?.value || "";
-  const mostrar = classe === "ocultista" || _temRituaisOP();
+  const mostrar = classe === "ocultista";
   const btn = document.getElementById("tabRituaisOP");
   if (btn) btn.style.display = mostrar ? "" : "none";
   if (!mostrar) {
@@ -2547,6 +2552,7 @@ function salvarRitualPersonalizadoOP() {
     aoSelecionarClasseOP = function () {
       const r = original.apply(this, arguments);
       atualizarAbaRituaisOP();
+      if (typeof renderPoderes === "function") renderPoderes();
       return r;
     };
     aoSelecionarClasseOP._ritOP = true;
