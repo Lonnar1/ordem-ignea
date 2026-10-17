@@ -1359,3 +1359,9 @@
   background: linear-gradient(180deg, rgba(28,20,16,.95), rgba(14,10,8,.95)); border: 1px solid rgba(196,169,91,.32); color: #d8c9a3;
 }
 .op-linha-treino-especial small { color: #8d7a66; font-size: 11px; line-height: 1.4; }
+
+/* textos longos de poderes/trilhas com uma linha por elemento */
+.cat-resumo,
+.evo-marco {
+  white-space: pre-line;
+}
