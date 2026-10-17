@@ -412,16 +412,29 @@ function obterCatalogoOP() {
 }
 
 function trilhasDaClasseOP(classe) {
-  return obterCatalogoOP().trilhas.filter((t) => t.classe === classe);
+  const lista = obterCatalogoOP().trilhas.filter((t) => t.classe === classe);
+  // catálogos salvos antes da classe Sobrevivente existir
+  if (classe === "sobrevivente" && !lista.length) return CATALOGO_OP_PADRAO.trilhas.filter((t) => t.classe === classe);
+  return lista;
 }
 
 function buscarTrilhaOP(id) {
-  return obterCatalogoOP().trilhas.find((t) => t.id === id) || null;
+  return obterCatalogoOP().trilhas.find((t) => t.id === id) || (/^sob\./.test(id || "") ? CATALOGO_OP_PADRAO.trilhas.find((t) => t.id === id) : null) || null;
 }
 
 /* tudo que o catálogo conhece por id (habilidades de trilha + poderes) */
 function buscarItemCatalogoOP(id) {
   const cat = obterCatalogoOP();
+  // habilidades de classe (ex.: Empenho do Sobrevivente)
+  for (const [cls, lista] of Object.entries(CATALOGO_OP_PADRAO.habilidadesClasse || {})) {
+    const h = lista.find((x) => x.id === id);
+    if (h) return { ...h, classe: cls, tipo: "classe", fonte: h.fonte || "sah" };
+  }
+  // habilidade convertida pelo Treinamento Especial (id termina em .conv)
+  if (/\.conv$/.test(id)) {
+    const base = buscarItemCatalogoOP(id.replace(/\.conv$/, ""));
+    if (base && base.conversao) return { ...base, ...base.conversao, id, efeitos: base.conversao.efeitos || [], conversao: null };
+  }
   for (const t of cat.trilhas) {
     const h = (t.habilidades || []).find((x) => x.id === id);
     if (h) return { ...h, classe: t.classe, trilha: t.nome, tipo: "trilha", fonte: h.fonte || t.fonte, pagina: h.pagina || t.pagina };
@@ -560,6 +573,17 @@ function sincronizarTrilhaOP() {
       .forEach((h) => desejadas.set(h.id, h));
   }
 
+  // habilidades de classe automáticas (Empenho, Cicatrizado…)
+  const classeAtual = document.getElementById("classeOP")?.value || "";
+  ((CATALOGO_OP_PADRAO.habilidadesClasse || {})[classeAtual] || [])
+    .filter((h) => Number(h.nex) <= nex)
+    .forEach((h) => desejadas.set(h.id, h));
+
+  // herança do Sobrevivente (Treinamento Especial): mantém o que já tinha recebido
+  if (typeof habilidadesHerancaOP === "function") {
+    habilidadesHerancaOP(classeAtual).forEach((h) => desejadas.set(h.id, h));
+  }
+
   let mudou = false;
 
   // remove habilidades de trilha concedidas automaticamente que não valem mais
@@ -591,7 +615,7 @@ function atualizarSeletorTrilhaOP() {
   const lista = trilhasDaClasseOP(classe);
 
   sel.innerHTML =
-    `<option value="">${lista.length ? "Sem trilha (escolha no NEX 10%)" : "Sem trilhas cadastradas"}</option>` +
+    `<option value="">${lista.length ? (classe === "sobrevivente" ? "Sem trilha (escolha no estágio 2)" : "Sem trilha (escolha no NEX 10%)") : "Sem trilhas cadastradas"}</option>` +
     lista
       .map((t) => `<option value="${esc(t.id)}" ${t.id === trilhaOP ? "selected" : ""}>${esc(t.nome)}${t.fonte === "sah" ? " (SaH)" : ""}</option>`)
       .join("");
@@ -682,7 +706,7 @@ function poderesDeClasseDisponiveisOP(classe, nex) {
 function poderesDeClasseUsadosOP() {
   return poderesDoCatalogoNaFichaOP().filter((p) => {
     const item = buscarItemCatalogoOP(p.origemCatalogo);
-    return item && (item.tipo === "classe" || item.tipo === "geral");
+    return item && !item.habilidadeDeClasse && (item.tipo === "classe" || item.tipo === "geral");
   }).length;
 }
 
@@ -793,7 +817,7 @@ function abrirCatalogoPoderesOP(manter) {
   const nomesDaClasse = new Set(todosCat.filter((p) => p.classe === classe).map((p) => p.nome));
   const listaTotal = todosCat.filter((p) => p.classe === classe || !nomesDaClasse.has(p.nome));
   const lista = listaTotal.filter((p) => _casaBuscaOP(p, _buscaCatalogoOP));
-  if (!listaTotal.length) {
+  if (!listaTotal.length && !trilhasDaClasseOP(classe).length) {
     alertBonito("Ainda não há poderes cadastrados para esta classe. Você pode cadastrar em Editar regras.");
     return;
   }
@@ -985,12 +1009,14 @@ function montarSeletorTrilhaOP() {
 /* ---------- ligação com a ficha ---------- */
 function carregarTrilhaOP(p) {
   trilhaOP = p.trilhaOP || "";
+  if (typeof carregarHerancaOP === "function") carregarHerancaOP(p);
   atualizarSeletorTrilhaOP();
   atualizarContadorPoderesClasseOP();
 }
 
 function salvarTrilhaOP(p) {
   p.trilhaOP = trilhaOP || "";
+  if (typeof salvarHerancaOP === "function") salvarHerancaOP(p);
 }
 
 /* =====================================================================
