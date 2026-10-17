@@ -37,6 +37,14 @@ const REGRAS_OP_PADRAO = {
           { nex: 40, texto: "Eclético: +2 PE → veterano" }, { nex: 75, texto: "Eclético: +4 PE → expert" } ] },
       ],
     },
+    /* Sobrevivendo ao Horror, p. 30-32: evolui por ESTÁGIOS (1 a 5). Aqui o estágio vale nex = estágio × 5
+       (assim o resto do sistema funciona igual). PV/PE não somam Vigor/Presença por estágio. */
+    sobrevivente: {
+      nome: "Sobrevivente",
+      porEstagio: true,
+      pv: { base: 8, porNex: 2 }, pe: { base: 2, porNex: 1 }, san: { base: 8, porNex: 2 },
+      escalonados: [],
+    },
     ocultista: {
       nome: "Ocultista",
       pv: { base: 12, porNex: 2 }, pe: { base: 4, porNex: 4 }, san: { base: 20, porNex: 5 },
@@ -86,6 +94,13 @@ const REGRAS_OP_PADRAO = {
 
   /* marcos específicos por classe (Tabela de progressão do livro). Quem não tiver usa "marcos". */
   marcosPorClasse: {
+    sobrevivente: [
+      { nex: 5,  tipo: "ataque",   texto: "Empenho: 1 PE para +2 em um teste de perícia" },
+      { nex: 10, tipo: "trilha",   texto: "Escolha sua trilha (Durão, Esperto ou Esotérico) e receba o 1º poder dela" },
+      { nex: 15, tipo: "atributo", texto: "+1 em um atributo (no máximo 3)" },
+      { nex: 20, tipo: "trilha",   texto: "2º e último poder da trilha" },
+      { nex: 25, tipo: "ataque",   texto: "Cicatrizado" },
+    ],
     combatente: [
       { nex: 5,  tipo: "ataque",   texto: "Ataque Especial: 2 PE para +5 no ataque ou dano" },
       { nex: 10, tipo: "trilha",   texto: "Escolha sua trilha e receba a 1ª habilidade dela" },
@@ -196,7 +211,12 @@ function modoPadraoDaMesaOP() {
 function modoSeparadoOP() { return modoNexOP === "separado"; }
 
 /* valor "estilo NEX" usado pelas regras de classe (marcos, trilhas, poderes, PV/PE/SAN) */
+function ehSobreviventeOP() {
+  return (document.getElementById("classeOP")?.value || "") === "sobrevivente";
+}
+
 function nexClasseOP() {
+  if (ehSobreviventeOP()) return Math.max(1, Math.min(5, _numOP(nivelOP, 1))) * 5; // estágio × 5
   if (modoSeparadoOP()) return Math.max(1, Math.min(20, _numOP(nivelOP, 1))) * 5;
   return _numOP(document.getElementById("nex")?.value);
 }
@@ -205,6 +225,7 @@ function nexClasseOP() {
 function nexExposicaoOP() { return _numOP(document.getElementById("nex")?.value); }
 
 function rotuloNivelNexOP(n) {
+  if (ehSobreviventeOP()) return `Estágio ${Math.max(1, Math.min(5, Math.round(_numOP(n) / 5)))}`;
   if (modoSeparadoOP()) return `Nível ${Math.max(1, Math.min(20, Math.round(_numOP(n) / 5)))}`;
   return `NEX ${n}%`;
 }
@@ -220,7 +241,14 @@ function efeitosNexOP() {
 
 /* ---------------- dados ---------------- */
 function obterRegrasOP() {
-  return regrasOPCustom && regrasOPCustom.classes ? regrasOPCustom : REGRAS_OP_PADRAO;
+  if (!(regrasOPCustom && regrasOPCustom.classes)) return REGRAS_OP_PADRAO;
+  // regras salvas antes da classe Sobrevivente existir: completa com o padrão
+  if (!regrasOPCustom.classes.sobrevivente) {
+    regrasOPCustom.classes.sobrevivente = REGRAS_OP_PADRAO.classes.sobrevivente;
+    regrasOPCustom.marcosPorClasse = regrasOPCustom.marcosPorClasse || {};
+    if (!regrasOPCustom.marcosPorClasse.sobrevivente) regrasOPCustom.marcosPorClasse.sobrevivente = REGRAS_OP_PADRAO.marcosPorClasse.sobrevivente;
+  }
+  return regrasOPCustom;
 }
 
 function _numOP(v, padrao = 0) {
@@ -260,11 +288,12 @@ function calcularRecursosOP(classe, nex, attrs, bonus = bonusRecursosOP, regras 
 
   const ef = typeof somarEfeitosCatalogoOP === "function" ? somarEfeitosCatalogoOP(nivel) : { pv: 0, pe: 0, san: 0 };
 
-  const pv = _numOP(c.pv.base) + vig + passos * (_numOP(c.pv.porNex) + vig) + _numOP(bonus?.pv) + ef.pv;
-  const efNex = typeof efeitosNexOP === "function" ? efeitosNexOP() : { pe: 0 };
-  const pe = _numOP(c.pe.base) + pre + passos * (_numOP(c.pe.porNex) + pre) + _numOP(bonus?.pe) + ef.pe + efNex.pe;
+  const m = c.porEstagio ? 0 : 1; // sobrevivente: Vigor/Presença não somam a cada estágio
+  const pv = _numOP(c.pv.base) + vig + passos * (_numOP(c.pv.porNex) + vig * m) + _numOP(bonus?.pv) + ef.pv;
+  const efNex = typeof efeitosNexOP === "function" && !c.porEstagio ? efeitosNexOP() : { pe: 0 };
+  const pe = _numOP(c.pe.base) + pre + passos * (_numOP(c.pe.porNex) + pre * m) + _numOP(bonus?.pe) + ef.pe + efNex.pe;
   const san = _numOP(c.san.base) + passos * _numOP(c.san.porNex) + _numOP(bonus?.san) + ef.san;
-  const peTurno = Math.max(1, Math.round(_numOP(nex) / _numOP(regras.peTurnoDivisor, 5)));
+  const peTurno = c.porEstagio ? 1 : Math.max(1, Math.round(_numOP(nex) / _numOP(regras.peTurnoDivisor, 5)));
 
   return { nivel, pv, pe, san, peTurno, efeitos: ef };
 }
@@ -377,7 +406,7 @@ function atualizarResumoAutoOP() {
   const trilha = typeof buscarTrilhaOP === "function" ? buscarTrilhaOP(trilhaOP) : null;
 
   box.innerHTML = `
-    <div class="op-auto-linha"><b>${esc(c.nome)}</b>${trilha ? ` · ${esc(trilha.nome)}` : ""} · ${modoSeparadoOP() ? `nível ${r.nivel} · NEX ${nexExposicaoOP()}%` : `NEX ${nex}% · nível ${r.nivel}`}</div>
+    <div class="op-auto-linha"><b>${esc(c.nome)}</b>${trilha ? ` · ${esc(trilha.nome)}` : ""} · ${ehSobreviventeOP() ? `estágio ${r.nivel}` : modoSeparadoOP() ? `nível ${r.nivel} · NEX ${nexExposicaoOP()}%` : `NEX ${nex}% · nível ${r.nivel}`}</div>
     <div class="op-auto-chips">
       <span>❤️ PV ${r.pv}</span><span>⚡ PE ${r.pe}</span><span>🧠 SAN ${r.san}</span><span>🎯 ${r.peTurno} PE/turno</span>
       ${escalonados.map((e) => `<span>⚔️ ${esc(e.nome)}: ${esc(e.texto)}</span>`).join("")}
@@ -492,11 +521,25 @@ function atualizarCamposModoOP() {
   const modo = document.getElementById("modoNexOP");
   if (modo) modo.value = modoNexOP;
 
+  const sobrev = ehSobreviventeOP();
   const campo = document.getElementById("campoNivelOP");
-  if (campo) campo.style.display = modoSeparadoOP() ? "" : "none";
+  if (campo) campo.style.display = modoSeparadoOP() || sobrev ? "" : "none";
 
   const sn = document.getElementById("nivelSelectOP");
-  if (sn) sn.value = String(Math.max(1, Math.min(20, _numOP(nivelOP, 1))));
+  if (sn) {
+    const max = sobrev ? 5 : 20;
+    if (sn.options.length !== max) sn.innerHTML = Array.from({ length: max }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
+    nivelOP = Math.max(1, Math.min(max, _numOP(nivelOP, 1)));
+    sn.value = String(nivelOP);
+  }
+  const rotNivel = document.querySelector("#campoNivelOP .op-label");
+  if (rotNivel) rotNivel.textContent = sobrev ? "ESTÁGIO" : "NÍVEL";
+
+  const nexSel = document.getElementById("nex");
+  if (nexSel) {
+    if (sobrev) nexSel.value = "0";
+    nexSel.disabled = sobrev;
+  }
 
   const rotulo = document.querySelector(".op-campo-nex .op-label");
   if (rotulo) rotulo.textContent = modoSeparadoOP() ? "NEX (EXPOSIÇÃO)" : "NEX";
@@ -598,7 +641,7 @@ async function aoMudarModoNexOP(novoModo) {
 }
 
 function aoMudarNivelOP(valor) {
-  nivelOP = Math.max(1, Math.min(20, parseInt(valor) || 1));
+  nivelOP = Math.max(1, Math.min(ehSobreviventeOP() ? 5 : 20, parseInt(valor) || 1));
   _aoMudarClasseOuNexOP("nivel");
 }
 
@@ -807,7 +850,7 @@ function aoMudarNexOP(antigo, novo, antes) {
 
   // prévia do próximo passo (exatamente o que chega na próxima evolução)
   let previa = "";
-  const topo = modoSeparadoOP() ? 100 : 99;
+  const topo = ehSobreviventeOP() ? 25 : modoSeparadoOP() ? 100 : 99;
   const prox = _numOP(novo) >= topo ? null : Math.min(topo, _numOP(novo) + 5);
   if (!reducao && prox) {
     const prev = calcularRecursosOP(classe, prox, _atributosAtuaisOP());
@@ -836,7 +879,7 @@ function aoMudarNexOP(antigo, novo, antes) {
 
   const html = `
     <div class="popup-bloco evo-popup">
-      <div class="evo-titulo">${reducao ? "⬇️ " : ""}${esc(rotuloNivelNexOP(antigo))} → ${esc(rotuloNivelNexOP(novo))}${modoSeparadoOP() ? "" : ` <small>(nível ${antesCalc.nivel} → ${depois.nivel})</small>`}</div>
+      <div class="evo-titulo">${reducao ? "⬇️ " : ""}${esc(rotuloNivelNexOP(antigo))} → ${esc(rotuloNivelNexOP(novo))}${modoSeparadoOP() || ehSobreviventeOP() ? "" : ` <small>(nível ${antesCalc.nivel} → ${depois.nivel})</small>`}</div>
 
       <div class="evo-bloco">
         ${linha("❤️ PV máximo", antesCalc.pv, depois.pv)}
@@ -904,7 +947,7 @@ function desfazerEvolucaoOP() {
   if (!s) return;
 
   const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
-  if (modoSeparadoOP() && s.nivelOP) {
+  if ((modoSeparadoOP() || ehSobreviventeOP()) && s.nivelOP) {
     nivelOP = s.nivelOP;
     const sn = document.getElementById("nivelSelectOP");
     if (sn) sn.value = String(nivelOP);
@@ -934,6 +977,10 @@ function desfazerEvolucaoOP() {
 
 /* ---------------- eventos ---------------- */
 function _aoMudarClasseOuNexOP(evento) {
+  if (evento === "classe") {
+    atualizarCamposModoOP();
+    nexAnteriorOP = nexClasseOP();
+  }
   // no modo separado, mexer no NEX (exposição) não é evolução de classe
   const evolucao = evento === "nivel" || (evento === "nex" && !modoSeparadoOP());
   const novo = nexClasseOP();
@@ -1123,6 +1170,7 @@ const PERICIAS_CLASSE_OP = {
   combatente:   { fixas: [], escolhas: [["Luta", "Pontaria"], ["Fortitude", "Reflexos"]], extra: 1, grau: 2 },
   especialista: { fixas: [], escolhas: [], extra: 7, grau: 5 },
   ocultista:    { fixas: ["Ocultismo", "Vontade"], escolhas: [], extra: 3, grau: 3 },
+  sobrevivente: { fixas: [], escolhas: [], extra: 1, grau: 0 },
 };
 
 function _intelectoOP() {
@@ -1200,7 +1248,7 @@ function abrirAumentoAtributoOP() {
       <div class="bp-lista">
         ${attrs.map(([id, nome]) => {
           const v = parseInt(document.getElementById(id)?.value) || 0;
-          return `<button type="button" class="evo-attr" ${v >= 5 ? "disabled" : ""} onclick="aumentarAtributoOP('${id}')"><span>${nome}</span><b>${v} → ${Math.min(5, v + 1)}</b></button>`;
+          return `<button type="button" class="evo-attr" ${v >= (ehSobreviventeOP() ? 3 : 5) ? "disabled" : ""} onclick="aumentarAtributoOP('${id}')"><span>${nome}</span><b>${v} → ${Math.min(ehSobreviventeOP() ? 3 : 5, v + 1)}</b></button>`;
         }).join("")}
       </div>
     </div>`;
@@ -1211,7 +1259,7 @@ function aumentarAtributoOP(id) {
   const el = document.getElementById(id);
   if (!el) return;
   const v = parseInt(el.value) || 0;
-  if (v >= 5) return;
+  if (v >= (ehSobreviventeOP() ? 3 : 5)) return;
   el.value = String(v + 1);
   el.dispatchEvent(new Event("input", { bubbles: true }));
   el.dispatchEvent(new Event("change", { bubbles: true }));
