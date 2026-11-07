@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="img/icon-192.png" />
     <link rel="apple-touch-icon" href="img/icon-192.png" />
-    <meta name="theme-color" content="#1a1410" />
+    <meta name="theme-color" content="#160f19" />
     <meta charset="UTF-8" />
     <meta
       name="viewport"
@@ -23,6 +23,8 @@
 <link rel="stylesheet" href="css/07-paleta-master.css" />
 <link rel="stylesheet" href="css/08-campanhas-master.css" />
 <link rel="stylesheet" href="css/06-final-overrides.css" />
+<link rel="stylesheet" href="css/11-social.css" />
+<link rel="stylesheet" href="css/10-tema-sombrio.css" />
 <link rel="stylesheet" href="css/09-op-atributos-recursos.css" />
    <link
   href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cinzel+Decorative:wght@700&family=MedievalSharp&display=swap"
@@ -37,35 +39,39 @@
     <div class="header-rpg">
       <h1 class="titulo-rpg">
         <img src="logo-ficha-ignea.png" class="espada-titulo" />
+        <img src="logo-ficha-ignea.png" class="espada-titulo espada-roxa" alt="" aria-hidden="true" />
         <span>FICHA ÍGNEA</span>
       </h1>
     </div>
 
     <!-- ================= TELA INICIAL ================= -->
     
-    <div id="loginBox" class="container login-box">
-  <h2 class="titulo-secao">Entrar na Ficha Ígnea</h2>
+    <div id="loginBox" class="container login-box login-v3">
+  <h2 class="titulo-secao">Entrar</h2>
 
-  <input id="loginEmail" placeholder="Email" />
-  <input id="loginSenha" type="password" placeholder="Senha" />
+  <input id="loginEmail" type="email" inputmode="email" autocomplete="username" placeholder="Email" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('loginSenha').focus();}" />
+  <div class="lg-senha">
+    <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Senha" onkeydown="if(event.key==='Enter'){event.preventDefault();fazerLogin();}" />
+    <button type="button" class="lg-olho" id="loginOlho" onclick="alternarSenhaLogin()" aria-label="Mostrar senha"><i class="ti ti-eye"></i></button>
+  </div>
+  <div class="lg-esqueci"><button type="button" class="lg-link" onclick="recuperarSenha()">Esqueci a senha</button></div>
   <div id="loginErro" class="login-erro"></div>
 
-  <div class="login-botoes">
-    <button class="btn-login" onclick="fazerLogin()">Entrar</button>
-    <button class="btn-login btn-login-secundario" onclick="criarConta()">Criar conta</button>
-    <button class="btn-login btn-login-recuperar" onclick="recuperarSenha()">  Esqueci a senha  </button>
+  <div class="lg-botoes">
+    <button type="button" class="inv-add-btn btn-adicionar" id="loginEntrar" onclick="fazerLogin()"><span>Entrar</span></button>
+    <button type="button" class="lg-criar" onclick="abrirCriarConta()">Criar conta</button>
   </div>
+  <p id="loginRodape" class="lg-rodape"></p>
 </div>
 
-
-<div id="modalNicknameOverlay" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.75);"></div>
+<!-- ================= NICKNAME ================= -->
 <div id="modalNickname" class="container login-box" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6001;width:min(90vw,380px);">
   <h2 class="titulo-secao">Escolha seu nome</h2>
-  <p style="text-align:center;color:#cbbfa7;font-size:13px;margin-bottom:14px;">
+  <p style="text-align:center;color:#d5cbd8;font-size:13px;margin-bottom:14px;">
     Esse nome + número é como seus amigos vão te encontrar no app.
   </p>
   <input id="nicknameInput" placeholder="Seu nickname" maxlength="20" />
-  <div id="nicknameTagPreview" style="text-align:center;margin:10px 0;font-family:'Cinzel',serif;color:#d7b46a;font-size:18px;"></div>
+  <div id="nicknameTagPreview" style="text-align:center;margin:10px 0;font-family:'Cinzel',serif;color:#efe7ef;font-size:18px;"></div>
   <div id="nicknameErro" class="login-erro"></div>
   <div class="login-botoes">
     <button class="btn-login btn-login-secundario" type="button" onclick="gerarNovaTagPreview()">Gerar outro número</button>
@@ -75,14 +81,14 @@
 
 <!-- ================= DETALHE DO GRUPO ================= -->
 <div id="modalGrupoDetalheOverlay" style="display:none;position:fixed;inset:0;z-index:6600;background:rgba(0,0,0,.75);" onclick="fecharDetalheGrupo()"></div>
-<div id="modalGrupoDetalhe" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6601;width:min(90vw,380px);max-height:80vh;overflow-y:auto;background:#120c09;border:1px solid rgba(196,169,91,0.25);border-radius:14px;padding:20px;color:#F8F4E3;font-family:'EB Garamond',serif;">
+<div id="modalGrupoDetalhe" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6601;width:min(90vw,380px);max-height:80vh;overflow-y:auto;background:#0e0911;border:1px solid rgba(233,224,236,0.16);border-radius:14px;padding:20px;color:#F8F4E3;font-family:'EB Garamond',serif;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span id="detalheGrupoNome" style="font-family:'Cinzel',serif;color:#E8CC80;font-size:17px;"></span>
-    <button onclick="fecharDetalheGrupo()" style="background:none;border:none;color:#9A8A70;font-size:20px;cursor:pointer;padding:2px;line-height:1;">✕</button>
+    <span id="detalheGrupoNome" style="font-family:'Cinzel',serif;color:#efe7ef;font-size:17px;"></span>
+    <button onclick="fecharDetalheGrupo()" style="background:none;border:none;color:#d5cbd8;font-size:20px;cursor:pointer;padding:2px;line-height:1;">✕</button>
   </div>
   <div id="detalheGrupoRenomear" style="display:none;gap:8px;margin-bottom:14px;">
-    <input id="renomearGrupoInput" style="flex:1;background:#1b120c;border:1px solid rgba(196,169,91,0.25);border-radius:8px;padding:8px 10px;color:#F8F4E3;font-size:13px;">
-    <button onclick="salvarRenomearGrupo()" style="padding:0 14px;border-radius:8px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;cursor:pointer;">OK</button>
+    <input id="renomearGrupoInput" style="flex:1;background:#150d18;border:1px solid rgba(233,224,236,0.16);border-radius:8px;padding:8px 10px;color:#F8F4E3;font-size:13px;">
+    <button onclick="salvarRenomearGrupo()" style="padding:0 14px;border-radius:8px;border:none;background:#ae3753;color:#100a13;font-weight:bold;cursor:pointer;">OK</button>
   </div>
   <div id="detalheGrupoMembros" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
   <div id="detalheGrupoAcoes" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -90,48 +96,53 @@
 
 <!-- ================= PERFIL ================= -->
 <div id="modalPerfilOverlay" style="display:none;position:fixed;inset:0;z-index:6700;background:rgba(0,0,0,.8);" onclick="fecharPerfil()"></div>
-<div id="modalPerfil" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6701;width:min(92vw,400px);max-height:88vh;overflow-y:auto;overflow-x:hidden;background:#0e0907;border:1px solid rgba(196,169,91,0.25);border-radius:16px;color:#F8F4E3;font-family:'EB Garamond',serif;">
+<div id="modalPerfil" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6701;width:min(92vw,400px);max-height:88vh;overflow-y:auto;overflow-x:hidden;background:#0b070d;border:1px solid rgba(233,224,236,0.16);border-radius:16px;color:#F8F4E3;font-family:'EB Garamond',serif;">
   <button onclick="fecharPerfil()" style="position:absolute;top:10px;right:10px;z-index:5;background:rgba(0,0,0,.5);border:none;color:#F8F4E3;font-size:18px;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
 
-  <div id="perfilFundo" style="height:110px;background-size:cover;background-position:center;background-color:#1b120c;border-radius:16px 16px 0 0;position:relative;">
-    <button id="btnMudarFundo" onclick="document.getElementById('inputFundoPerfil').click()" style="display:none;position:absolute;bottom:8px;right:8px;font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid rgba(196,169,91,0.4);background:rgba(0,0,0,.5);color:#E8CC80;cursor:pointer;">Trocar fundo</button>
+  <div id="perfilFundo" style="height:110px;background-size:cover;background-position:center;background-color:#150d18;border-radius:16px 16px 0 0;position:relative;">
+    <button id="btnMudarFundo" onclick="document.getElementById('inputFundoPerfil').click()" style="display:none;position:absolute;bottom:8px;right:8px;font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid rgba(233,224,236,0.26);background:rgba(0,0,0,.5);color:#efe7ef;cursor:pointer;">Trocar fundo</button>
     <input type="file" id="inputFundoPerfil" accept="image/*" style="display:none;" onchange="uploadImagemPerfil(this, 'fundo')">
   </div>
 
   <div style="text-align:center;margin-top:-45px;position:relative;pointer-events:none;">
     <div id="perfilAvatarWrap" style="display:inline-block;position:relative;pointer-events:auto;">
-      <div id="perfilAvatar" style="width:90px;height:90px;border-radius:50%;background-color:#2a1e14;background-size:cover;background-position:center;border:3px solid #0e0907;box-shadow:0 0 0 1px rgba(196,169,91,0.4);"></div>
-      <button id="btnMudarAvatar" onclick="document.getElementById('inputAvatarPerfil').click()" style="display:none;position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;background:#C4A95B;border:2px solid #0e0907;color:#1a0e05;font-size:12px;cursor:pointer;">✎</button>
+      <div id="perfilAvatar" style="width:90px;height:90px;border-radius:50%;background-color:#211427;background-size:cover;background-position:center;border:3px solid #0b070d;box-shadow:0 0 0 1px rgba(174,55,83,0.4);"></div>
+      <button id="btnMudarAvatar" onclick="document.getElementById('inputAvatarPerfil').click()" style="display:none;position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;background:#ae3753;border:2px solid #0b070d;color:#100a13;font-size:12px;cursor:pointer;">✎</button>
       <input type="file" id="inputAvatarPerfil" accept="image/*" style="display:none;" onchange="uploadImagemPerfil(this, 'avatar')">
     </div>
-    <div id="perfilNomeTag" style="margin-top:8px;font-family:'Cinzel',serif;color:#E8CC80;font-size:16px;"></div>
+    <div id="perfilNomeTag" style="margin-top:8px;font-family:'Cinzel',serif;color:#efe7ef;font-size:16px;"></div>
+    <div id="perfilTitulo" class="pf-titulo" style="pointer-events:auto;"></div>
+    <div id="perfilStatus" class="pf-status"></div>
   </div>
 
-  <button id="perfilCoresBtn" onclick="document.getElementById('perfilCoresBox').style.display='flex'; document.getElementById('perfilCoresBtn').style.display='none';" style="display:none;position:absolute;top:10px;left:10px;z-index:5;width:30px;height:30px;padding:0;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid rgba(196,169,91,0.4);color:#E8CC80;font-size:13px;cursor:pointer;align-items:center;justify-content:center;pointer-events:auto;">✎</button>
-  <div id="perfilCoresBox" style="display:none;gap:10px;justify-content:center;align-items:center;margin-top:8px;font-size:11px;color:#9A8A70;flex-wrap:wrap;">
-    Base <button type="button" id="corBaseSwatch" onclick="abrirColorPicker('corBaseInput','corBaseSwatch')" style="width:26px;height:26px;padding:0;border:1px solid rgba(196,169,91,0.4);border-radius:6px;cursor:pointer;background:#0e0907;"></button>
-    <input type="hidden" id="corBaseInput" value="#0e0907">
-    Nome <button type="button" id="corNomeSwatch" onclick="abrirColorPicker('corNomeInput','corNomeSwatch')" style="width:26px;height:26px;padding:0;border:1px solid rgba(196,169,91,0.4);border-radius:6px;cursor:pointer;background:#E8CC80;"></button>
-    <input type="hidden" id="corNomeInput" value="#E8CC80">
-    Linha <button type="button" id="corLinhaSwatch" onclick="abrirColorPicker('corLinhaInput','corLinhaSwatch')" style="width:26px;height:26px;padding:0;border:1px solid rgba(196,169,91,0.4);border-radius:6px;cursor:pointer;background:#c4a95b;"></button>
-    <input type="hidden" id="corLinhaInput" value="#c4a95b">
-    <button onclick="salvarCoresPerfil()" style="padding:4px 10px;border-radius:6px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:11px;cursor:pointer;">Salvar</button>
+  <button id="perfilCoresBtn" onclick="document.getElementById('perfilCoresBox').style.display='flex'; document.getElementById('perfilCoresBtn').style.display='none';" style="display:none;position:absolute;top:10px;left:10px;z-index:5;width:30px;height:30px;padding:0;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid rgba(233,224,236,0.26);color:#efe7ef;font-size:13px;cursor:pointer;align-items:center;justify-content:center;pointer-events:auto;">✎</button>
+  <div id="perfilCoresBox" style="display:none;gap:10px;justify-content:center;align-items:center;margin-top:8px;font-size:11px;color:#d5cbd8;flex-wrap:wrap;">
+    Base <button type="button" id="corBaseSwatch" onclick="abrirColorPicker('corBaseInput','corBaseSwatch')" style="width:26px;height:26px;padding:0;border:1px solid rgba(233,224,236,0.26);border-radius:6px;cursor:pointer;background:#0b070d;"></button>
+    <input type="hidden" id="corBaseInput" value="#0b070d">
+    Nome <button type="button" id="corNomeSwatch" onclick="abrirColorPicker('corNomeInput','corNomeSwatch')" style="width:26px;height:26px;padding:0;border:1px solid rgba(233,224,236,0.26);border-radius:6px;cursor:pointer;background:#c78eda;"></button>
+    <input type="hidden" id="corNomeInput" value="#c78eda">
+    Linha <button type="button" id="corLinhaSwatch" onclick="abrirColorPicker('corLinhaInput','corLinhaSwatch')" style="width:26px;height:26px;padding:0;border:1px solid rgba(233,224,236,0.26);border-radius:6px;cursor:pointer;background:#ae3753;"></button>
+    <input type="hidden" id="corLinhaInput" value="#ae3753">
+    <button onclick="salvarCoresPerfil()" style="padding:4px 10px;border-radius:6px;border:none;background:#ae3753;color:#100a13;font-weight:bold;font-size:11px;cursor:pointer;">Salvar</button>
   </div>
 
   <div id="perfilBaseWrap" style="padding:16px;">
-<div id="perfilBioView" style="background:rgba(255,255,255,0.03);border:1px solid var(--perfil-linha, rgba(196,169,91,0.15));border-radius:10px;padding:10px 12px;font-size:13px;color:var(--perfil-texto, #cdb791);min-height:20px;word-break:break-word;overflow-wrap:anywhere;"></div>    <textarea id="perfilBioEdit" maxlength="200" placeholder="Fale um pouco sobre você..." style="display:none;width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--perfil-linha, rgba(196,169,91,0.25));border-radius:10px;padding:10px 12px;font-size:13px;color:var(--perfil-texto, #F8F4E3);box-sizing:border-box;min-height:60px;font-family:inherit;"></textarea>
-    <button id="btnSalvarBio" onclick="salvarBioPerfil()" style="display:none;margin-top:6px;width:100%;padding:8px;border-radius:8px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:12px;cursor:pointer;">Salvar bio</button>
+    <div id="perfilAcoes" class="pf-acoes" style="margin:0 0 12px;"></div>
+    <div id="perfilProcurando"></div>
+<div id="perfilBioView" style="background:rgba(255,255,255,0.03);border:1px solid var(--perfil-linha, rgba(233,224,236,0.12));border-radius:10px;padding:10px 12px;font-size:13px;color:var(--perfil-texto, #d5cbd8);min-height:20px;word-break:break-word;overflow-wrap:anywhere;"></div>    <textarea id="perfilBioEdit" maxlength="200" placeholder="Fale um pouco sobre você..." style="display:none;width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--perfil-linha, rgba(233,224,236,0.16));border-radius:10px;padding:10px 12px;font-size:13px;color:var(--perfil-texto, #F8F4E3);box-sizing:border-box;min-height:60px;font-family:inherit;"></textarea>
+    <button id="btnSalvarBio" onclick="salvarBioPerfil()" style="display:none;margin-top:6px;width:100%;padding:8px;border-radius:8px;border:none;background:#ae3753;color:#100a13;font-weight:bold;font-size:12px;cursor:pointer;">Salvar bio</button>
 
-    <div style="font-size:11px;color:#9A8A70;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;">Personagens</div>
+    <div style="font-size:11px;color:#d5cbd8;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;">Personagens</div>
     <div id="perfilShowcase" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
-    <button id="btnEscolherDestaque" onclick="abrirEscolherDestaque()" style="display:none;margin-top:10px;width:100%;padding:8px;border-radius:8px;border:1px solid var(--perfil-linha, rgba(196,169,91,0.3));background:transparent;color:#E8CC80;font-size:12px;cursor:pointer;">Escolher personagens em destaque</button>
+    <button id="btnEscolherDestaque" onclick="abrirEscolherDestaque()" style="display:none;margin-top:10px;width:100%;padding:8px;border-radius:8px;border:1px solid var(--perfil-linha, rgba(233,224,236,0.2));background:transparent;color:#efe7ef;font-size:12px;cursor:pointer;">Escolher personagens em destaque</button>
+    <div id="perfilExtras"></div>
   </div>
 </div>
 
 <!-- ================= COLOR PICKER CUSTOM ================= -->
 <div id="colorPickerOverlay" style="display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.8);" onclick="fecharColorPicker()"></div>
-<div id="colorPickerModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:8001;width:min(90vw,300px);background:#0e0907;border:1px solid rgba(196,169,91,0.25);border-radius:16px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
-  <div style="font-family:'Cinzel',serif;color:#E8CC80;font-size:15px;margin-bottom:12px;text-align:center;">Selecionar cor</div>
+<div id="colorPickerModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:8001;width:min(90vw,300px);background:#0b070d;border:1px solid rgba(233,224,236,0.16);border-radius:16px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
+  <div style="font-family:'Cinzel',serif;color:#efe7ef;font-size:15px;margin-bottom:12px;text-align:center;">Selecionar cor</div>
 
   <div id="cpSquareWrap" style="position:relative;width:100%;aspect-ratio:1/1;border-radius:10px;overflow:hidden;cursor:crosshair;margin-bottom:14px;touch-action:none;">
     <canvas id="cpSquare" style="width:100%;height:100%;display:block;"></canvas>
@@ -144,67 +155,67 @@
   </div>
 
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-    <div id="cpPreview" style="width:34px;height:34px;border-radius:8px;border:1px solid rgba(196,169,91,0.4);flex-shrink:0;"></div>
+    <div id="cpPreview" style="width:34px;height:34px;border-radius:8px;border:1px solid rgba(233,224,236,0.26);flex-shrink:0;"></div>
     <div style="display:flex;gap:6px;flex:1;">
-      <input id="cpR" type="number" min="0" max="255" style="width:100%;min-width:0;background:rgba(255,255,255,0.05);border:1px solid rgba(196,169,91,0.25);border-radius:6px;color:#F8F4E3;text-align:center;padding:5px 2px;font-size:12px;">
-      <input id="cpG" type="number" min="0" max="255" style="width:100%;min-width:0;background:rgba(255,255,255,0.05);border:1px solid rgba(196,169,91,0.25);border-radius:6px;color:#F8F4E3;text-align:center;padding:5px 2px;font-size:12px;">
-      <input id="cpB" type="number" min="0" max="255" style="width:100%;min-width:0;background:rgba(255,255,255,0.05);border:1px solid rgba(196,169,91,0.25);border-radius:6px;color:#F8F4E3;text-align:center;padding:5px 2px;font-size:12px;">
+      <input id="cpR" type="number" min="0" max="255" style="width:100%;min-width:0;background:rgba(255,255,255,0.05);border:1px solid rgba(233,224,236,0.16);border-radius:6px;color:#F8F4E3;text-align:center;padding:5px 2px;font-size:12px;">
+      <input id="cpG" type="number" min="0" max="255" style="width:100%;min-width:0;background:rgba(255,255,255,0.05);border:1px solid rgba(233,224,236,0.16);border-radius:6px;color:#F8F4E3;text-align:center;padding:5px 2px;font-size:12px;">
+      <input id="cpB" type="number" min="0" max="255" style="width:100%;min-width:0;background:rgba(255,255,255,0.05);border:1px solid rgba(233,224,236,0.16);border-radius:6px;color:#F8F4E3;text-align:center;padding:5px 2px;font-size:12px;">
     </div>
   </div>
 
   <div style="display:flex;justify-content:flex-end;gap:10px;">
-    <button onclick="fecharColorPicker()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(196,169,91,0.3);background:transparent;color:#E8CC80;font-size:13px;cursor:pointer;">Cancelar</button>
-    <button onclick="confirmarColorPicker()" style="padding:7px 14px;border-radius:8px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:13px;cursor:pointer;">Definir</button>
+    <button onclick="fecharColorPicker()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(233,224,236,0.2);background:transparent;color:#efe7ef;font-size:13px;cursor:pointer;">Cancelar</button>
+    <button onclick="confirmarColorPicker()" style="padding:7px 14px;border-radius:8px;border:none;background:#ae3753;color:#100a13;font-weight:bold;font-size:13px;cursor:pointer;">Definir</button>
   </div>
 </div>
 
 <!-- ================= PREVIEW FICHA (DESTAQUE) ================= -->
 <div id="modalPreviewFichaOverlay" style="display:none;position:fixed;inset:0;z-index:6850;background:rgba(0,0,0,.8);" onclick="fecharPreviewFicha()"></div>
-<div id="modalPreviewFicha" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6851;width:min(88vw,360px);max-height:80vh;overflow-y:auto;background:#120c09;border:1px solid rgba(196,169,91,0.25);border-radius:14px;padding:20px;color:#F8F4E3;font-family:'EB Garamond',serif;">
+<div id="modalPreviewFicha" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6851;width:min(88vw,360px);max-height:80vh;overflow-y:auto;background:#0e0911;border:1px solid rgba(233,224,236,0.16);border-radius:14px;padding:20px;color:#F8F4E3;font-family:'EB Garamond',serif;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-    <span id="previewFichaNome" style="font-family:'Cinzel',serif;color:#E8CC80;font-size:17px;letter-spacing:.02em;"></span>
-    <button onclick="fecharPreviewFicha()" style="background:none;border:none;color:#9A8A70;font-size:18px;cursor:pointer;">✕</button>
+    <span id="previewFichaNome" style="font-family:'Cinzel',serif;color:#efe7ef;font-size:17px;letter-spacing:.02em;"></span>
+    <button onclick="fecharPreviewFicha()" style="background:none;border:none;color:#d5cbd8;font-size:18px;cursor:pointer;">✕</button>
   </div>
-  <div id="previewFichaConteudo" style="font-size:13px;color:#cdb791;display:flex;flex-direction:column;gap:16px;"></div>
+  <div id="previewFichaConteudo" style="font-size:13px;color:#d5cbd8;display:flex;flex-direction:column;gap:16px;"></div>
 </div>
 
 <!-- ================= ESCOLHER PERSONAGENS DESTAQUE ================= -->
 <div id="modalEscolherDestaqueOverlay" style="display:none;position:fixed;inset:0;z-index:6800;background:rgba(0,0,0,.8);" onclick="fecharEscolherDestaque()"></div>
-<div id="modalEscolherDestaque" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6801;width:min(90vw,380px);max-height:80vh;overflow-y:auto;background:#120c09;border:1px solid rgba(196,169,91,0.25);border-radius:14px;padding:18px;color:#F8F4E3;">
+<div id="modalEscolherDestaque" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6801;width:min(90vw,380px);max-height:80vh;overflow-y:auto;background:#0e0911;border:1px solid rgba(233,224,236,0.16);border-radius:14px;padding:18px;color:#F8F4E3;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <span style="font-family:'Cinzel',serif;color:#E8CC80;font-size:15px;">Escolha até 4</span>
-    <button onclick="fecharEscolherDestaque()" style="background:none;border:none;color:#9A8A70;font-size:18px;cursor:pointer;">✕</button>
+    <span style="font-family:'Cinzel',serif;color:#efe7ef;font-size:15px;">Escolha até 4</span>
+    <button onclick="fecharEscolherDestaque()" style="background:none;border:none;color:#d5cbd8;font-size:18px;cursor:pointer;">✕</button>
   </div>
   <div id="listaEscolherDestaque" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-  <button onclick="salvarDestaquePerfil()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:13px;cursor:pointer;">Salvar</button>
+  <button onclick="salvarDestaquePerfil()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#ae3753;color:#100a13;font-weight:bold;font-size:13px;cursor:pointer;">Salvar</button>
 </div>
 
 <!-- ================= DAR ITEM ================= -->
 <div id="modalDarItemOverlay" style="display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.8);" onclick="fecharDarItem()"></div>
-<div id="modalDarItem" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:7001;width:min(90vw,360px);max-height:75vh;overflow-y:auto;background:#120c09;border:1px solid rgba(196,169,91,0.25);border-radius:14px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
+<div id="modalDarItem" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:7001;width:min(90vw,360px);max-height:75vh;overflow-y:auto;background:#0e0911;border:1px solid rgba(233,224,236,0.16);border-radius:14px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <span style="font-family:'Cinzel',serif;color:#E8CC80;font-size:15px;">Dar pra quem?</span>
-    <button onclick="fecharDarItem()" style="background:none;border:none;color:#9A8A70;font-size:18px;cursor:pointer;">✕</button>
+    <span style="font-family:'Cinzel',serif;color:#efe7ef;font-size:15px;">Dar pra quem?</span>
+    <button onclick="fecharDarItem()" style="background:none;border:none;color:#d5cbd8;font-size:18px;cursor:pointer;">✕</button>
   </div>
   <div id="listaDarItem" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
 <!-- ================= DAR ITEM (MESTRE) ================= -->
 <div id="modalConfirmBonitoOverlay" style="display:none;position:fixed;inset:0;z-index:200000;background:rgba(0,0,0,.78);" onclick="window._confirmBonitoResolve && window._confirmBonitoResolve(false)"></div>
-<div id="modalConfirmBonito" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200001;width:min(88vw,340px);background:#120c09;border:1px solid rgba(196,169,91,0.3);border-radius:16px;padding:24px 20px 20px;color:#F8F4E3;font-family:'EB Garamond',serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
-  <div style="font-size:24px;margin-bottom:10px;color:#C4A95B;">⚠</div>
-  <div id="confirmBonitoTexto" style="font-size:15px;line-height:1.5;color:#F0E4D0;margin-bottom:22px;"></div>
+<div id="modalConfirmBonito" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200001;width:min(88vw,340px);background:#0e0911;border:1px solid rgba(233,224,236,0.2);border-radius:16px;padding:24px 20px 20px;color:#F8F4E3;font-family:'EB Garamond',serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+  <div style="font-size:24px;margin-bottom:10px;color:#efe7ef;">⚠</div>
+  <div id="confirmBonitoTexto" style="font-size:15px;line-height:1.5;color:#efe7ef;margin-bottom:22px;"></div>
   <div style="display:flex;gap:10px;">
-    <button onclick="window._confirmBonitoResolve && window._confirmBonitoResolve(false)" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(196,169,91,0.3);background:transparent;color:#9A8A70;font-family:'Cinzel',serif;font-size:13px;font-weight:bold;letter-spacing:.03em;cursor:pointer;">Cancelar</button>
+    <button onclick="window._confirmBonitoResolve && window._confirmBonitoResolve(false)" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(233,224,236,0.2);background:transparent;color:#d5cbd8;font-family:'Cinzel',serif;font-size:13px;font-weight:bold;letter-spacing:.03em;cursor:pointer;">Cancelar</button>
     <button onclick="window._confirmBonitoResolve && window._confirmBonitoResolve(true)" style="flex:1;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#e05050,#7B1E28);color:#fff;font-family:'Cinzel',serif;font-weight:bold;font-size:13px;letter-spacing:.03em;cursor:pointer;">Confirmar</button>
   </div>
 </div>
 
 <!-- ================= ALERTA BONITO ================= -->
 <div id="modalAlertBonitoOverlay" style="display:none;position:fixed;inset:0;z-index:200000;background:rgba(0,0,0,.78);" onclick="window._alertBonitoResolve && window._alertBonitoResolve()"></div>
-<div id="modalAlertBonito" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200001;width:min(88vw,340px);background:#120c09;border:1px solid rgba(196,169,91,0.3);border-radius:16px;padding:24px 20px 20px;color:#F8F4E3;font-family:'EB Garamond',serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
-  <div style="font-size:24px;margin-bottom:10px;color:#C4A95B;">⚠</div>
-  <div id="alertBonitoTexto" style="font-size:15px;line-height:1.5;color:#F0E4D0;margin-bottom:22px;"></div>
+<div id="modalAlertBonito" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200001;width:min(88vw,340px);background:#0e0911;border:1px solid rgba(233,224,236,0.2);border-radius:16px;padding:24px 20px 20px;color:#F8F4E3;font-family:'EB Garamond',serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+  <div style="font-size:24px;margin-bottom:10px;color:#efe7ef;">⚠</div>
+  <div id="alertBonitoTexto" style="font-size:15px;line-height:1.5;color:#efe7ef;margin-bottom:22px;"></div>
   <div style="display:flex;justify-content:center;">
     <button onclick="window._alertBonitoResolve && window._alertBonitoResolve()" style="min-width:120px;padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#e05050,#7B1E28);color:#fff;font-family:'Cinzel',serif;font-weight:bold;font-size:13px;letter-spacing:.03em;cursor:pointer;">OK</button>
   </div>
@@ -212,340 +223,254 @@
 
 <!-- ================= PROMPT BONITO ================= -->
 <div id="modalPromptBonitoOverlay" style="display:none;position:fixed;inset:0;z-index:200000;background:rgba(0,0,0,.78);" onclick="window._promptBonitoResolve && window._promptBonitoResolve(null)"></div>
-<div id="modalPromptBonito" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200001;width:min(88vw,340px);background:#120c09;border:1px solid rgba(196,169,91,0.3);border-radius:16px;padding:24px 20px 20px;color:#F8F4E3;font-family:'EB Garamond',serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
-  <div id="promptBonitoTexto" style="font-size:15px;line-height:1.5;color:#F0E4D0;margin-bottom:14px;"></div>
-  <input id="promptBonitoInput" type="text" style="width:100%;box-sizing:border-box;padding:10px 12px;margin-bottom:18px;border-radius:10px;border:1px solid rgba(196,169,91,0.3);background:#1c130d;color:#F8F4E3;font-family:'EB Garamond',serif;font-size:14px;" />
+<div id="modalPromptBonito" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200001;width:min(88vw,340px);background:#0e0911;border:1px solid rgba(233,224,236,0.2);border-radius:16px;padding:24px 20px 20px;color:#F8F4E3;font-family:'EB Garamond',serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+  <div id="promptBonitoTexto" style="font-size:15px;line-height:1.5;color:#efe7ef;margin-bottom:14px;"></div>
+  <input id="promptBonitoInput" type="text" style="width:100%;box-sizing:border-box;padding:10px 12px;margin-bottom:18px;border-radius:10px;border:1px solid rgba(233,224,236,0.2);background:#160d1a;color:#F8F4E3;font-family:'EB Garamond',serif;font-size:14px;" />
   <div style="display:flex;gap:10px;">
-    <button onclick="window._promptBonitoResolve && window._promptBonitoResolve(null)" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(196,169,91,0.3);background:transparent;color:#9A8A70;font-family:'Cinzel',serif;font-size:13px;font-weight:bold;letter-spacing:.03em;cursor:pointer;">Cancelar</button>
+    <button onclick="window._promptBonitoResolve && window._promptBonitoResolve(null)" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(233,224,236,0.2);background:transparent;color:#d5cbd8;font-family:'Cinzel',serif;font-size:13px;font-weight:bold;letter-spacing:.03em;cursor:pointer;">Cancelar</button>
     <button onclick="window._promptBonitoResolve && window._promptBonitoResolve(document.getElementById('promptBonitoInput').value)" style="flex:1;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#e05050,#7B1E28);color:#fff;font-family:'Cinzel',serif;font-weight:bold;font-size:13px;letter-spacing:.03em;cursor:pointer;">OK</button>
   </div>
 </div>
 
 <div id="modalAcoesMembroOverlay" style="display:none;position:fixed;inset:0;z-index:200000;background:rgba(0,0,0,.78);" onclick="fecharAcoesMembro()"></div>
-<div id="modalAcoesMembro" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200001;width:min(85vw,300px);background:#120c09;border:1px solid rgba(196,169,91,0.3);border-radius:16px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
-  <div id="acoesMembroNome" style="font-family:'Cinzel',serif;font-size:15px;color:#E8CC80;margin-bottom:14px;"></div>
-  <button id="acoesMembroBtnPerfil" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(196,169,91,0.3);background:transparent;color:#F0E4D0;font-size:13px;cursor:pointer;">👁 Exibir perfil</button>
-  <button id="acoesMembroBtnAmizade" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:13px;cursor:pointer;">➕ Adicionar amigo</button>
-  <button onclick="fecharAcoesMembro()" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#9A8A70;font-size:12px;cursor:pointer;">Cancelar</button>
+<div id="modalAcoesMembro" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200001;width:min(85vw,300px);background:#0e0911;border:1px solid rgba(233,224,236,0.2);border-radius:16px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+  <div id="acoesMembroNome" style="font-family:'Cinzel',serif;font-size:15px;color:#efe7ef;margin-bottom:14px;"></div>
+  <button id="acoesMembroBtnPerfil" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(233,224,236,0.2);background:transparent;color:#efe7ef;font-size:13px;cursor:pointer;">👁 Exibir perfil</button>
+  <button id="acoesMembroBtnAmizade" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:none;background:#ae3753;color:#100a13;font-weight:bold;font-size:13px;cursor:pointer;">➕ Adicionar amigo</button>
+  <button onclick="fecharAcoesMembro()" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#d5cbd8;font-size:12px;cursor:pointer;">Cancelar</button>
 </div>
 
 <div id="fichaFlutuanteOverlay" style="display:none;position:fixed;inset:0;z-index:90000;background:rgba(0,0,0,.7);" onclick="fecharFichaFlutuante()"></div>
-<div id="fichaFlutuante" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:90001;width:min(90vw,420px);max-height:82vh;background:#FDFAF0;border:1px solid rgba(196,169,91,0.35);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.55);flex-direction:column;">  <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px 6px 14px;border-bottom:1px solid rgba(196,169,91,0.2);flex-shrink:0;">
+<div id="fichaFlutuante" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:90001;width:min(90vw,420px);max-height:82vh;background:#FDFAF0;border:1px solid rgba(233,224,236,0.23);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.55);flex-direction:column;">  <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px 6px 14px;border-bottom:1px solid rgba(233,224,236,0.13);flex-shrink:0;">
     <button onclick="window.trocarFichaFlutuante(-1)" style="background:none;border:none;font-size:20px;color:#8a2c22;cursor:pointer;padding:6px 10px;">‹</button>
-    <span id="fichaFlutuanteContador" style="font-size:11px;color:#7A6A50;letter-spacing:.05em;"></span>
+    <span id="fichaFlutuanteContador" style="font-size:11px;color:#6c5a70;letter-spacing:.05em;"></span>
     <div style="display:flex;align-items:center;">
       <button onclick="window.trocarFichaFlutuante(1)" style="background:none;border:none;font-size:20px;color:#8a2c22;cursor:pointer;padding:6px 10px;">›</button>
-      <button onclick="fecharFichaFlutuante()" style="background:none;border:none;font-size:18px;color:#7A6A50;cursor:pointer;padding:6px 8px;">✕</button>
+      <button onclick="fecharFichaFlutuante()" style="background:none;border:none;font-size:18px;color:#8e324e;cursor:pointer;padding:6px 8px;">✕</button>
     </div>
   </div>
   <div id="fichaFlutuanteConteudo" style="overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:14px;"></div>
 </div>
 
 <div id="modalDarItemMestreOverlay" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.8);" onclick="fecharDarItemMestre()"></div>
-<div id="modalDarItemMestre" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100001;width:min(90vw,360px);max-height:75vh;overflow-y:auto;background:#120c09;border:1px solid rgba(196,169,91,0.25);border-radius:14px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">    <span style="font-family:'Cinzel',serif;color:#E8CC80;font-size:15px;">Dar pra quem?</span>
-    <button onclick="fecharDarItemMestre()" style="background:none;border:none;color:#9A8A70;font-size:18px;cursor:pointer;">✕</button>
+<div id="modalDarItemMestre" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100001;width:min(90vw,360px);max-height:75vh;overflow-y:auto;background:#0e0911;border:1px solid rgba(233,224,236,0.16);border-radius:14px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">    <span style="font-family:'Cinzel',serif;color:#efe7ef;font-size:15px;">Dar pra quem?</span>
+    <button onclick="fecharDarItemMestre()" style="background:none;border:none;color:#d5cbd8;font-size:18px;cursor:pointer;">✕</button>
   </div>
   <div id="listaDarItemMestre" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
 <!-- ================= ITENS RECEBIDOS ================= -->
 <div id="modalInboxItensOverlay" style="display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.8);" onclick="fecharInboxItens()"></div>
-<div id="modalInboxItens" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:7001;width:min(92vw,380px);max-height:80vh;overflow-y:auto;background:#120c09;border:1px solid rgba(196,169,91,0.25);border-radius:14px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
+<div id="modalInboxItens" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:7001;width:min(92vw,380px);max-height:80vh;overflow-y:auto;background:#0e0911;border:1px solid rgba(233,224,236,0.16);border-radius:14px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <span style="font-family:'Cinzel',serif;color:#E8CC80;font-size:15px;">Itens recebidos</span>
-    <button onclick="fecharInboxItens()" style="background:none;border:none;color:#9A8A70;font-size:18px;cursor:pointer;">✕</button>
+    <span style="font-family:'Cinzel',serif;color:#efe7ef;font-size:15px;">Itens recebidos</span>
+    <button onclick="fecharInboxItens()" style="background:none;border:none;color:#d5cbd8;font-size:18px;cursor:pointer;">✕</button>
   </div>
   <div id="listaInboxItens" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
 <!-- ================= EDITAR CAMPANHA ================= -->
 <div id="modalEditarCampanhaOverlay" style="display:none;position:fixed;inset:0;z-index:6900;background:rgba(0,0,0,.8);" onclick="fecharEditarCampanha()"></div>
-<div id="modalEditarCampanha" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6901;width:min(90vw,380px);max-height:85vh;overflow-y:auto;background:#120c09;border:1px solid rgba(196,169,91,0.25);border-radius:14px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
+<div id="modalEditarCampanha" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6901;width:min(90vw,380px);max-height:85vh;overflow-y:auto;background:#0e0911;border:1px solid rgba(233,224,236,0.16);border-radius:14px;padding:18px;color:#F8F4E3;font-family:'EB Garamond',serif;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span style="font-family:'Cinzel',serif;color:#E8CC80;font-size:16px;">Editar campanha</span>
-    <button onclick="fecharEditarCampanha()" style="background:none;border:none;color:#9A8A70;font-size:18px;cursor:pointer;">✕</button>
+    <span style="font-family:'Cinzel',serif;color:#efe7ef;font-size:16px;">Editar campanha</span>
+    <button onclick="fecharEditarCampanha()" style="background:none;border:none;color:#d5cbd8;font-size:18px;cursor:pointer;">✕</button>
   </div>
 
-  <input id="editCampanhaNome" placeholder="Nome da campanha" style="width:100%;background:#1b120c;border:1px solid rgba(196,169,91,0.25);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
-  <input id="editCampanhaSistema" placeholder="Sistema usado" style="width:100%;background:#1b120c;border:1px solid rgba(196,169,91,0.25);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
-  <textarea id="editCampanhaDescricao" placeholder="Descrição breve" style="width:100%;background:#1b120c;border:1px solid rgba(196,169,91,0.25);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:8px;box-sizing:border-box;min-height:60px;font-family:inherit;"></textarea>
+  <input id="editCampanhaNome" placeholder="Nome da campanha" style="width:100%;background:#150d18;border:1px solid rgba(233,224,236,0.16);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
+  <input id="editCampanhaSistema" placeholder="Sistema usado" style="width:100%;background:#150d18;border:1px solid rgba(233,224,236,0.16);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
+  <textarea id="editCampanhaDescricao" placeholder="Descrição breve" style="width:100%;background:#150d18;border:1px solid rgba(233,224,236,0.16);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:8px;box-sizing:border-box;min-height:60px;font-family:inherit;"></textarea>
 
-  <select id="editCampanhaGrupo" style="width:100%;background:#1b120c;border:1px solid rgba(196,169,91,0.25);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:14px;box-sizing:border-box;">
+  <select id="editCampanhaGrupo" style="width:100%;background:#150d18;border:1px solid rgba(233,224,236,0.16);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:14px;box-sizing:border-box;">
     <option value="">Sem grupo vinculado</option>
   </select>
 
-  <button onclick="salvarEdicaoCampanha()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:13px;cursor:pointer;">Salvar</button>
+  <button onclick="salvarEdicaoCampanha()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#ae3753;color:#100a13;font-weight:bold;font-size:13px;cursor:pointer;">Salvar</button>
 </div>
 
 <!-- ================= DASHBOARD DO MESTRE ================= -->
 <div id="modalDashboardOverlay" style="display:none;position:fixed;inset:0;z-index:6900;background:rgba(0,0,0,.85);" onclick="fecharDashboardMestre()"></div>
-<div id="modalDashboard" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:6901;background:#0e0907;color:#F8F4E3;padding:16px;overflow-y:auto;">
+<div id="modalDashboard" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:6901;background:#0b070d;color:#F8F4E3;padding:16px;overflow-y:auto;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span style="font-family:'Cinzel',serif;color:#E8CC80;font-size:17px;">Dashboard ao vivo</span>
-    <button onclick="fecharDashboardMestre()" style="background:none;border:none;color:#9A8A70;font-size:22px;cursor:pointer;">✕</button>
+    <span style="font-family:'Cinzel',serif;color:#efe7ef;font-size:17px;">Dashboard ao vivo</span>
+    <button onclick="fecharDashboardMestre()" style="background:none;border:none;color:#d5cbd8;font-size:22px;cursor:pointer;">✕</button>
   </div>
   <div id="dashboardConteudo" style="display:flex;flex-direction:column;gap:12px;"></div>
 </div>
 
 
 <!-- ================= ESCOLHA DE MODO ================= -->
-<div id="tela-modo" style="display:none;position:fixed;inset:0;z-index:5000;background:#0e0907;color:#F8F4E3;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px 36px;overflow-y:auto;">
+<div id="tela-modo" style="display:none;position:fixed;inset:0;z-index:5000;background:#0b070d;color:#F8F4E3;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px 36px;overflow-y:auto;">
 
   <button onclick="abrirPainelAmigos()"
-    style="position:absolute;top:18px;left:18px;z-index:20;width:38px;height:38px;border-radius:50%;background:rgba(196,169,91,0.12);border:1px solid rgba(196,169,91,0.4);color:#E8CC80;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;">
+    style="position:absolute;top:18px;left:18px;z-index:20;width:38px;height:38px;border-radius:50%;background:rgba(174,55,83,0.12);border:1px solid rgba(233,224,236,0.26);color:#efe7ef;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;">
     <i class="ti ti-users"></i>
   </button>
 
 <!-- fundos animados -->
-  <div style="position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,#0e0d0b 0%,#100d0a 50%,#0a0807 100%);pointer-events:none;"></div>
-  <div id="tmBgJornada" style="position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 90% 70% at 50% 40%,rgba(196,150,50,0.32) 0%,rgba(120,80,20,0.14) 45%,transparent 70%);opacity:0;transition:opacity 0.6s ease;pointer-events:none;"></div>
-  <div id="tmBgGrimorio" style="position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 90% 70% at 50% 40%,rgba(180,40,35,0.32) 0%,rgba(100,20,20,0.16) 45%,transparent 70%);opacity:0;transition:opacity 0.6s ease;pointer-events:none;"></div>
+  <div class="tm-bg-base"></div>
+  <div id="tmBgJornada" class="tm-bg"></div>
+  <div id="tmBgGrimorio" class="tm-bg grim"></div>
 
-  <div style="position:relative;z-index:2;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;">
-
-    <!-- HEADER -->
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;opacity:0.7;">
-        <div style="height:1px;width:26px;background:linear-gradient(90deg,transparent,rgba(196,169,91,0.6));"></div>
-        <div style="font-family:'MedievalSharp',cursive;font-size:13px;letter-spacing:0.3em;color:#A88D42;text-transform:uppercase;">Ficha Ígnea</div>
-        <div style="height:1px;width:26px;background:linear-gradient(90deg,rgba(196,169,91,0.6),transparent);"></div>
-      </div>
-      <h1 style="font-family:'Cinzel Decorative',serif;font-size:clamp(24px,7vw,32px);font-weight:700;letter-spacing:0.04em;line-height:1.25;margin:0;background:linear-gradient(135deg,#F8ECC8,#E8CC80,#C4A95B,#A88D42);-webkit-background-clip:text;color:transparent;text-shadow:0 3px 18px rgba(196,169,91,0.25);">Escolha seu<br>Caminho</h1>
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0 8px;">
-        <div style="height:1px;width:44px;background:linear-gradient(90deg,transparent,rgba(196,169,91,0.5));"></div>
-        <div style="width:5px;height:5px;background:#C4A95B;transform:rotate(45deg);opacity:0.8;"></div>
-        <div style="height:1px;width:44px;background:linear-gradient(90deg,rgba(196,169,91,0.5),transparent);"></div>
-      </div>
-      <p style="font-family:'MedievalSharp',cursive;font-size:15px;color:#b8a578;letter-spacing:0.03em;">Jornada ou Grimório?</p>
+  <div class="tm-wrap">
+    <div class="tm-head">
+      <div class="tm-kicker"><i></i><span>Ficha Ígnea</span><i></i></div>
     </div>
 
-    <!-- CARDS -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;margin-bottom:20px;">
-
-      <!-- JORNADA -->
-      <div id="tmCardJornada"
-        onclick="tmSelectPath('jornada')"
-        onmouseenter="tmHover('jornada')" onmouseleave="tmUnhover()"
-        style="position:relative;border-radius:20px;cursor:pointer;overflow:hidden;aspect-ratio:3/4.2;display:flex;flex-direction:column;justify-content:flex-end;border:1px solid rgba(196,169,91,0.18);background:linear-gradient(160deg,#1e1508 0%,#2a1a08 50%,#140e05 100%);box-shadow:0 8px 32px rgba(0,0,0,0.5);transition:transform 0.35s ease,box-shadow 0.35s ease,border-color 0.35s ease;-webkit-tap-highlight-color:transparent;">
-        <!-- cantos -->
-        <span style="position:absolute;top:8px;left:8px;width:14px;height:14px;border-top:1px solid #C4A95B;border-left:1px solid #C4A95B;opacity:0.45;pointer-events:none;"></span>
-        <span style="position:absolute;top:8px;right:8px;width:14px;height:14px;border-top:1px solid #C4A95B;border-right:1px solid #C4A95B;opacity:0.45;pointer-events:none;"></span>
-        <span style="position:absolute;bottom:8px;left:8px;width:14px;height:14px;border-bottom:1px solid #C4A95B;border-left:1px solid #C4A95B;opacity:0.45;pointer-events:none;"></span>
-        <span style="position:absolute;bottom:8px;right:8px;width:14px;height:14px;border-bottom:1px solid #C4A95B;border-right:1px solid #C4A95B;opacity:0.45;pointer-events:none;"></span>
-        <!-- imagem -->
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-bottom:55px;">
-          <img src="logo-ficha-ignea.png" style="width:68%;height:auto;object-fit:contain;opacity:0.85;filter:drop-shadow(0 0 18px rgba(196,169,91,0.35));transition:filter 0.3s ease;transform:rotate(90deg);">
-        </div>
-        <!-- glow hover -->
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(196,169,91,0.1) 0%,transparent 65%);opacity:0;transition:opacity 0.4s;pointer-events:none;" class="tm-glow-jornada"></div>
-        <!-- check -->
-        <div id="tmCheckJornada" style="position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:#C4A95B;display:flex;align-items:center;justify-content:center;font-size:10px;color:#1a0e05;font-weight:bold;opacity:0;transform:scale(0.5);transition:opacity 0.3s,transform 0.3s;z-index:5;">✓</div>
-        <!-- footer -->
-        <div style="position:relative;z-index:2;padding:12px 12px 14px;background:linear-gradient(0deg,rgba(0,0,0,0.8) 0%,transparent 100%);text-align:center;">
-          <div style="font-family:'Cinzel Decorative',serif;font-size:15px;font-weight:700;letter-spacing:0.1em;background:linear-gradient(135deg,#F8ECC8,#E8CC80,#C4A95B);-webkit-background-clip:text;color:transparent;text-shadow:0 2px 10px rgba(0,0,0,0.6);">Jornada</div>
-          <div style="font-family:'MedievalSharp',cursive;font-size:11px;color:#9A8A70;letter-spacing:0.1em;text-transform:uppercase;margin-top:3px;">Jogador</div>
-          <div id="tmDivJornada" style="width:28px;height:1px;background:rgba(196,169,91,0.3);margin:7px auto 0;transition:width 0.3s,background 0.3s;"></div>
-        </div>
+    <div class="tm-palco" id="tmPalco">
+      <div class="tm-card front" id="tmCardJornada" onclick="tmCardClick('jornada')">
+        <span class="tm-c a"></span><span class="tm-c b"></span><span class="tm-c c"></span><span class="tm-c d"></span>
+        <div class="tm-arte"><img src="logo-ficha-ignea.png" class="tm-img j"></div>
+        <div class="tm-rotulo"><b>Jornada</b><small>Jogador</small></div>
       </div>
-
-      <!-- GRIMÓRIO -->
-      <div id="tmCardGrimorio"
-        onclick="tmSelectPath('grimorio')"
-        onmouseenter="tmHover('grimorio')" onmouseleave="tmUnhover()"
-        style="position:relative;border-radius:20px;cursor:pointer;overflow:hidden;aspect-ratio:3/4.2;display:flex;flex-direction:column;justify-content:flex-end;border:1px solid rgba(123,30,40,0.25);background:linear-gradient(160deg,#180a0d 0%,#220d12 50%,#0e0608 100%);box-shadow:0 8px 32px rgba(0,0,0,0.5);transition:transform 0.35s ease,box-shadow 0.35s ease,border-color 0.35s ease;-webkit-tap-highlight-color:transparent;">
-        <!-- cantos -->
-        <span style="position:absolute;top:8px;left:8px;width:14px;height:14px;border-top:1px solid #7B1E28;border-left:1px solid #7B1E28;opacity:0.5;pointer-events:none;"></span>
-        <span style="position:absolute;top:8px;right:8px;width:14px;height:14px;border-top:1px solid #7B1E28;border-right:1px solid #7B1E28;opacity:0.5;pointer-events:none;"></span>
-        <span style="position:absolute;bottom:8px;left:8px;width:14px;height:14px;border-bottom:1px solid #7B1E28;border-left:1px solid #7B1E28;opacity:0.5;pointer-events:none;"></span>
-        <span style="position:absolute;bottom:8px;right:8px;width:14px;height:14px;border-bottom:1px solid #7B1E28;border-right:1px solid #7B1E28;opacity:0.5;pointer-events:none;"></span>
-        <!-- imagem -->
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-bottom:55px;">
-          <img src="img/logo-grimorio-nova.png" style="width:65%;height:auto;object-fit:contain;opacity:0.85;filter:drop-shadow(0 0 18px rgba(123,30,40,0.5));transition:filter 0.3s ease;">
-        </div>
-        <!-- glow hover -->
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(123,30,40,0.18) 0%,transparent 65%);opacity:0;transition:opacity 0.4s;pointer-events:none;" class="tm-glow-grimorio"></div>
-        <!-- check -->
-        <div id="tmCheckGrimorio" style="position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:#7B1E28;display:flex;align-items:center;justify-content:center;font-size:10px;color:#F8F4E3;font-weight:bold;opacity:0;transform:scale(0.5);transition:opacity 0.3s,transform 0.3s;z-index:5;">✓</div>
-        <!-- footer -->
-        <div style="position:relative;z-index:2;padding:12px 12px 14px;background:linear-gradient(0deg,rgba(0,0,0,0.8) 0%,transparent 100%);text-align:center;">
-          <div style="font-family:'Cinzel Decorative',serif;font-size:15px;font-weight:700;letter-spacing:0.1em;background:linear-gradient(135deg,#f5b8b8,#e88888,#b83a2f);-webkit-background-clip:text;color:transparent;text-shadow:0 2px 10px rgba(0,0,0,0.6);">Grimório</div>
-          <div style="font-family:'MedievalSharp',cursive;font-size:11px;color:#9A8A70;letter-spacing:0.1em;text-transform:uppercase;margin-top:3px;">Mestre</div>
-          <div id="tmDivGrimorio" style="width:28px;height:1px;background:rgba(123,30,40,0.4);margin:7px auto 0;transition:width 0.3s,background 0.3s;"></div>
-        </div>
+      <div class="tm-card back" id="tmCardGrimorio" onclick="tmCardClick('grimorio')">
+        <span class="tm-c a"></span><span class="tm-c b"></span><span class="tm-c c"></span><span class="tm-c d"></span>
+        <div class="tm-arte"><img src="img/logo-grimorio-nova.png" class="tm-img g"></div>
+        <div class="tm-rotulo"><b>Grimório</b><small>Mestre</small></div>
       </div>
-
     </div>
 
-    <!-- DESCRIÇÃO -->
-    <div id="tmDesc" style="width:100%;min-height:50px;text-align:center;margin-bottom:18px;transition:opacity 0.3s ease;">
-      <p style="font-family:'MedievalSharp',cursive;font-size:14px;color:rgba(196,169,91,0.55);letter-spacing:0.02em;">✦ Toque em um caminho para revelar seu destino ✦</p>
+    <div class="tm-pontos">
+      <button type="button" id="tmPtJornada" class="on" onclick="tmTrocar('jornada')" aria-label="Jornada"></button>
+      <button type="button" id="tmPtGrimorio" onclick="tmTrocar('grimorio')" aria-label="Grimório"></button>
     </div>
 
-    <!-- BOTÃO ENTRAR -->
-    <button id="tmBtnEntrar" disabled onclick="tmConfirm()"
-  style="width:90%;max-width:380px;padding:18px 32px;border-radius:9999px;border:1px solid rgba(196,169,91,0.4);background:transparent;color:rgba(232,204,128,0.5);font-family:'Cinzel',serif;font-size:18px;font-weight:700;letter-spacing:0.18em;cursor:not-allowed;transition:all 0.4s ease;margin:0 auto 28px auto;display:block;text-align:center;overflow:hidden;">
-  Adentrar 
-</button>
+    <button type="button" id="tmBtnEntrar" class="tm-entrar" onclick="tmConfirm(event)"><span>Adentrar</span></button>
 
-<!-- BOTÃO SAIR -->
-<button onclick="abrirTelaPlanos()"
-  style="background:linear-gradient(135deg,rgba(196,169,91,0.25),rgba(196,169,91,0.12));border:1px solid rgba(196,169,91,0.75);color:#E8CC80;font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:0.14em;padding:8px 20px;border-radius:100px;cursor:pointer;transition:all 0.3s ease;margin-top:20px;display:block;width:auto;text-transform:uppercase;box-shadow:0 0 20px rgba(196,169,91,0.2),inset 0 1px 0 rgba(255,255,255,0.06);text-shadow:0 0 12px rgba(196,169,91,0.5);">
-  ✦ Plano Gratuito · Ver Planos
-</button>
-
-<div style="height:24px;"></div>
-
-<button onclick="sairConta()"
-  style="background:transparent;border:none;color:rgba(154,138,112,0.6);font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.1em;padding:4px 12px;border-radius:100px;cursor:pointer;transition:all 0.3s ease;margin-top:8px;">
-  Sair da conta
-</button>
-
+    <div class="tm-rodape">
+      <button type="button" onclick="abrirTelaPlanos()"><i class="ti ti-sparkles"></i> Plano gratuito</button>
+      <span></span>
+      <button type="button" onclick="sairConta()">Sair da conta</button>
+    </div>
   </div>
 
-   <div id="painelAmigosOverlay" style="display:none;position:fixed;inset:0;z-index:6500;background:rgba(0,0,0,.6);" onclick="fecharPainelAmigos()"></div>
-  <div id="painelAmigos" style="display:none;position:fixed;top:0;left:0;bottom:0;width:min(85vw,340px);background:#120c09;border-right:1px solid rgba(196,169,91,0.25);z-index:6501;padding:20px 16px;flex-direction:column;transform:translateX(-100%);transition:transform .3s ease;color:#F8F4E3;font-family:'EB Garamond',serif;">
+  <div id="painelAmigosOverlay" style="display:none;position:fixed;inset:0;z-index:6500;background:rgba(0,0,0,.6);" onclick="fecharPainelAmigos()"></div>
+  <div id="painelAmigos" class="am-painel" style="display:none;position:fixed;top:0;left:0;bottom:0;width:min(85vw,340px);z-index:6501;padding:20px 16px;flex-direction:column;transform:translateX(-100%);color:#F8F4E3;font-family:'EB Garamond',serif;">
 
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
-      <div>
-        <div style="font-family:'Cinzel',serif;color:#E8CC80;font-size:17px;letter-spacing:.04em;">Amigos</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-          <span id="meuNicknameLabel" style="font-size:12px;color:#9A8A70;"></span>
-          <button id="btnCopiarNickname" onclick="copiarMeuNickname()" title="Copiar"
-            style="background:none;border:none;color:#C4A95B;cursor:pointer;padding:2px;display:flex;align-items:center;font-size:13px;">
-            <i class="ti ti-copy"></i>
-          </button>
+    <div class="am-topo">
+      <button type="button" class="am-eu" id="amEuAvatar" onclick="abrirPerfil(window.usuarioAtual.uid)" aria-label="Meu perfil"></button>
+      <div class="am-eu-info">
+        <div class="am-eu-nome">
+          <span id="meuNicknameLabel"></span>
+          <button type="button" class="am-copiar" id="btnCopiarNickname" onclick="copiarMeuNickname()" title="Copiar"><i class="ti ti-copy"></i></button>
         </div>
-        <button onclick="abrirPerfil(window.usuarioAtual.uid)" style="margin-top:4px;background:none;border:none;color:#C4A95B;font-size:11px;padding:0;cursor:pointer;text-decoration:underline;">Ver meu perfil</button>
+        <div class="am-eu-sub" id="amEuSub"></div>
       </div>
-      <button onclick="fecharPainelAmigos()" style="background:none;border:none;color:#9A8A70;font-size:20px;cursor:pointer;padding:2px;line-height:1;">✕</button>
+      <button type="button" class="am-fechar" onclick="fecharPainelAmigos()" aria-label="Fechar">&times;</button>
     </div>
 
-    <div style="display:flex;gap:6px;margin-bottom:16px;background:rgba(255,255,255,0.03);border-radius:10px;padding:3px;">
-      <button id="tabAmigosBtn" onclick="trocarAbaAmigos('amigos')" style="flex:1;padding:8px;border:none;border-radius:8px;background:rgba(196,169,91,0.18);color:#E8CC80;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.05em;cursor:pointer;">AMIGOS</button>
-      <button id="tabGruposBtn" onclick="trocarAbaAmigos('grupos')" style="flex:1;padding:8px;border:none;border-radius:8px;background:transparent;color:#9A8A70;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.05em;cursor:pointer;">GRUPOS</button>
+    <div class="am-tabs">
+      <button type="button" id="tabAmigosBtn" class="am-tab ativo" onclick="trocarAbaAmigos('amigos')">Amigos <small id="amContAmigos">0</small><i class="am-badge" id="amBadgePedidos"></i></button>
+      <button type="button" id="tabGruposBtn" class="am-tab" onclick="trocarAbaAmigos('grupos')">Grupos <small id="amContGrupos">0</small></button>
     </div>
 
     <div id="abaAmigosConteudo" style="flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;">
-      <div style="display:flex;gap:8px;margin-bottom:14px;">
-        <input id="buscaAmigoInput" placeholder="Nickname#0000" style="flex:1;background:#1b120c;border:1px solid rgba(196,169,91,0.25);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;">
-        <button onclick="enviarSolicitacaoAmizade()" style="width:38px;border-radius:8px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:16px;cursor:pointer;">+</button>
+      <div class="am-busca">
+        <i class="ti ti-search"></i>
+        <input id="buscaAmigoInput" placeholder="Buscar ou adicionar (Nome#0000)" autocomplete="off" oninput="filtrarAmigos()" onkeydown="if(event.key==='Enter'){event.preventDefault();enviarSolicitacaoAmizade();}">
       </div>
-      <div id="listaAmigos" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <button type="button" class="am-sugestao" id="amSugestao" style="display:none;" onclick="enviarSolicitacaoAmizade()"><i class="ti ti-user-plus"></i><span>Adicionar <b></b></span></button>
+      <div id="listaAmigos" class="am-lista"></div>
     </div>
 
     <div id="abaGruposConteudo" style="display:none;flex:1;overflow-y:auto;min-height:0;flex-direction:column;">
-      <button id="btnMostrarCriarGrupo" onclick="mostrarFormCriarGrupo()" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(196,169,91,0.35);background:rgba(196,169,91,0.1);color:#E8CC80;font-family:'Cinzel',serif;font-size:13px;cursor:pointer;margin-bottom:14px;">+ Criar grupo</button>
+      <button type="button" id="btnMostrarCriarGrupo" class="am-sugestao" onclick="mostrarFormCriarGrupo()"><i class="ti ti-plus"></i><span>Criar grupo</span></button>
 
-      <div id="formCriarGrupo" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,91,0.2);border-radius:10px;padding:12px;margin-bottom:14px;">
-        <input id="nomeGrupoInput" placeholder="Nome do grupo" style="width:100%;background:#1b120c;border:1px solid rgba(196,169,91,0.25);border-radius:8px;padding:9px 12px;color:#F8F4E3;font-size:13px;margin-bottom:10px;box-sizing:border-box;">
-        <div style="font-size:11px;color:#9A8A70;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Convidar amigos</div>
-        <div id="listaAmigosParaGrupo" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;margin-bottom:12px;"></div>
-        <div style="display:flex;gap:8px;">
-          <button onclick="cancelarCriarGrupo()" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(196,169,91,0.25);background:transparent;color:#9A8A70;font-size:13px;cursor:pointer;">Cancelar</button>
-          <button onclick="confirmarCriarGrupo()" style="flex:1;padding:8px;border-radius:8px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:13px;cursor:pointer;">Criar</button>
+      <div id="formCriarGrupo" class="am-form-grupo" style="display:none;">
+        <input id="nomeGrupoInput" placeholder="Nome do grupo">
+        <div class="am-sep">Convidar amigos</div>
+        <div id="listaAmigosParaGrupo" class="am-lista" style="max-height:180px;overflow-y:auto;margin-bottom:12px;"></div>
+        <div class="am-form-botoes">
+          <button type="button" class="am-btn-sec" onclick="cancelarCriarGrupo()">Cancelar</button>
+          <button type="button" class="am-btn-pri" onclick="confirmarCriarGrupo()">Criar</button>
         </div>
       </div>
 
-      <div id="listaGrupos" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="listaGrupos" class="am-lista"></div>
     </div>
 
   </div>
 
   <script>
-    
-    var tmSelected = null;
+    var tmSelected = 'jornada';
+    var tmTrava = false;
 
-    function tmHover(p) {
-      if (tmSelected) return;
-      document.getElementById('tmBgJornada').style.opacity  = p==='jornada'  ? '1' : '0';
-      document.getElementById('tmBgGrimorio').style.opacity = p==='grimorio' ? '1' : '0';
-    }
-    function tmUnhover() {
-      if (tmSelected) return;
-      document.getElementById('tmBgJornada').style.opacity  = '0';
-      document.getElementById('tmBgGrimorio').style.opacity = '0';
-    }
-    function tmSelectPath(p) {
-      tmSelected = p;
-
-      // cards
+    function tmAplicar(modo) {
+      tmSelected = modo;
       var cj = document.getElementById('tmCardJornada');
       var cg = document.getElementById('tmCardGrimorio');
-      if (p === 'jornada') {
-  cj.style.borderColor = 'rgba(196,169,91,0.55)';
-  cj.style.transform = 'translateY(-8px) scale(1.04)';
-  cj.style.opacity = '1';
-  cj.style.boxShadow = '0 20px 50px rgba(0,0,0,0.7), 0 0 30px rgba(196,169,91,0.15)';
-  cj.style.filter = 'brightness(1.15)';
-  cg.style.borderColor = 'rgba(123,30,40,0.15)';
-  cg.style.transform = 'scale(0.96)';
-  cg.style.opacity = '0.4';
-  cg.style.boxShadow = 'none';
-  cg.style.filter = 'brightness(0.6)';
-} else {
-  cg.style.borderColor = 'rgba(123,30,40,0.65)';
-  cg.style.transform = 'translateY(-8px) scale(1.04)';
-  cg.style.opacity = '1';
-  cg.style.boxShadow = '0 20px 50px rgba(0,0,0,0.7), 0 0 30px rgba(123,30,40,0.2)';
-  cg.style.filter = 'brightness(1.15)';
-  cj.style.borderColor = 'rgba(196,169,91,0.12)';
-  cj.style.transform = 'scale(0.96)';
-  cj.style.opacity = '0.4';
-  cj.style.boxShadow = 'none';
-  cj.style.filter = 'brightness(0.6)';
-}
-
-      // checks
-      var ckj = document.getElementById('tmCheckJornada');
-      var ckg = document.getElementById('tmCheckGrimorio');
-      ckj.style.opacity = p==='jornada' ? '1' : '0';
-      ckj.style.transform = p==='jornada' ? 'scale(1)' : 'scale(0.5)';
-      ckg.style.opacity = p==='grimorio' ? '1' : '0';
-      ckg.style.transform = p==='grimorio' ? 'scale(1)' : 'scale(0.5)';
-
-      // divisores
-      var dj = document.getElementById('tmDivJornada');
-      var dg = document.getElementById('tmDivGrimorio');
-      dj.style.width = p==='jornada' ? '44px' : '28px';
-      dj.style.background = p==='jornada' ? 'rgba(196,169,91,0.7)' : 'rgba(196,169,91,0.3)';
-      dg.style.width = p==='grimorio' ? '44px' : '28px';
-      dg.style.background = p==='grimorio' ? 'rgba(123,30,40,0.7)' : 'rgba(123,30,40,0.3)';
-
-      // fundos
-      document.getElementById('tmBgJornada').style.opacity  = p==='jornada'  ? '1' : '0';
-      document.getElementById('tmBgGrimorio').style.opacity = p==='grimorio' ? '1' : '0';
-
-      // descrição
-      var desc = { jornada: 'Enfrente os perigos, gerencie sua ficha e leve a batalha adiante. A aventura aguarda além do horizonte.', grimorio: 'Narre, controle e molde o destino dos heróis. O mundo obedece à sua vontade — cada palavra é lei.' };
-      var icon = { jornada: '', grimorio: '' };
-      var panel = document.getElementById('tmDesc');
-      panel.style.opacity = '0';
-      setTimeout(function() {
-        panel.innerHTML = '<div style="font-size:18px;margin-bottom:4px;">'+icon[p]+'</div><p style="font-size:13px;line-height:1.55;color:#9A8A70;max-width:280px;margin:0 auto;">'+desc[p]+'</p>';
-        panel.style.opacity = '1';
-      }, 150);
-
-      // botão
+      var j = modo === 'jornada';
+      cj.classList.toggle('front', j);  cj.classList.toggle('back', !j);
+      cg.classList.toggle('front', !j); cg.classList.toggle('back', j);
+      document.getElementById('tmBgJornada').style.opacity = j ? '1' : '0';
+      document.getElementById('tmBgGrimorio').style.opacity = j ? '0' : '1';
+      document.getElementById('tmPtJornada').classList.toggle('on', j);
+      document.getElementById('tmPtGrimorio').classList.toggle('on', !j);
+      var tela = document.getElementById('tela-modo');
+      if (tela) tela.setAttribute('data-modo', modo);
+    }
+    function tmTrocar(modo) {
+      if (modo === tmSelected || tmTrava) return;
+      tmTrava = true;
+      var palco = document.getElementById('tmPalco');
+      palco.classList.add('trocando');
+      tmAplicar(modo);
+      setTimeout(function () { palco.classList.remove('trocando'); tmTrava = false; }, 760);
+    }
+    function tmCardClick(modo) {
+      if (modo === tmSelected) tmConfirm();
+      else tmTrocar(modo);
+    }
+    function tmConfirm(ev) {
+      if (!tmSelected || window._tmEntrando) return;
+      window._tmEntrando = true;
       var btn = document.getElementById('tmBtnEntrar');
-      btn.disabled = false;
-      btn.style.cursor = 'pointer';
-      if (p === 'jornada') {
-        btn.style.background = 'linear-gradient(135deg,#E8CC80,#C4A95B,#A88D42)';
-        btn.style.color = '#1a0e05';
-        btn.style.border = '1px solid #C4A95B';
-        btn.style.boxShadow = '0 6px 32px rgba(196,169,91,0.45)';
-      } else {
-        btn.style.background = 'linear-gradient(135deg,#e05050,#7B1E28,#5A1520)';
-        btn.style.color = '#F8F4E3';
-        btn.style.border = '1px solid rgba(123,30,40,0.6)';
-        btn.style.boxShadow = '0 6px 32px rgba(123,30,40,0.5)';
-      }
+      var r = btn.getBoundingClientRect();
+      var onda = document.createElement('span');
+      onda.className = 'tm-onda';
+      var cx = ev && ev.clientX ? ev.clientX - r.left : r.width / 2;
+      var cy = ev && ev.clientY ? ev.clientY - r.top : r.height / 2;
+      onda.style.left = cx + 'px'; onda.style.top = cy + 'px';
+      btn.appendChild(onda);
+      btn.classList.remove('apertado'); void btn.offsetWidth; btn.classList.add('apertado');
+      var card = document.getElementById(tmSelected === 'jornada' ? 'tmCardJornada' : 'tmCardGrimorio');
+      card.classList.remove('tm-pulso'); void card.offsetWidth; card.classList.add('tm-pulso');
+      var modo = tmSelected;
+      setTimeout(function () {
+        onda.remove();
+        btn.classList.remove('apertado');
+        card.classList.remove('tm-pulso');
+        modo === 'jornada' ? entrarModoJogadorAnimado() : entrarModoMestreAnimado();
+        setTimeout(function () { window._tmEntrando = false; }, 900);
+      }, 420);
     }
-    function tmConfirm() {
-      if (!tmSelected) return;
-      tmSelected === 'jornada' ? entrarModoJogadorAnimado() : entrarModoMestreAnimado();
+    function tmResetNovo() {
+      tmTrava = false; window._tmEntrando = false;
+      var btnE = document.getElementById('tmBtnEntrar'); if (btnE) btnE.classList.remove('apertado');
+      var palco = document.getElementById('tmPalco');
+      if (palco) palco.classList.remove('trocando');
+      tmAplicar('jornada');
     }
+    (function () {
+      var palco = document.getElementById('tmPalco');
+      if (!palco) return;
+      var x0 = null;
+      palco.addEventListener('pointerdown', function (e) { x0 = e.clientX; });
+      palco.addEventListener('pointerup', function (e) {
+        if (x0 === null) return;
+        var dx = e.clientX - x0; x0 = null;
+        if (Math.abs(dx) > 40) tmTrocar(dx < 0 ? 'grimorio' : 'jornada');
+      });
+      document.addEventListener('keydown', function (e) {
+        var t = document.getElementById('tela-modo');
+        if (!t || t.style.display === 'none') return;
+        if (e.key === 'ArrowLeft') tmTrocar('jornada');
+        if (e.key === 'ArrowRight') tmTrocar('grimorio');
+        if (e.key === 'Enter' && document.activeElement === document.body) tmConfirm();
+      });
+      tmAplicar('jornada');
+    })();
   </script>
 
 </div>
@@ -587,7 +512,7 @@
         placeholder="Descrição breve da campanha"
       ></textarea>
 
-      <select id="novaCampanhaGrupo" style="width:100%;background:#f5ecd8;color:#3c2c1c;border:1px solid #cbb98a;border-radius:8px;padding:10px 12px;font-size:14px;margin:5px 0;box-sizing:border-box;">
+      <select id="novaCampanhaGrupo" style="width:100%;background:#ece1ec;color:#2e1c37;border:1px solid rgba(233,224,236,0.32);border-radius:8px;padding:10px 12px;font-size:14px;margin:5px 0;box-sizing:border-box;">
         <option value="">Sem grupo vinculado</option>
       </select>
 
@@ -1229,7 +1154,7 @@
           <button class="voltar" onclick="voltarInicio()">← Voltar</button>
           <button type="button" id="btnEngrenagemOP" class="btn-engrenagem-op" onclick="alternarPainelProgressaoOP()" title="Regra de progressão e configurações" aria-label="Regra de progressão">⚙️</button>
           <div style="width:130px;flex-shrink:0;display:flex;justify-content:center;">
-<button id="btnInboxItens" onclick="abrirInboxItens()" style="position:relative;background:#4a3b31;border:none;color:#f1e6cf;border-radius:10px;padding:8px 12px;cursor:pointer;font-size:13px;white-space:nowrap;">              Itens recebidos
+<button id="btnInboxItens" onclick="abrirInboxItens()" style="position:relative;background:#3e2f46;border:none;color:#efe7ef;border-radius:10px;padding:8px 12px;cursor:pointer;font-size:13px;white-space:nowrap;">              Itens recebidos
               <span id="badgeInboxItens" style="display:none;position:absolute;top:-6px;right:-6px;background:#b83a2f;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;align-items:center;justify-content:center;">0</span>
             </button>
           </div>
@@ -1332,7 +1257,7 @@
       style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:20px;z-index:2;"></span>
 
     <button type="button" onclick="event.stopPropagation(); abrirPopupFotoPersonagem()"
-      style="position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;border:1px solid rgba(196,169,91,0.5);background:rgba(20,14,8,0.75);color:#C4A95B;font-size:12px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;padding:0;">
+      style="position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;border:1px solid rgba(233,224,236,0.32);background:rgba(15,9,18,0.75);color:#efe7ef;font-size:12px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;padding:0;">
       ✏️
     </button>
 
@@ -1417,7 +1342,7 @@
   </div>
 
   <div class="add-linha">
-    <button class="inv-add-btn" onclick="adicionarAliado()">+</button>
+    <button class="inv-add-btn" onclick="adicionarAliado()">Adicionar aliado</button>
   </div>
 
 </div>
@@ -1490,9 +1415,7 @@
             <svg class="attr-pentagono-svg" viewBox="0 0 400 400" aria-hidden="true">
               <defs>
                 <radialGradient id="apCentroGrad" cx="50%" cy="42%" r="65%">
-                  <stop offset="0%" stop-color="#7a2512" />
-                  <stop offset="60%" stop-color="#3a110a" />
-                  <stop offset="100%" stop-color="#190705" />
+                  <stop offset="0%" stop-color="#2c1640" /><stop offset="65%" stop-color="#170b24" /><stop offset="100%" stop-color="#0d0714" />
                 </radialGradient>
               </defs>
               <circle class="ap-anel-ritual" cx="200" cy="205" r="188" />
@@ -1507,35 +1430,39 @@
                 <line x1="200" y1="205" x2="71.6" y2="163.3" />
               </g>
               <circle class="ap-centro-aro" cx="200" cy="205" r="74" />
-              <circle class="ap-centro" cx="200" cy="205" r="62" />
+              <circle class="ap-centro" cx="200" cy="205" r="64" />
+              <circle class="ap-selo-anel" cx="200" cy="205" r="57" />
+              <circle class="ap-selo-circ" cx="200" cy="205" r="44" />
+              <polygon class="ap-selo-estrela" points="200.0,161.0 219.1,244.6 165.6,177.6 242.9,214.8 157.1,214.8 234.4,177.6 180.9,244.6" />
+              <circle class="ap-selo-ponto" cx="200.0" cy="151.0" r="2.6"/><circle class="ap-selo-ponto" cx="242.2" cy="171.3" r="2.6"/><circle class="ap-selo-ponto" cx="252.6" cy="217.0" r="2.6"/><circle class="ap-selo-ponto" cx="223.4" cy="253.7" r="2.6"/><circle class="ap-selo-ponto" cx="176.6" cy="253.7" r="2.6"/><circle class="ap-selo-ponto" cx="147.4" cy="217.0" r="2.6"/><circle class="ap-selo-ponto" cx="157.8" cy="171.3" r="2.6"/>
+              <circle class="ap-selo-miolo" cx="200" cy="205" r="6" />
             </svg>
-            <div class="attr-centro">ATRIBUTOS</div>
-            <div class="attr-node attr-node-agi">
-              <input id="agilidade" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+                        <div class="attr-node attr-node-agi">
+              <input id="agilidade" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#efe7ef!important;-webkit-text-fill-color:#dbb8e7!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">AGILIDADE</span>
               <span class="attr-node-sigla">AGI</span>
             </div>
             <div class="attr-node attr-node-int">
-              <input id="intelecto" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="intelecto" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#efe7ef!important;-webkit-text-fill-color:#dbb8e7!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">INTELECTO</span>
               <span class="attr-node-sigla">INT</span>
             </div>
             <div class="attr-node attr-node-vig">
-              <input id="vigor" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="vigor" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#efe7ef!important;-webkit-text-fill-color:#dbb8e7!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">VIGOR</span>
               <span class="attr-node-sigla">VIG</span>
             </div>
             <div class="attr-node attr-node-pre">
-              <input id="presenca" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="presenca" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#efe7ef!important;-webkit-text-fill-color:#dbb8e7!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">PRESENÇA</span>
               <span class="attr-node-sigla">PRE</span>
             </div>
             <div class="attr-node attr-node-for">
-              <input id="forca" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#ffd9a0!important;-webkit-text-fill-color:#ffd9a0!important;"
+              <input id="forca" type="number" min="0" max="5" value="1" style="background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;outline:0!important;border-radius:0!important;padding:0!important;backdrop-filter:none!important;color:#efe7ef!important;-webkit-text-fill-color:#dbb8e7!important;"
                 oninput="limitarAtributo(this); atualizarTudo();" />
               <span class="attr-node-nome">FORÇA</span>
               <span class="attr-node-sigla">FOR</span>
@@ -1802,7 +1729,7 @@
               />
 
               <div class="arma-acoes-final">
-                <button class="inv-add-btn" onclick="addArma()">+</button>
+                <button class="inv-add-btn" onclick="addArma()">Adicionar arma</button>
               </div>
             </div>
           </div>
@@ -1921,7 +1848,7 @@
               />
 
               <div class="add-linha">
-                <button class="inv-add-btn" onclick="addArmadura()">+</button>
+                <button class="inv-add-btn" onclick="addArmadura()">Adicionar vestimenta</button>
               </div>
             </div>
           </div>
@@ -2216,9 +2143,7 @@
         <button
           class="inv-add-btn"
           onclick="addItem()"
-        >
-          +
-        </button>
+        >Adicionar item</button>
 
       </div>
 
@@ -2282,7 +2207,7 @@
         </div>
 
         <div class="add-linha">
-          <button class="inv-add-btn" onclick="addRecipiente()">+</button>
+          <button class="inv-add-btn" onclick="addRecipiente()">Adicionar recipiente</button>
         </div>
 
       </div>
@@ -2489,9 +2414,7 @@
         <button
           class="inv-add-btn"
           onclick="addVeiculo()"
-        >
-          +
-        </button>
+        >Adicionar veículo</button>
 
       </div>
 
@@ -2576,9 +2499,7 @@
           <button
             class="inv-add-btn"
             onclick="addMapa()"
-          >
-            +
-          </button>
+          >Adicionar mapa</button>
 
         </div>
 
@@ -2642,7 +2563,7 @@
         </div>
 
         <div class="add-linha">
-          <button class="inv-add-btn" onclick="addDocumento()">+</button>
+          <button class="inv-add-btn" onclick="addDocumento()">Adicionar documento</button>
         </div>
 
       </div>
@@ -2911,9 +2832,7 @@
         <button
           class="inv-add-btn"
           onclick="addPoder()"
-        >
-          +
-        </button>
+        >Adicionar poder</button>
 
       </div>
 
@@ -3012,7 +2931,7 @@
 </div>
 
 </div>
-<div id="tela-planos" style="display:none; position:fixed; inset:0; z-index:6000; overflow-y:auto; background:#100D0A;">
+<div id="tela-planos" style="display:none; position:fixed; inset:0; z-index:6000; overflow-y:auto; background:#0d0a0f;">
   <div class="planos-page">
 
     <button class="planos-voltar" onclick="fecharTelaPlanos()">← Voltar</button>
@@ -3111,7 +3030,7 @@
   </div>
 </div>
 
-    <div id="btnSalvarFlutuante" style="position:fixed;top:20%;right:16px;z-index:99998;width:48px;height:48px;border-radius:50%;background:rgba(30,18,8,0.85);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:20px;box-shadow:0 4px 14px rgba(0,0,0,0.5);cursor:grab;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;">💾</div>
+    <div id="btnSalvarFlutuante" style="position:fixed;top:20%;right:16px;z-index:99998;width:48px;height:48px;border-radius:50%;background:rgba(20,12,24,0.85);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:20px;box-shadow:0 4px 14px rgba(0,0,0,0.5);cursor:grab;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;">💾</div>
 
     <div id="popup" class="popup" style="display: none">
       <div class="popup-content">
@@ -3134,8 +3053,11 @@
     <script src="rituais-op.js"></script>
     <script src="origens-op.js"></script>
     <script src="sobrevivente-op.js"></script>
+    <script src="equipamentos-op.js"></script>
+    <script src="itens-op.js"></script>
     <script src="extras-op.js"></script>
     <script src="diario-op.js"></script>
+    <script src="social-op.js"></script>
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
@@ -3172,7 +3094,10 @@
   where,
   updateDoc,
   arrayUnion,
-  onSnapshot
+  onSnapshot,
+  addDoc,
+  orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
@@ -3211,6 +3136,9 @@ import {
   window.updateDoc = updateDoc;
   window.arrayUnion = arrayUnion;
   window.onSnapshot = onSnapshot;
+  window.addDoc = addDoc;
+  window.orderBy = orderBy;
+  window.limit = limit;
   window.query = query;
   window.where = where;
   window.collection = collection;
@@ -3525,6 +3453,18 @@ window.carregarMonstrosDaNuvem = carregarMonstrosDaNuvem;
     }
   };
 
+  window.criarContaCom = async (email, senha) => {
+    email = (email || "").trim();
+    if (!emailEhValido(email)) return "Digite um email válido.";
+    if ((senha || "").length < 6) return "A senha precisa ter pelo menos 6 caracteres.";
+    try {
+      await createUserWithEmailAndPassword(auth, email, senha);
+      return "";
+    } catch (e) {
+      return tratarErroFirebase(e.code);
+    }
+  };
+
   window.fazerLogin = async () => {
     limparErroLogin();
 
@@ -3543,6 +3483,7 @@ window.carregarMonstrosDaNuvem = carregarMonstrosDaNuvem;
 
     try {
       await signInWithEmailAndPassword(auth, email, senha);
+      try { localStorage.setItem("ultimoEmailLogin", email); } catch (e) {}
       limparErroLogin();
     } catch (e) {
       mostrarErroLogin(tratarErroFirebase(e.code));
@@ -3685,7 +3626,7 @@ document.addEventListener("input", (e) => {
 
 // ================= PAINEL DE AMIGOS =================
 
-window.abrirPainelAmigos = function () {
+window.abrirPainelAmigosAntigo = function () {
   document.getElementById("painelAmigosOverlay").style.display = "block";
   const painel = document.getElementById("painelAmigos");
   painel.style.display = "flex";
@@ -3696,7 +3637,7 @@ window.abrirPainelAmigos = function () {
   carregarAmigos();
 };
 
-window.fecharPainelAmigos = function () {
+window.fecharPainelAmigosAntigo = function () {
   const painel = document.getElementById("painelAmigos");
   painel.style.transform = "translateX(-100%)";
   setTimeout(() => {
@@ -3705,7 +3646,7 @@ window.fecharPainelAmigos = function () {
   }, 300);
 };
 
-window.trocarAbaAmigos = function (aba) {
+window.trocarAbaAmigosAntigo = function (aba) {
   const btnAmigos = document.getElementById("tabAmigosBtn");
   const btnGrupos = document.getElementById("tabGruposBtn");
   const contAmigos = document.getElementById("abaAmigosConteudo");
@@ -3714,22 +3655,22 @@ window.trocarAbaAmigos = function (aba) {
   if (aba === "amigos") {
     contAmigos.style.display = "flex";
     contGrupos.style.display = "none";
-    btnAmigos.style.background = "rgba(196,169,91,0.18)";
-    btnAmigos.style.color = "#E8CC80";
+    btnAmigos.style.background = "rgba(174,55,83,0.18)";
+    btnAmigos.style.color = "#c78eda";
     btnGrupos.style.background = "transparent";
-    btnGrupos.style.color = "#9A8A70";
+    btnGrupos.style.color = "#8e7892";
   } else {
     contAmigos.style.display = "none";
     contGrupos.style.display = "flex";
-    btnGrupos.style.background = "rgba(196,169,91,0.18)";
-    btnGrupos.style.color = "#E8CC80";
+    btnGrupos.style.background = "rgba(174,55,83,0.18)";
+    btnGrupos.style.color = "#c78eda";
     btnAmigos.style.background = "transparent";
-    btnAmigos.style.color = "#9A8A70";
+    btnAmigos.style.color = "#8e7892";
     carregarGrupos();
   }
 };
 
-async function mostrarMeuNickname() {
+async function mostrarMeuNicknameAntigo() {
   const label = document.getElementById("meuNicknameLabel");
   if (!label || !window.usuarioAtual) return;
   try {
@@ -3770,10 +3711,10 @@ window.copiarMeuNickname = async function () {
   setTimeout(() => { btn.innerHTML = iconeOriginal; }, 1200);
 };
 
-async function carregarAmigos() {
+async function carregarAmigosAntigo() {
   const lista = document.getElementById("listaAmigos");
   const meuUid = window.usuarioAtual.uid;
-  lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;text-align:center;">Carregando...</p>`;
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Carregando...</p>`;
 
   try {
     const [solicitacoesSnap, amigosSnap] = await Promise.all([
@@ -3784,11 +3725,11 @@ async function carregarAmigos() {
     let html = "";
 
     if (!solicitacoesSnap.empty) {
-      html += `<div style="font-size:11px;color:#9A8A70;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Pedidos pendentes</div>`;
+      html += `<div style="font-size:11px;color:#d5cbd8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Pedidos pendentes</div>`;
       solicitacoesSnap.forEach(docSnap => {
         const d = docSnap.data();
         html += `
-          <div style="display:flex;align-items:center;gap:8px;background:rgba(196,169,91,0.08);border:1px solid rgba(196,169,91,0.2);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(174,55,83,0.08);border:1px solid rgba(233,224,236,0.13);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
             <span style="flex:1;font-size:13px;color:#F8F4E3;">${escapeHtml(d.deNickname)}<span style="opacity:.5;">#${escapeHtml(d.deTag)}</span></span>            <button onclick="responderSolicitacao('${docSnap.id}', true)" style="width:26px;height:26px;border-radius:50%;border:none;background:#4a7c3a;color:#fff;cursor:pointer;font-size:12px;">✓</button>
             <button onclick="responderSolicitacao('${docSnap.id}', false)" style="width:26px;height:26px;border-radius:50%;border:none;background:#7B1E28;color:#fff;cursor:pointer;font-size:12px;">✕</button>
           </div>`;
@@ -3796,18 +3737,18 @@ async function carregarAmigos() {
     }
 
     if (!amigosSnap.empty) {
-      html += `<div style="font-size:11px;color:#9A8A70;text-transform:uppercase;letter-spacing:.08em;margin:${solicitacoesSnap.empty ? "0" : "14px"} 0 6px;">Seus amigos</div>`;
+      html += `<div style="font-size:11px;color:#d5cbd8;text-transform:uppercase;letter-spacing:.08em;margin:${solicitacoesSnap.empty ? "0" : "14px"} 0 6px;">Seus amigos</div>`;
       amigosSnap.forEach(docSnap => {
         const d = docSnap.data();
         html += `
-          <div onclick="abrirPerfil('${docSnap.id}')" style="cursor:pointer;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,91,0.12);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+          <div onclick="abrirPerfil('${docSnap.id}')" style="cursor:pointer;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
             <span style="flex:1;font-size:13px;color:#F8F4E3;">${escapeHtml(d.nickname)}<span style="opacity:.5;">#${escapeHtml(d.tag)}</span></span>
           </div>`;
       });
     }
 
     if (solicitacoesSnap.empty && amigosSnap.empty) {
-      html = `<p style="color:#9A8A70;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum amigo ainda.</p>`;
+      html = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum amigo ainda.</p>`;
     }
 
     lista.innerHTML = html;
@@ -3817,10 +3758,10 @@ async function carregarAmigos() {
   }
 }
 
-window.carregarGrupos = async function () {
+window.carregarGruposAntigo = async function () {
   const lista = document.getElementById("listaGrupos");
   const meuUid = window.usuarioAtual.uid;
-  lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;text-align:center;">Carregando...</p>`;
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Carregando...</p>`;
 
   // convites e grupos são buscados e renderizados de forma INDEPENDENTE —
   // um erro em um dos dois nunca mais pode apagar o outro da tela
@@ -3830,14 +3771,14 @@ window.carregarGrupos = async function () {
   try {
     const convitesSnap = await getDocs(collection(db, "usuarios", meuUid, "convitesGrupo"));
     if (!convitesSnap.empty) {
-      htmlConvites += `<div style="font-size:11px;color:#9A8A70;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Convites pendentes</div>`;
+      htmlConvites += `<div style="font-size:11px;color:#d5cbd8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Convites pendentes</div>`;
       convitesSnap.forEach(docSnap => {
         const d = docSnap.data();
         htmlConvites += `
-          <div style="display:flex;align-items:center;gap:8px;background:rgba(196,169,91,0.08);border:1px solid rgba(196,169,91,0.2);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(174,55,83,0.08);border:1px solid rgba(233,224,236,0.13);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
             <div style="flex:1;">
               <div style="font-size:13px;color:#F8F4E3;">${escapeHtml(d.nomeGrupo)}</div>
-              <div style="font-size:11px;color:#9A8A70;">de ${escapeHtml(d.deNickname)}<span style="opacity:.5;">#${escapeHtml(d.deTag)}</span></div>
+              <div style="font-size:11px;color:#d5cbd8;">de ${escapeHtml(d.deNickname)}<span style="opacity:.5;">#${escapeHtml(d.deTag)}</span></div>
             </div>
             <button onclick="responderConviteGrupo('${docSnap.id}', true)" style="width:26px;height:26px;border-radius:50%;border:none;background:#4a7c3a;color:#fff;cursor:pointer;font-size:12px;">✓</button>
             <button onclick="responderConviteGrupo('${docSnap.id}', false)" style="width:26px;height:26px;border-radius:50%;border:none;background:#7B1E28;color:#fff;cursor:pointer;font-size:12px;">✕</button>
@@ -3852,17 +3793,17 @@ window.carregarGrupos = async function () {
   try {
     const gruposSnap = await getDocs(query(collection(db, "grupos"), where("membrosUids", "array-contains", meuUid)));
     if (!gruposSnap.empty) {
-      htmlGrupos += `<div style="font-size:11px;color:#9A8A70;text-transform:uppercase;letter-spacing:.08em;margin:${htmlConvites ? "14px" : "0"} 0 6px;">Seus grupos</div>`;
+      htmlGrupos += `<div style="font-size:11px;color:#d5cbd8;text-transform:uppercase;letter-spacing:.08em;margin:${htmlConvites ? "14px" : "0"} 0 6px;">Seus grupos</div>`;
       gruposSnap.forEach(docSnap => {
         const d = docSnap.data();
         const souMestre = d.criadoPor === meuUid;
         htmlGrupos += `
-          <div onclick="abrirDetalheGrupo('${docSnap.id}')" style="cursor:pointer;background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,91,0.15);border-radius:10px;padding:10px 12px;">
+          <div onclick="abrirDetalheGrupo('${docSnap.id}')" style="cursor:pointer;background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:10px;padding:10px 12px;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <span style="font-size:14px;color:#F8F4E3;font-weight:bold;">${escapeHtml(d.nome)}</span>
-              ${souMestre ? `<span style="font-size:10px;color:#C4A95B;text-transform:uppercase;letter-spacing:.05em;">Mestre</span>` : ""}
+              ${souMestre ? `<span style="font-size:10px;color:#efe7ef;text-transform:uppercase;letter-spacing:.05em;">Mestre</span>` : ""}
             </div>
-            <div style="font-size:12px;color:#9A8A70;margin-top:4px;">${(d.membros || []).length} membro${(d.membros || []).length > 1 ? "s" : ""}</div>
+            <div style="font-size:12px;color:#d5cbd8;margin-top:4px;">${(d.membros || []).length} membro${(d.membros || []).length > 1 ? "s" : ""}</div>
           </div>`;
       });
     }
@@ -3872,7 +3813,7 @@ window.carregarGrupos = async function () {
   }
 
   const html = htmlConvites + htmlGrupos;
-  lista.innerHTML = html || `<p style="color:#9A8A70;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum grupo ainda.</p>`;
+  lista.innerHTML = html || `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum grupo ainda.</p>`;
 };
 
 window.responderConviteGrupo = async function (grupoId, aceitar) {
@@ -3907,12 +3848,12 @@ window.mostrarFormCriarGrupo = async function () {
 
   const meuUid = window.usuarioAtual.uid;
   const lista = document.getElementById("listaAmigosParaGrupo");
-  lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;">Carregando...</p>`;
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;">Carregando...</p>`;
 
   try {
     const amigosSnap = await getDocs(collection(db, "usuarios", meuUid, "amigos"));
     if (amigosSnap.empty) {
-      lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;font-style:italic;">Você ainda não tem amigos pra convidar.</p>`;
+      lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;font-style:italic;">Você ainda não tem amigos pra convidar.</p>`;
       return;
     }
     let html = "";
