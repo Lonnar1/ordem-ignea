@@ -194,16 +194,16 @@ function abrirPopupBloqueio(tipo) {
     if (el) el.innerHTML = `
       <div style="text-align:center;padding:4px 0;">
         <div style="
-          background:${isMaster ? 'linear-gradient(180deg,rgba(123,30,40,0.18),rgba(80,15,20,0.25))' : 'linear-gradient(180deg,rgba(60,40,20,0.35),rgba(40,25,10,0.45))'};
-          border:1px solid ${isMaster ? 'rgba(180,55,42,0.3)' : 'rgba(196,169,91,0.2)'};
+          background:${isMaster ? 'linear-gradient(180deg,rgba(123,30,40,0.18),rgba(80,15,20,0.25))' : 'linear-gradient(180deg,rgba(42,26,50,0.35),rgba(26,16,31,0.45))'};
+          border:1px solid ${isMaster ? 'rgba(180,55,42,0.3)' : 'rgba(174,55,83,0.2)'};
           border-radius:12px;
           padding:16px 14px;
           margin-bottom:16px;
         ">
-          <p style="font-size:15px;margin-bottom:10px;color:#f0dfcb;">
+          <p style="font-size:15px;margin-bottom:10px;color:#efe7ef;">
             ${tipo === "ficha" ? "Esta ficha está bloqueada" : "Esta campanha está bloqueada"} no plano gratuito.
           </p>
-          <p style="font-size:13px;color:${isMaster ? '#c9736e' : '#c8b99a'};line-height:1.5;">
+          <p style="font-size:13px;color:${isMaster ? '#c9736e' : '#b7a8ba'};line-height:1.5;">
             Assine o plano ${planoNecessario} para ter acesso ilimitado.
           </p>
         </div>
@@ -436,8 +436,8 @@ function mostrarAvisoExportacao() {
   aviso.style.bottom = "90px";
   aviso.style.left = "50%";
   aviso.style.transform = "translateX(-50%)";
-  aviso.style.background = "#2c221d";
-  aviso.style.color = "#f8f1df";
+  aviso.style.background = "#251c2a";
+  aviso.style.color = "#f0e7f0";
   aviso.style.padding = "10px 16px";
   aviso.style.borderRadius = "10px";
   aviso.style.zIndex = "9999";
@@ -801,7 +801,7 @@ function abrirPopupGerenciarRacasCustom() {
   });
 
   if (!lista) {
-    lista = `<p style="text-align:center; color:#cdb791;">Nenhuma raça custom criada.</p>`;
+    lista = `<p style="text-align:center; color:#d5cbd8;">Nenhuma raça custom criada.</p>`;
   }
 
   abrirPopup(
@@ -1286,6 +1286,8 @@ function editarItem(index) {
   const html = `
     <div class="popup-form">
 
+      ${typeof htmlCatalogoItemOP === "function" ? htmlCatalogoItemOP("editItem") : ""}
+
       <label class="popup-label">Nome</label>
       <input
         id="editItemNome"
@@ -1330,12 +1332,16 @@ function editarItem(index) {
         value="${esc(item.categoria || "")}"
       >
 
+      ${typeof htmlSeletorModsItemOP === "function" ? htmlSeletorModsItemOP("editItem") : ""}
+
       <label class="popup-label">Modificações</label>
 
       <textarea
         id="editItemModificacoes"
         placeholder="Modificações do item"
       >${esc(item.modificacoes || "")}</textarea>
+
+      ${typeof htmlSeletorMaldicoesItemOP === "function" ? htmlSeletorMaldicoesItemOP("editItem") : ""}
 
       <label class="popup-label">Maldições</label>
 
@@ -1354,7 +1360,7 @@ function editarItem(index) {
       />
 
       <label for="editItemImagem" class="botao-upload">
-        🖼 Trocar imagem
+        Trocar imagem
       </label>
 
       <img
@@ -1582,6 +1588,7 @@ function editarArma(index) {
 
   const html = `
     <div class="popup-form">
+      ${typeof htmlCatalogoEquipOP === "function" ? htmlCatalogoEquipOP("editArma", "arma") : ""}
       <label class="popup-label">Nome</label>
       <input id="editArmaNome" value="${arma.nome || ""}">
 
@@ -1625,7 +1632,7 @@ ${htmlExtrasItem("editArma", "arma", arma)}
 
       <label class="popup-label">Imagem (opcional)</label>
       <input type="file" id="editArmaImagem" accept="image/*" onchange="previewEditArmaImagem()" />
-      <label for="editArmaImagem" class="botao-upload">🖼 Trocar imagem</label>
+      <label for="editArmaImagem" class="botao-upload">Trocar imagem</label>
       <img
         id="editArmaImagemPreview"
         src="${arma.imagemUrl || ""}"
@@ -2107,14 +2114,14 @@ function salvarEdicaoPoder(index) {
 function atualizarTextoBotaoEdicao() {
   const btnItem = document.querySelector("#inventario .inv-add-btn");
   const btnArma = document.querySelector(
-    "#combate .arma-add .inv-add-btn, #combate .arma-add button",
+    "#combate .inv-add-btn[onclick=\"addArma()\"]",
   );
   const btnPoder = document.querySelector("#poderes .inv-add-btn");
 
-  if (btnItem) btnItem.textContent = editandoItem >= 0 ? "Salvar edição" : "+";
-  if (btnArma) btnArma.textContent = editandoArma >= 0 ? "Salvar edição" : "+";
+  if (btnItem) btnItem.textContent = editandoItem >= 0 ? "Salvar edição" : "Adicionar item";
+  if (btnArma) btnArma.textContent = editandoArma >= 0 ? "Salvar edição" : "Adicionar arma";
   if (btnPoder)
-    btnPoder.textContent = editandoPoder >= 0 ? "Salvar edição" : "+";
+    btnPoder.textContent = editandoPoder >= 0 ? "Salvar edição" : "Adicionar poder";
 }
 
 function fecharPopup() {
@@ -3403,6 +3410,9 @@ async function addArmadura() {
   const temCargas = !!temCargasEl?.checked;
   const maxCargas = temCargas ? parseInt(maxCargasEl?.value) || 0 : 0;
 
+  const descArmaduraEl = document.getElementById("armaduraDesc");
+  const desc = descArmaduraEl ? descArmaduraEl.value.trim() : "";
+
   if (!nome) return;
   if (temCargas && maxCargas <= 0) return;
 
@@ -3580,9 +3590,11 @@ function renderArmaduras() {
   }
 
   ${
-    armadura.categoria
-      ? `<span class="item-subtag item-subtag-categoria">Cat. ${esc(armadura.categoria)}</span>`
-      : ""
+    typeof categoriaChipOP === "function"
+      ? categoriaChipOP(armadura)
+      : armadura.categoria
+        ? `<span class="item-subtag item-subtag-categoria">Cat. ${esc(armadura.categoria)}</span>`
+        : ""
   }
 
   ${
@@ -3610,7 +3622,7 @@ ${cargasHTML}
 
       <div class="item-acoes">
         <button type="button" class="btn-editar" onclick="event.stopPropagation(); editarArmadura(${index})">✏️</button>
-        <button type="button" onclick="event.stopPropagation(); window.abrirDarItem('armaduras', ${index})" style="background:#4a3b31;border:none;color:#C4A95B;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;">Dar</button>
+        <button type="button" onclick="event.stopPropagation(); window.abrirDarItem('armaduras', ${index})" style="background:#3e2f46;border:none;color:#efe7ef;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;">Dar</button>
         <button type="button" class="arma-remover" onclick="event.stopPropagation(); removerArmadura(${index})">X</button>
       </div>
     `;
@@ -3662,7 +3674,7 @@ function verArmadura(index) {
 
         <div>
           <span class="popup-label">Categoria</span>
-          <div class="popup-descricao popup-descricao-pequena">${armadura.categoria ? esc(armadura.categoria) : "—"}</div>
+          <div class="popup-descricao popup-descricao-pequena">${typeof categoriaPopupOP === "function" ? esc(categoriaPopupOP(armadura)) : armadura.categoria ? esc(armadura.categoria) : "—"}</div>
         </div>
 
       </div>
@@ -3703,6 +3715,7 @@ function editarArmadura(index) {
 
   const html = `
     <div class="popup-form">
+      ${typeof htmlCatalogoEquipOP === "function" ? htmlCatalogoEquipOP("editArmadura", "vestimenta") : ""}
       <label class="popup-label">Nome</label>
       <input id="editArmaduraNome" value="${armadura.nome || ""}">
 
@@ -3732,7 +3745,7 @@ function editarArmadura(index) {
 
       <label class="popup-label">Imagem (opcional)</label>
       <input type="file" id="editArmaduraImagem" accept="image/*" onchange="previewEditArmaduraImagem()" />
-      <label for="editArmaduraImagem" class="botao-upload">🖼 Trocar imagem</label>
+      <label for="editArmaduraImagem" class="botao-upload">Trocar imagem</label>
       <img
         id="editArmaduraImagemPreview"
         src="${armadura.imagemUrl || ""}"
@@ -4287,9 +4300,9 @@ window.abrirPerfil = async function (uid) {
     document.getElementById("perfilFundo").style.backgroundImage = d.fotoFundo ? `url('${d.fotoFundo}')` : "none";
     document.getElementById("perfilAvatar").style.backgroundImage = d.fotoPerfil ? `url('${d.fotoPerfil}')` : "none";
 
-    const corBase = d.corBase || "#0e0907";
-    const corNome = d.corNome || "#E8CC80";
-    const corLinha = d.corLinha || "rgba(196,169,91,0.3)";
+    const corBase = d.corBase || "#0b070d";
+    const corNome = d.corNome || "#c78eda";
+    const corLinha = d.corLinha || "rgba(174,55,83,0.3)";
     const corTexto = corContraste(corBase);
     document.getElementById("modalPerfil").style.backgroundColor = corBase;
     document.getElementById("modalPerfil").style.setProperty("--perfil-linha", corLinha);
@@ -4297,10 +4310,10 @@ window.abrirPerfil = async function (uid) {
     document.getElementById("perfilNomeTag").style.color = corNome;
     document.getElementById("corBaseInput").value = corBase;
     document.getElementById("corNomeInput").value = corNome;
-    document.getElementById("corLinhaInput").value = corLinha.startsWith("#") ? corLinha : "#c4a95b";
+    document.getElementById("corLinhaInput").value = corLinha.startsWith("#") ? corLinha : "#ae3753";
     document.getElementById("corBaseSwatch").style.background = corBase;
     document.getElementById("corNomeSwatch").style.background = corNome;
-    document.getElementById("corLinhaSwatch").style.background = corLinha.startsWith("#") ? corLinha : "#c4a95b";
+    document.getElementById("corLinhaSwatch").style.background = corLinha.startsWith("#") ? corLinha : "#ae3753";
     document.getElementById("perfilCoresBtn").style.display = ehMeu ? "flex" : "none";
     document.getElementById("perfilCoresBox").style.display = "none";
 
@@ -4318,15 +4331,15 @@ window.abrirPerfil = async function (uid) {
     const destaque = d.personagensDestaque || [];
     window._perfilDestaqueAtual = destaque;
     if (destaque.length === 0) {
-      showcase.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#9A8A70;font-size:12px;font-style:italic;padding:10px 0;">Nenhum personagem em destaque.</p>`;
+      showcase.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#d5cbd8;font-size:12px;font-style:italic;padding:10px 0;">Nenhum personagem em destaque.</p>`;
     } else {
       showcase.innerHTML = destaque.map((f, i) => `
-        <div onclick="abrirPreviewFicha(${i})" style="cursor:pointer;background:rgba(255,255,255,0.05);border:1px solid var(--perfil-linha, rgba(196,169,91,0.3));border-radius:10px;overflow:hidden;">
-          <div style="height:80px;background-image:url('${f.imagem || ""}');background-size:cover;background-position:center;background-color:#1b120c;"></div>
+        <div onclick="abrirPreviewFicha(${i})" style="cursor:pointer;background:rgba(255,255,255,0.05);border:1px solid var(--perfil-linha, rgba(233,224,236,0.2));border-radius:10px;overflow:hidden;">
+          <div style="height:80px;background-image:url('${f.imagem || ""}');background-size:cover;background-position:center;background-color:#150d18;"></div>
           <div style="padding:8px;">
             <div style="font-size:12px;font-weight:bold;color:var(--perfil-texto, #F8F4E3);">${escapeHtml(f.nome || "Sem nome")}</div>
-            <div style="font-size:11px;color:var(--perfil-texto, #9A8A70);opacity:.75;">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""}</div>
-            ${!ehMeu && f.publica ? `<button onclick="event.stopPropagation(); pegarFichaPublica('${uid}','${f.fichaId}')" style="margin-top:6px;width:100%;padding:5px;border-radius:6px;border:none;background:#C4A95B;color:#1a0e05;font-size:11px;font-weight:bold;cursor:pointer;">Pegar</button>` : ""}
+            <div style="font-size:11px;color:var(--perfil-texto, #d5cbd8);opacity:.75;">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""}</div>
+            ${!ehMeu && f.publica ? `<button onclick="event.stopPropagation(); pegarFichaPublica('${uid}','${f.fichaId}')" style="margin-top:6px;width:100%;padding:5px;border-radius:6px;border:none;background:#ae3753;color:#100a13;font-size:11px;font-weight:bold;cursor:pointer;">Pegar</button>` : ""}
           </div>
         </div>
       `).join("");
@@ -4386,7 +4399,7 @@ window.abrirEscolherDestaque = async function () {
   const lista = document.getElementById("listaEscolherDestaque");
   const fichas = window.personagens || [];
   if (fichas.length === 0) {
-    lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;text-align:center;">Você ainda não tem fichas.</p>`;
+    lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Você ainda não tem fichas.</p>`;
     return;
   }
 
@@ -4402,12 +4415,12 @@ window.abrirEscolherDestaque = async function () {
   lista.innerHTML = fichas.map((f, i) => {
     const jaExibida = idsDestaque.includes(String(f.id));
     return `
-    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,91,0.15);border-radius:10px;padding:10px;">
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:10px;padding:10px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="flex:1;font-size:13px;">${escapeHtml(f.nome || "Sem nome")} <span style="color:#9A8A70;font-size:11px;">${escapeHtml(f.classe || "")}</span></span>
-        <button type="button" onclick="var el=document.getElementById('opcoesFicha${i}');el.style.display = el.style.display === 'none' ? 'flex' : 'none';" style="background:none;border:none;color:#C4A95B;font-size:15px;cursor:pointer;padding:2px;">⚙</button>
+        <span style="flex:1;font-size:13px;">${escapeHtml(f.nome || "Sem nome")} <span style="color:#d5cbd8;font-size:11px;">${escapeHtml(f.classe || "")}</span></span>
+        <button type="button" onclick="var el=document.getElementById('opcoesFicha${i}');el.style.display = el.style.display === 'none' ? 'flex' : 'none';" style="background:none;border:none;color:#efe7ef;font-size:15px;cursor:pointer;padding:2px;">⚙</button>
       </div>
-      <div id="opcoesFicha${i}" style="display:none;flex-direction:column;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(196,169,91,0.12);">
+      <div id="opcoesFicha${i}" style="display:none;flex-direction:column;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(233,224,236,0.12);">
         <label style="display:flex;align-items:center;justify-content:space-between;font-size:12px;cursor:pointer;gap:8px;">
           <span>Exibir ficha</span>
           <input type="checkbox" class="checkDestaqueFicha" data-index="${i}" ${jaExibida ? "checked" : ""} style="width:auto;margin:0;">
@@ -4479,7 +4492,7 @@ function corContraste(hex) {
   const g = parseInt(c.substring(2,4), 16);
   const b = parseInt(c.substring(4,6), 16);
   const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminancia > 0.55 ? "#1a0e05" : "#F8F4E3";
+  return luminancia > 0.55 ? "#100a13" : "#F8F4E3";
 }
 
 
@@ -4669,32 +4682,32 @@ window.abrirPreviewFicha = function (i) {
 
   let html = "";
   if (f.previewLore) {
-    html += `<div style="border-left:2px solid rgba(196,169,91,0.35);padding-left:12px;font-style:italic;color:#cdb791;line-height:1.6;font-size:12.5px;">"${escapeHtml(f.previewLore)}${f.previewLore.length >= 220 ? "..." : ""}"</div>`;
+    html += `<div style="border-left:2px solid rgba(233,224,236,0.23);padding-left:12px;font-style:italic;color:#d5cbd8;line-height:1.6;font-size:12.5px;">"${escapeHtml(f.previewLore)}${f.previewLore.length >= 220 ? "..." : ""}"</div>`;
   }
   if (f.previewEquip) {
     const icone = f.previewEquip.tipo === "arma" ? "⚔️" : "🛡️";
     const rotulo = f.previewEquip.tipo === "arma" ? "Arma" : "Vestimenta";
     html += `
-      <div style="display:flex;align-items:flex-start;gap:10px;padding-top:14px;border-top:1px solid rgba(196,169,91,0.12);">
-        <div style="width:30px;height:30px;flex-shrink:0;border-radius:50%;background:rgba(196,169,91,0.1);border:1px solid rgba(196,169,91,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">${icone}</div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding-top:14px;border-top:1px solid rgba(233,224,236,0.12);">
+        <div style="width:30px;height:30px;flex-shrink:0;border-radius:50%;background:rgba(174,55,83,0.1);border:1px solid rgba(233,224,236,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;">${icone}</div>
         <div>
-          <div style="font-family:'Cinzel',serif;color:#E8CC80;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">${rotulo}</div>
-          <div style="color:#F8F4E3;">${escapeHtml(f.previewEquip.nome)}${f.previewEquip.extra ? ` <span style="color:#9A8A70;">— ${escapeHtml(f.previewEquip.extra)}</span>` : ""}</div>
+          <div style="font-family:'Cinzel',serif;color:#efe7ef;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">${rotulo}</div>
+          <div style="color:#F8F4E3;">${escapeHtml(f.previewEquip.nome)}${f.previewEquip.extra ? ` <span style="color:#d5cbd8;">— ${escapeHtml(f.previewEquip.extra)}</span>` : ""}</div>
         </div>
       </div>`;
   }
   if (f.previewPoderes && f.previewPoderes.length > 0) {
     html += `
-      <div style="display:flex;align-items:flex-start;gap:10px;padding-top:14px;border-top:1px solid rgba(196,169,91,0.12);">
-        <div style="width:30px;height:30px;flex-shrink:0;border-radius:50%;background:rgba(196,169,91,0.1);border:1px solid rgba(196,169,91,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">🔥</div>
+      <div style="display:flex;align-items:flex-start;gap:10px;padding-top:14px;border-top:1px solid rgba(233,224,236,0.12);">
+        <div style="width:30px;height:30px;flex-shrink:0;border-radius:50%;background:rgba(174,55,83,0.1);border:1px solid rgba(233,224,236,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;">🔥</div>
         <div>
-          <div style="font-family:'Cinzel',serif;color:#E8CC80;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Poderes</div>
+          <div style="font-family:'Cinzel',serif;color:#efe7ef;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Poderes</div>
           <div style="color:#F8F4E3;">${f.previewPoderes.map(p => escapeHtml(p)).join(" · ")}</div>
         </div>
       </div>`;
   }
   if (!html) {
-    html = `<p style="text-align:center;color:#9A8A70;font-style:italic;">Sem itens pra mostrar ainda.</p>`;
+    html = `<p style="text-align:center;color:#d5cbd8;font-style:italic;">Sem itens pra mostrar ainda.</p>`;
   }
 
   document.getElementById("previewFichaConteudo").innerHTML = html;
@@ -5032,7 +5045,7 @@ function atualizarPreviewCarrossel() {
     dots.innerHTML = "";
     for (let i = 0; i < total; i++) {
       const dot = document.createElement("span");
-      dot.style.cssText = `width:8px;height:8px;border-radius:50%;cursor:pointer;background:${i === indiceCarrossel ? "#C4A95B" : "rgba(196,169,91,0.3)"};`;
+      dot.style.cssText = `width:8px;height:8px;border-radius:50%;cursor:pointer;background:${i === indiceCarrossel ? "#ae3753" : "rgba(174,55,83,0.3)"};`;
       dot.onclick = () => { indiceCarrossel = i; atualizarPreviewCarrossel(); };
       dots.appendChild(dot);
     }
@@ -5088,7 +5101,7 @@ function _htmlPopupFotoPersonagem() {
   const atual = imagensPersonagem[indiceCarrossel];
 
   const dotsHtml = Array.from({ length: total }).map((_, i) => `
-    <span onclick="irParaFotoPopup(${i})" style="width:9px;height:9px;border-radius:50%;cursor:pointer;display:inline-block;background:${i === indiceCarrossel ? "#C4A95B" : "rgba(196,169,91,0.3)"};"></span>
+    <span onclick="irParaFotoPopup(${i})" style="width:9px;height:9px;border-radius:50%;cursor:pointer;display:inline-block;background:${i === indiceCarrossel ? "#ae3753" : "rgba(174,55,83,0.3)"};"></span>
   `).join("");
 
   return `
@@ -5103,7 +5116,7 @@ function _htmlPopupFotoPersonagem() {
         ` : ""}
       </div>
       <div style="display:flex;gap:6px;justify-content:center;margin-top:10px;">${dotsHtml}</div>
-      ` : `<p style="color:#9A8A70;padding:20px 0;">Nenhuma foto ainda.</p>`}
+      ` : `<p style="color:#d5cbd8;padding:20px 0;">Nenhuma foto ainda.</p>`}
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;">
         <button class="popup-salvar-btn" style="margin:0;" onclick="fecharPopup(); abrirEditorImagem();" ${total === 0 ? "disabled" : ""}>Ajustar imagem</button>
@@ -5673,9 +5686,9 @@ function renderInv() {
             )
           "
           style="
-            background:#4a3b31;
+            background:#3e2f46;
             border:none;
-            color:#C4A95B;
+            color:#efe7ef;
             border-radius:8px;
             padding:4px 8px;
             font-size:11px;
@@ -8623,9 +8636,11 @@ function renderArmas() {
   }
 
     ${
-    arma.categoria
-      ? `<span class="item-subtag item-subtag-categoria">Cat. ${esc(arma.categoria)}</span>`
-      : ""
+    typeof categoriaChipOP === "function"
+      ? categoriaChipOP(arma)
+      : arma.categoria
+        ? `<span class="item-subtag item-subtag-categoria">Cat. ${esc(arma.categoria)}</span>`
+        : ""
   }
 
   ${
@@ -8652,7 +8667,7 @@ ${cargasHTML}
 
       <div class="item-acoes">
         <button type="button" class="btn-editar" onclick="event.stopPropagation(); editarArma(${index})">✏️</button>
-        <button type="button" onclick="event.stopPropagation(); window.abrirDarItem('armas', ${index})" style="background:#4a3b31;border:none;color:#C4A95B;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;">Dar</button>
+        <button type="button" onclick="event.stopPropagation(); window.abrirDarItem('armas', ${index})" style="background:#3e2f46;border:none;color:#efe7ef;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;">Dar</button>
         <button type="button" class="arma-remover" onclick="event.stopPropagation(); removerArma(${index})">X</button>
       </div>
     `;
@@ -8701,7 +8716,7 @@ function verArma(index) {
 
         <div>
           <span class="popup-label">Categoria</span>
-          <div class="popup-descricao popup-descricao-pequena">${arma.categoria ? esc(arma.categoria) : "—"}</div>
+          <div class="popup-descricao popup-descricao-pequena">${typeof categoriaPopupOP === "function" ? esc(categoriaPopupOP(arma)) : arma.categoria ? esc(arma.categoria) : "—"}</div>
         </div>
 
       </div>
@@ -10105,10 +10120,10 @@ function _camposExtras(tipo) {
 
 function _rotulosExtras(tipo) {
   if (tipo === "arma")
-    return { det: "⚔ Detalhes de combate", detPopup: "Detalhes de combate", mods: "🔧 Modificações", modsPopup: "Modificações", add: "+ Adicionar modificação", nomePh: "Nome da modificação (ex.: Carregador Rápido)", cat: true };
+    return { det: "⚔ Detalhes de combate", detPopup: "Detalhes de combate", mods: "🔧 Modificações", modsPopup: "Modificações", add: "Adicionar modificação personalizada", nomePh: "Nome da modificação (ex.: Carregador Rápido)", cat: true };
   if (tipo === "veiculo")
     return { det: "🏍 Características", detPopup: "Características", mods: "⚙ Aprimoramentos", modsPopup: "Aprimoramentos", add: "+ Adicionar aprimoramento", nomePh: "Nome (ex.: Aprimoramentos de Velocidade)", cat: false };
-  return { det: "🛡 Detalhes da vestimenta", detPopup: "Detalhes", mods: "🔧 Modificações", modsPopup: "Modificações", add: "+ Adicionar modificação", nomePh: "Nome da modificação", cat: true };
+  return { det: "🛡 Detalhes da vestimenta", detPopup: "Detalhes", mods: "🔧 Modificações", modsPopup: "Modificações", add: "Adicionar modificação personalizada", nomePh: "Nome da modificação", cat: true };
 }
 
 const CAMPOS_DETALHES_VESTIMENTA = [
@@ -10534,8 +10549,8 @@ function abrirPopupPericiasClasse() {
   if (info) {
     const aviso = document.createElement("div");
     aviso.id = "infoPericiasClasseOP";
-    aviso.style.cssText = "grid-column:1/-1;width:100%;font-size:12px;line-height:1.45;color:#cdb79a;padding:4px 2px 10px;";
-    aviso.innerHTML = `<b style="color:#f0b565">Perícias treinadas da classe: ${info.total}</b><br>${info.texto}.<br><span id="contPericiasClasseOP"></span>`;
+    aviso.style.cssText = "grid-column:1/-1;width:100%;font-size:12px;line-height:1.45;color:#d5cbd8;padding:4px 2px 10px;";
+    aviso.innerHTML = `<b style="color:#efe7ef">Perícias treinadas da classe: ${info.total}</b><br>${info.texto}.<br><span id="contPericiasClasseOP"></span>`;
     lista.appendChild(aviso);
   }
 
@@ -10583,7 +10598,7 @@ function atualizarContPericiasClasseOP() {
   if (!info) return;
   const marcadas = document.querySelectorAll('#listaPericiasClasse input[type="checkbox"]:checked').length;
   el.textContent = `Marcadas: ${marcadas} de ${info.total}`;
-  el.style.color = marcadas > info.total ? "#e07a6a" : marcadas === info.total ? "#8fd18f" : "#cdb79a";
+  el.style.color = marcadas > info.total ? "#e07a6a" : marcadas === info.total ? "#8fd18f" : "#b9abbc";
 }
 
 function fecharPopupPericiasClasse() {
@@ -11242,24 +11257,8 @@ function abrirTelaModo() {
   const tela = document.getElementById("tela-modo");
   tela.style.display = "flex";
 
-  // reset estado da tela
-  if (typeof tmSelected !== 'undefined') {
-    window.tmSelected = null;
-    const cj = document.getElementById('tmCardJornada');
-    const cg = document.getElementById('tmCardGrimorio');
-    if (cj) { cj.style.borderColor = ''; cj.style.transform = ''; cj.style.opacity = ''; }
-    if (cg) { cg.style.borderColor = ''; cg.style.transform = ''; cg.style.opacity = ''; }
-    const ckj = document.getElementById('tmCheckJornada');
-    const ckg = document.getElementById('tmCheckGrimorio');
-    if (ckj) { ckj.style.opacity = '0'; ckj.style.transform = 'scale(0.5)'; }
-    if (ckg) { ckg.style.opacity = '0'; ckg.style.transform = 'scale(0.5)'; }
-    const btn = document.getElementById('tmBtnEntrar');
-    if (btn) { btn.disabled = true; btn.style.cssText = 'width:90%;max-width:380px;padding:18px 32px;border-radius:9999px;border:1px solid rgba(78, 78, 78, 0.4);background:transparent;color:rgba(100, 100, 100, 0.5);font-family:Cinzel,serif;font-size:18px;font-weight:700;letter-spacing:0.18em;cursor:not-allowed;transition:all 0.4s ease;margin:0 auto 28px auto;display:block;text-align:center;overflow:hidden;'; }
-    const desc = document.getElementById('tmDesc');
-    if (desc) desc.innerHTML = '<p style="font-style:italic;font-size:13px;color:rgba(154,138,112,0.45);">Toque em um caminho para revelar seu destino…</p>';
-    document.getElementById('tmBgJornada').style.opacity = '0';
-    document.getElementById('tmBgGrimorio').style.opacity = '0';
-  }
+  // reset estado da tela (seletor novo)
+  if (typeof tmResetNovo === 'function') tmResetNovo();
 
   tela.style.opacity = "0";
   tela.style.transform = "scale(1.06)";
@@ -11386,9 +11385,9 @@ function _estiloBtnFiltro(ativo) {
   return `
     padding:6px 14px;
     border-radius:999px;
-    border:1px solid ${ativo ? "rgba(200,80,80,0.55)" : "rgba(216,200,170,0.18)"};
-    background:${ativo ? "linear-gradient(180deg,#5f1717,#2a0b0b)" : "rgba(14,11,9,0.6)"};
-    color:${ativo ? "#f1dfbd" : "#a08060"};
+    border:1px solid ${ativo ? "rgba(200,80,80,0.55)" : "rgba(198,186,200,0.18)"};
+    background:${ativo ? "linear-gradient(180deg,#5f1717,#2a0b0b)" : "rgba(12,9,13,0.6)"};
+    color:${ativo ? "#e1c3eb" : "#89728e"};
     font-size:13px;
     font-weight:bold;
     cursor:pointer;
@@ -11688,8 +11687,8 @@ function _renderItemForm(listaId, arr, fnRemover, hiddenId) {
   const lista = document.getElementById(listaId);
   if (!lista) return;
   lista.innerHTML = arr.map((a, i) => `
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#F0EBD8;border-radius:8px;margin-bottom:4px;border:1px solid rgba(196,169,91,0.2);">
-      <span style="font-size:13px;flex:1;color:#2A1A10;"><strong>${escapeHtml(a.nome)}</strong>${a.desc ? ` — <span style="color:#7A6A50;">${escapeHtml(a.desc)}</span>` : ""}</span>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#eadeea;border-radius:8px;margin-bottom:4px;border:1px solid rgba(233,224,236,0.13);">
+      <span style="font-size:13px;flex:1;color:#1e1324;"><strong>${escapeHtml(a.nome)}</strong>${a.desc ? ` — <span style="color:#6c5a70;">${escapeHtml(a.desc)}</span>` : ""}</span>
       <span onclick="${fnRemover}(${i})" style="cursor:pointer;color:#8f2222;font-size:16px;font-weight:bold;">✕</span>
     </div>`).join("");
   const hidden = document.getElementById(hiddenId);
@@ -11868,7 +11867,7 @@ function renderMonstrosMestre() {
       npcs:     "Nenhum NPC criado.\nCrie um na aba ✍️ Criar.",
       mapas:    "Nenhum mapa criado.\nCrie um na aba ✍️ Criar.",
     };
-    lista.innerHTML = `<p style="text-align:center;color:#cdb791;grid-column:1/-1;padding:24px 0;white-space:pre-line;">${msgs[_filtroCompendio] || msgs.todos}</p>`;
+    lista.innerHTML = `<p style="text-align:center;color:#d5cbd8;grid-column:1/-1;padding:24px 0;white-space:pre-line;">${msgs[_filtroCompendio] || msgs.todos}</p>`;
     return;
   }
 
@@ -11957,7 +11956,7 @@ async function addMapa() {
   const resultado = await uploadImagemFirebase(mapaBase64Temp, "mapa");
   if (resultado.erro || !resultado.url) {
     alertBonito(_mensagemErroUpload("O mapa foi salvo sem imagem."))
-    if (btn) { btn.disabled = false; btn.textContent = "+"; }
+    if (btn) { btn.disabled = false; btn.textContent = "Adicionar mapa"; }
     return;
   }
   imagemUrl = resultado.url;
@@ -11971,7 +11970,7 @@ async function addMapa() {
   document.getElementById("mapaPreviewBox").style.display = "none";
   mapaBase64Temp = "";
 
-  if (btn) { btn.disabled = false; btn.textContent = "+"; }
+  if (btn) { btn.disabled = false; btn.textContent = "Adicionar mapa"; }
 
   salvarTudo();
   renderMapas();
@@ -11995,7 +11994,7 @@ function renderMapas() {
       <div class="mapa-card-info" onclick="verMapa(${index})">
         <div class="mapa-card-nome">${esc(mapa.nome)}</div>
         <div class="mapa-card-desc">${esc(mapa.desc) || "Sem descrição"}</div>
-        <div class="mapa-card-desc" style="color:#b89654;margin-top:4px">${(mapa.anotacoes||[]).length}/30 anotações</div>
+        <div class="mapa-card-desc" style="color:#efe7ef;margin-top:4px">${(mapa.anotacoes||[]).length}/30 anotações</div>
       </div>
       <div class="mapa-card-acoes">
         <button class="btn-abrir-mapa" onclick="event.stopPropagation(); verMapa(${index})">Ver</button>
@@ -12012,7 +12011,7 @@ function verMapa(index) {
   if (!mapa) return;
 
   const thumbHTML = mapa.imagemUrl
-    ? `<img src="${mapa.imagemUrl}" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px;border:1px solid rgba(200,169,107,0.2)" />`
+    ? `<img src="${mapa.imagemUrl}" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px;border:1px solid rgba(233,224,236,0.13)" />`
     : "";
 
   const html = `
@@ -12023,11 +12022,11 @@ function verMapa(index) {
         <div class="popup-descricao" style="min-height:auto;padding:10px 12px">${mapa.desc || "Sem descrição"}</div>
       </div>
       <div style="margin-top:14px;text-align:center">
-        <span class="popup-label" style="color:#b89654">${(mapa.anotacoes||[]).length}/30 anotações</span>
+        <span class="popup-label" style="color:#efe7ef">${(mapa.anotacoes||[]).length}/30 anotações</span>
       </div>
       <button
         onclick="fecharPopup(); abrirMapaViewer(${index})"
-        style="margin-top:14px;width:100%;padding:11px;border-radius:12px;background:#b89654;color:#1b1411;font-weight:bold;border:none;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:1px"
+        style="margin-top:14px;width:100%;padding:11px;border-radius:12px;background:#a3334d;color:#16101a;font-weight:bold;border:none;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:1px"
       >
         Abrir Mapa
       </button>
@@ -12047,7 +12046,7 @@ function editarMapa(index) {
       <textarea id="editMapaDesc" placeholder="Descrição">${mapa.desc || ""}</textarea>
       <button
         onclick="salvarEdicaoMapa(${index})"
-        style="margin-top:10px;width:100%;padding:11px;border-radius:12px;background:#b89654;color:#1b1411;font-weight:bold;border:none;cursor:pointer"
+        style="margin-top:10px;width:100%;padding:11px;border-radius:12px;background:#a3334d;color:#16101a;font-weight:bold;border:none;cursor:pointer"
       >
         Salvar
       </button>
@@ -12230,7 +12229,7 @@ async function addDocumento() {
     const resultado = await uploadImagemFirebase(docBase64Temp, "documento");
     if (resultado.erro || !resultado.url) {
       alertBonito(_mensagemErroUpload("O documento não foi salvo."));
-      if (btn) { btn.disabled = false; btn.textContent = "+"; }
+      if (btn) { btn.disabled = false; btn.textContent = "Adicionar documento"; }
       return;
     }
     imagemUrl = resultado.url;
@@ -12246,7 +12245,7 @@ async function addDocumento() {
   document.getElementById("docPreviewBox").style.display = "none";
   docBase64Temp = "";
 
-  if (btn) { btn.disabled = false; btn.textContent = "+"; }
+  if (btn) { btn.disabled = false; btn.textContent = "Adicionar documento"; }
 
   salvarTudo();
   renderDocumentos();
@@ -12324,7 +12323,7 @@ function editarDocumento(index) {
       </select>
       <textarea id="editDocTexto" placeholder="Conteúdo" style="min-height:160px">${esc(doc.texto || "")}</textarea>
       <button onclick="salvarEdicaoDocumento(${index})"
-        style="margin-top:10px;width:100%;padding:11px;border-radius:12px;background:#b89654;color:#1b1411;font-weight:bold;border:none;cursor:pointer">
+        style="margin-top:10px;width:100%;padding:11px;border-radius:12px;background:#a3334d;color:#16101a;font-weight:bold;border:none;cursor:pointer">
         Salvar
       </button>
     </div>`;
@@ -12750,11 +12749,11 @@ async function excluirEntradaCompendio(tipo, id) {
 function _abrirPopupEncontroCompendio(encontro) {
   window._entradaSessaoAtual = encontro;
   const bloco = (titulo, valor) => valor ? `
-    <div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${escapeHtml(valor)}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${escapeHtml(valor)}</div>
     </div>` : "";
 
   const conteudo = `
@@ -12776,11 +12775,11 @@ function _abrirPopupBossCompendio(boss) {
   window._entradaSessaoAtual = boss;
 
   const bloco = (titulo, texto) => `
-    <div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${texto}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
     </div>`;
 
   const conteudo = `
@@ -12795,7 +12794,7 @@ function _abrirPopupBossCompendio(boss) {
     </div>` : ""}
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
       <button style="background:#7B1E28!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick='enviarMonstroPadraoParaCombate(${JSON.stringify(boss)})'>⚔️ Enviar para combate</button>
-      ${boss.origem !== "padrao" ? `` : `<button style="background:rgba(196,169,91,0.2)!important;border:1px solid rgba(196,169,91,0.4)!important;border-radius:8px;color:#C4A95B!important;padding:10px;font-size:13px;cursor:pointer;" onclick='criarCopiaEditavelMonstroPadrao(${JSON.stringify(boss)})'>✏️ Criar cópia editável</button>`}
+      ${boss.origem !== "padrao" ? `` : `<button style="background:rgba(174,55,83,0.2)!important;border:1px solid rgba(233,224,236,0.26)!important;border-radius:8px;color:#efe7ef!important;padding:10px;font-size:13px;cursor:pointer;" onclick='criarCopiaEditavelMonstroPadrao(${JSON.stringify(boss)})'>✏️ Criar cópia editável</button>`}
     </div>
     ${boss.fases     ? bloco("Fases", escapeHtml(boss.fases)) : ""}
     ${boss.mecanicas ? bloco("Mecânicas", escapeHtml(boss.mecanicas)) : ""}
@@ -12817,11 +12816,11 @@ function _abrirPopupItemCompendio(item) {
   const r = {comum:"Comum", incomum:"Incomum", raro:"Raro", muitoraro:"Muito Raro", lendario:"Lendário"};
 
   const bloco = (titulo, texto) => `
-    <div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${texto}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
     </div>`;
 
   const conteudo = `
@@ -12833,8 +12832,8 @@ function _abrirPopupItemCompendio(item) {
     ${item.descricao ? bloco("Descrição", escapeHtml(item.descricao)) : ""}
     ${item.historia  ? bloco("História", escapeHtml(item.historia)) : ""}
     ${item.origem    ? bloco("Origem", escapeHtml(item.origem)) : ""}
-    ${item._origem === "usuario" ? `<button style="width:100%;margin-top:4px;background:rgba(196,169,91,0.2)!important;border:1px solid rgba(196,169,91,0.4)!important;border-radius:8px;color:#C4A95B!important;padding:10px;font-size:13px;cursor:pointer;" onclick="editarItemMestre(${item.id})">✏️ Editar</button>` : ""}
-    <button style="width:100%;margin-top:4px;margin-bottom:8px;background:#C4A95B!important;border:none!important;border-radius:8px;color:#1a0e05!important;font-weight:bold;padding:10px;font-size:13px;cursor:pointer;" onclick="window.abrirDarItemMestre('${item.id}')">🎁 Dar pra jogador</button>
+    ${item._origem === "usuario" ? `<button style="width:100%;margin-top:4px;background:rgba(174,55,83,0.2)!important;border:1px solid rgba(233,224,236,0.26)!important;border-radius:8px;color:#efe7ef!important;padding:10px;font-size:13px;cursor:pointer;" onclick="editarItemMestre(${item.id})">✏️ Editar</button>` : ""}
+    <button style="width:100%;margin-top:4px;margin-bottom:8px;background:#ae3753!important;border:none!important;border-radius:8px;color:#100a13!important;font-weight:bold;padding:10px;font-size:13px;cursor:pointer;" onclick="window.abrirDarItemMestre('${item.id}')">🎁 Dar pra jogador</button>
     <button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirEntradaCompendio('item',${item.id})">🗑 Excluir Item</button>  `;
   _abrirSheetCustom(conteudo);
 }
@@ -12846,13 +12845,13 @@ function _abrirPopupMapaCompendio(mapa) {
     ${mapa.imagem ? `<img src="${mapa.imagem}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;">` : ""}
     <h2 class="sheet-titulo" style="text-align:center;margin-bottom:4px;">${escapeHtml(mapa.nome)}</h2>
     ${mapa.desc ? `
-    <div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Descrição</span>
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Descrição</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${escapeHtml(mapa.desc)}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${escapeHtml(mapa.desc)}</div>
     </div>` : ""}
-    <button style="width:100%;margin-top:4px;margin-bottom:8px;background:#C4A95B!important;border:none!important;border-radius:8px;color:#1a0e05!important;font-weight:bold;padding:10px;font-size:13px;cursor:pointer;" onclick="window.abrirDarItemMestre('${mapa.id}')">🎁 Dar pra jogador</button>
+    <button style="width:100%;margin-top:4px;margin-bottom:8px;background:#ae3753!important;border:none!important;border-radius:8px;color:#100a13!important;font-weight:bold;padding:10px;font-size:13px;cursor:pointer;" onclick="window.abrirDarItemMestre('${mapa.id}')">🎁 Dar pra jogador</button>
     <button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirEntradaCompendio('mapa',${mapa.id})">🗑 Excluir Mapa</button>
   `;
   _abrirSheetCustom(conteudo);
@@ -12880,7 +12879,7 @@ window.abrirDarItemMestre = async function (itemId) {
   document.getElementById("modalDarItemMestre").style.display = "block";
 
   const lista = document.getElementById("listaDarItemMestre");
-  lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;text-align:center;">Carregando...</p>`;
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Carregando...</p>`;
 
   try {
     const grupoSnap = await getDoc(doc(db, "grupos", campanha.grupoVinculado));
@@ -12893,12 +12892,12 @@ window.abrirDarItemMestre = async function (itemId) {
     const jogadores = g.membros.filter(m => m.uid !== meuUid && m.fichaId);
 
     if (jogadores.length === 0) {
-      lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;text-align:center;">Nenhum jogador do grupo tem ficha vinculada ainda.</p>`;
+      lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Nenhum jogador do grupo tem ficha vinculada ainda.</p>`;
       return;
     }
 
     lista.innerHTML = jogadores.map(m => `
-      <button onclick="window.confirmarDarItemMestre('${m.uid}', '${m.fichaId}', '${escapeHtml(m.nickname)}')" style="width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid rgba(196,169,91,0.2);background:rgba(255,255,255,0.03);color:#F8F4E3;font-size:13px;cursor:pointer;">
+      <button onclick="window.confirmarDarItemMestre('${m.uid}', '${m.fichaId}', '${escapeHtml(m.nickname)}')" style="width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid rgba(233,224,236,0.13);background:rgba(255,255,255,0.03);color:#F8F4E3;font-size:13px;cursor:pointer;">
         ${escapeHtml(m.nickname)}<span style="opacity:.5;">#${escapeHtml(m.tag)}</span>
       </button>
     `).join("");
@@ -12983,11 +12982,11 @@ function _abrirPopupNPCCompendio(npc) {
   window._entradaSessaoAtual = npc;
 
   const bloco = (titulo, texto) => `
-    <div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${texto}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
     </div>`;
 
   const conteudo = `
@@ -13157,11 +13156,11 @@ function abrirSheetMonstroPadrao(monstro) {
 
   const imagem = monstro.imagem || "";
   const bloco  = (titulo, texto) => `
-    <div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${texto}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
     </div>`;
 
   conteudo.innerHTML = `
@@ -13183,43 +13182,43 @@ function abrirSheetMonstroPadrao(monstro) {
 
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
       <button style="background:#7B1E28!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick='enviarMonstroPadraoParaCombate(${JSON.stringify(monstro)})'>⚔️ Enviar para combate</button>
-      <button style="background:rgba(196,169,91,0.2)!important;border:1px solid rgba(196,169,91,0.4)!important;border-radius:8px;color:#C4A95B!important;padding:10px;font-size:13px;cursor:pointer;" onclick='criarCopiaEditavelMonstroPadrao(${JSON.stringify(monstro)})'>✏️ Criar cópia editável</button>
+      <button style="background:rgba(174,55,83,0.2)!important;border:1px solid rgba(233,224,236,0.26)!important;border-radius:8px;color:#efe7ef!important;padding:10px;font-size:13px;cursor:pointer;" onclick='criarCopiaEditavelMonstroPadrao(${JSON.stringify(monstro)})'>✏️ Criar cópia editável</button>
     </div>
 
     ${bloco("Lore", formatarTexto(monstro.lore || "Sem lore cadastrada."))}
     ${renderHabilidades(monstro.habilidades)}
     ${renderAtaques(monstro.ataques)}
-    ${monstro.reacoes ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Reações</span>
+    ${monstro.reacoes ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Reações</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.reacoes)}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.reacoes)}</div>
     </div>` : ""}
-    ${monstro.resistencias ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Resistências</span>
+    ${monstro.resistencias ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Resistências</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.resistencias)}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.resistencias)}</div>
     </div>` : ""}
-    ${monstro.imunidades ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Imunidades</span>
+    ${monstro.imunidades ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Imunidades</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.imunidades)}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.imunidades)}</div>
     </div>` : ""}
-    ${monstro.vulnerabilidades ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Vulnerabilidades</span>
+    ${monstro.vulnerabilidades ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Vulnerabilidades</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.vulnerabilidades)}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.vulnerabilidades)}</div>
     </div>` : ""}
-    ${(monstro.sentidos || monstro.idiomas) ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Sentidos e Idiomas</span>
+    ${(monstro.sentidos || monstro.idiomas) ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Sentidos e Idiomas</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${monstro.sentidos ? "Sentidos: " + escapeHtml(monstro.sentidos) : ""}${monstro.sentidos && monstro.idiomas ? "<br>" : ""}${monstro.idiomas ? "Idiomas: " + escapeHtml(monstro.idiomas) : ""}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${monstro.sentidos ? "Sentidos: " + escapeHtml(monstro.sentidos) : ""}${monstro.sentidos && monstro.idiomas ? "<br>" : ""}${monstro.idiomas ? "Idiomas: " + escapeHtml(monstro.idiomas) : ""}</div>
     </div>` : ""}
-    ${monstro.fraquezas ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);"><div style="background:#D4C9A8;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
+    ${monstro.fraquezas ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);"><div style="background:#ce9ede;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
     ${bloco("Diálogos", monstro.dialogos?.length ? monstro.dialogos.map(f => `"${escapeHtml(f)}"`).join("<br>") : "Sem falas cadastradas.")}
     ${bloco("Pontos de Encontro", formatarTexto(monstro.encontros || "Sem pontos de encontro cadastrados."))}
     ${monstro.origem !== "padrao" ? `<button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirMonstroMestre(sheetMonstroIndexAtual)">🗑️ Excluir Monstro</button>` : ""}
@@ -13260,11 +13259,11 @@ function abrirSheetMonstro(index) {
 
   const imagem = monstro.imagem || "";
   const bloco  = (titulo, texto) => `
-    <div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${texto}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
     </div>`;
 
   conteudo.innerHTML = `
@@ -13285,25 +13284,25 @@ function abrirSheetMonstro(index) {
 
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
       <button style="background:#7B1E28!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="enviarMonstroParaCombate(${index})">⚔️ Enviar para combate</button>
-      <button style="background:rgba(196,169,91,0.2)!important;border:1px solid rgba(196,169,91,0.4)!important;border-radius:8px;color:#C4A95B!important;padding:10px;font-size:13px;cursor:pointer;" onclick="editarMonstroMestre(${index})">✏️ Editar</button>
+      <button style="background:rgba(174,55,83,0.2)!important;border:1px solid rgba(233,224,236,0.26)!important;border-radius:8px;color:#efe7ef!important;padding:10px;font-size:13px;cursor:pointer;" onclick="editarMonstroMestre(${index})">✏️ Editar</button>
     </div>
 
     ${bloco("Lore", formatarTexto(monstro.lore || "Sem lore cadastrada."))}
     ${renderHabilidades(monstro.habilidades)}
     ${renderAtaques(monstro.ataques)}
-    ${monstro.reacoes ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Reações</span>
+    ${monstro.reacoes ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Reações</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.reacoes)}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.reacoes)}</div>
     </div>` : ""}
-    ${monstro.resistencias ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-      <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-        <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Resistências / Imunidades</span>
+    ${monstro.resistencias ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Resistências / Imunidades</span>
       </div>
-      <div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.resistencias)}</div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.resistencias)}</div>
     </div>` : ""}
-${monstro.fraquezas ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);"><div style="background:#D4C9A8;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
+${monstro.fraquezas ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);"><div style="background:#ce9ede;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
 ${bloco("Diálogos", monstro.dialogos?.length ? monstro.dialogos.map(f => `"${escapeHtml(f)}"`).join("<br>") : "Sem falas cadastradas.")}
 ${bloco("Pontos de Encontro", formatarTexto(monstro.encontros || "Sem pontos de encontro cadastrados."))}
     <button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirMonstroMestre(${index})">🗑️ Excluir Monstro</button>
@@ -14051,7 +14050,7 @@ function mostrarToastSalvarFlutuante(msg) {
 
   t.style.cssText = `
     position:fixed;top:${top};left:${left};z-index:99999;
-    background:#1E1208;color:#F8F4E3;border:1px solid rgba(196,169,91,0.4);
+    background:#140c18;color:#F8F4E3;border:1px solid rgba(233,224,236,0.26);
     border-radius:10px;padding:8px 14px;font-size:13px;
     box-shadow:0 4px 12px rgba(0,0,0,0.5);
     opacity:0;transition:opacity 0.25s;
@@ -14069,17 +14068,17 @@ function renderAtaques(texto) {
     const partes = ataque.split(":");
     const nome = partes[0]?.trim() || ataque;
     const desc = partes.slice(1).join(":").trim();
-    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(196,169,91,0.12);">
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(233,224,236,0.12);">
       <span style="font-size:14px;flex-shrink:0;margin-top:1px;">⚔️</span>
       <div>
-        <div style="font-size:13px;font-weight:bold;color:#2A1A10;">${escapeHtml(nome)}</div>
-        ${desc ? `<div style="font-size:12px;color:#7A6A50;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
+        <div style="font-size:13px;font-weight:bold;color:#1e1324;">${escapeHtml(nome)}</div>
+        ${desc ? `<div style="font-size:12px;color:#6c5a70;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
       </div>
     </div>`;
   }).join("");
-  return `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-    <div style="background:#D4C9A8;padding:7px 12px;display:flex;align-items:center;gap:6px;justify-content:center;">
-      <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Ataques</span>
+  return `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+    <div style="background:#ce9ede;padding:7px 12px;display:flex;align-items:center;gap:6px;justify-content:center;">
+      <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Ataques</span>
     </div>
     <div style="padding:4px 12px 4px;">${linhas}</div>
   </div>`;
@@ -14178,17 +14177,17 @@ function renderHabilidades(texto) {
     const partes = hab.split(":");
     const nome = partes[0]?.trim() || hab;
     const desc = partes.slice(1).join(":").trim();
-    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(196,169,91,0.12);">
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(233,224,236,0.12);">
       <span style="font-size:14px;flex-shrink:0;margin-top:1px;">✨</span>
       <div>
-        <div style="font-size:13px;font-weight:bold;color:#2A1A10;">${escapeHtml(nome)}</div>
-        ${desc ? `<div style="font-size:12px;color:#7A6A50;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
+        <div style="font-size:13px;font-weight:bold;color:#1e1324;">${escapeHtml(nome)}</div>
+        ${desc ? `<div style="font-size:12px;color:#6c5a70;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
       </div>
     </div>`;
   }).join("");
-  return `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-    <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-      <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Habilidades Especiais</span>
+  return `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+    <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+      <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Habilidades Especiais</span>
     </div>
     <div style="padding:4px 12px 4px;">${linhas}</div>
   </div>`;
@@ -14202,7 +14201,7 @@ function renderCombatesMestre() {
 
   if (!combatesMestre.length) {
     lista.innerHTML = `
-      <p style="text-align:center; color:#cdb791;">
+      <p style="text-align:center; color:#d5cbd8;">
         Nenhum monstro no combate ainda.
       </p>
     `;
@@ -14241,7 +14240,7 @@ function renderCombatesMestre() {
           <div class="combate-hp">
   ❤️ HP ${monstro.hpAtual}/${monstro.hpMax}
   <div class="combate-hp-barra">
-    <div class="combate-hp-fill" style="width:${Math.max(0,Math.min(100,Math.round((monstro.hpAtual/monstro.hpMax)*100)))}%;background:${monstro.hpAtual/monstro.hpMax > 0.5 ? '#2a7a40' : monstro.hpAtual/monstro.hpMax > 0.25 ? '#7a6020' : '#8f2222'};"></div>
+    <div class="combate-hp-fill" style="width:${Math.max(0,Math.min(100,Math.round((monstro.hpAtual/monstro.hpMax)*100)))}%;background:${monstro.hpAtual/monstro.hpMax > 0.5 ? '#2a7a40' : monstro.hpAtual/monstro.hpMax > 0.25 ? '#6c263b' : '#8f2222'};"></div>
   </div>
 </div>
 
@@ -14412,7 +14411,7 @@ function renderCombatesMestre() {
         ` : ""}
 
         <!-- FRAQUEZAS (boss) -->
-        ${monstro.fraquezas ? `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);"><div style="background:#D4C9A8;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#2A1A10;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
+        ${monstro.fraquezas ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);"><div style="background:#ce9ede;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
 
           <!-- LOG -->
 ${monstro.log && monstro.log.length > 0 ? `
@@ -14623,17 +14622,17 @@ function renderHabilidades(texto) {
     const partes = hab.split(":");
     const nome = partes[0]?.trim() || hab;
     const desc = partes.slice(1).join(":").trim();
-    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(196,169,91,0.12);">
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(233,224,236,0.12);">
       <span style="font-size:14px;flex-shrink:0;margin-top:1px;">✨</span>
       <div>
-        <div style="font-size:13px;font-weight:bold;color:#2A1A10;">${escapeHtml(nome)}</div>
-        ${desc ? `<div style="font-size:12px;color:#7A6A50;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
+        <div style="font-size:13px;font-weight:bold;color:#1e1324;">${escapeHtml(nome)}</div>
+        ${desc ? `<div style="font-size:12px;color:#6c5a70;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
       </div>
     </div>`;
   }).join("");
-  return `<div style="background:#E8E0CC;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-    <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-      <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Habilidades Especiais</span>
+  return `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+    <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+      <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Habilidades Especiais</span>
     </div>
     <div style="padding:4px 12px 4px;">${linhas}</div>
   </div>`;
@@ -14940,16 +14939,16 @@ function renderSessoesLore() {
     return;
   }
 
-  const corStatus  = { completa:"#2a7a40", planejada:"#7a6020", cancelada:"#7a2020" };
+  const corStatus  = { completa:"#2a7a40", planejada:"#6c263b", cancelada:"#7a2020" };
   const labelStatus = { completa:"Completa", planejada:"Planejada", cancelada:"Cancelada" };
 
   lista.innerHTML = campanha.sessoes.map((s, i) => {
     const status = s.status || "planejada";
-    const cor = corStatus[status] || "#5a4a3a";
+    const cor = corStatus[status] || "#682539";
     return `
     <div style="
-      background:#F0EBD8;
-      border:1px solid rgba(196,169,91,0.3);
+      background:#eadeea;
+      border:1px solid rgba(233,224,236,0.2);
       border-left:3px solid ${cor};
        border-radius:10px;
       padding:14px 16px;
@@ -14964,18 +14963,18 @@ function renderSessoesLore() {
           display:flex;align-items:center;justify-content:center;">
           ${i + 1}
         </div>
-        <strong style="flex:1;color:#2A1A10;font-size:14px;">${escapeHtml(s.nome)}</strong>
+        <strong style="flex:1;color:#1e1324;font-size:14px;">${escapeHtml(s.nome)}</strong>
         <span style="
           font-size:10px;font-weight:bold;padding:3px 9px;border-radius:20px;
           background:${cor}22;color:${cor};border:1px solid ${cor}44;">
           ${labelStatus[status] || status}
         </span>
       </div>
-      ${s.descricao ? `<p style="font-size:12px;color:#7A6A50;margin:0 0 10px 38px;line-height:1.5;">${escapeHtml(s.descricao)}</p>` : ""}
-      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(196,169,91,0.2);padding-top:8px;margin-top:4px;">
+      ${s.descricao ? `<p style="font-size:12px;color:#6c5a70;margin:0 0 10px 38px;line-height:1.5;">${escapeHtml(s.descricao)}</p>` : ""}
+      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(233,224,236,0.13);padding-top:8px;margin-top:4px;">
         <button onclick="event.stopPropagation();editarSessaoLore(${s.id})" style="
-          background:transparent;border:1px solid rgba(196,169,91,0.4);border-radius:6px;
-          color:#7A6A50;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
+          background:transparent;border:1px solid rgba(233,224,236,0.26);border-radius:6px;
+          color:#6c5a70;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
         <button onclick="event.stopPropagation();deletarSessaoLore(${s.id})" style="
           background:transparent;border:1px solid rgba(143,34,34,0.3);border-radius:6px;
           color:#8f2222;font-size:13px;padding:4px 10px;cursor:pointer;">🗑</button>
@@ -15001,15 +15000,15 @@ function renderEventosLore() {
     revelacao:{ emoji:"🔍", cor:"#1a5f8f" },
     morte:    { emoji:"💀", cor:"#4a4a4a" },
     alianca:  { emoji:"🤝", cor:"#2a7a40" },
-    outro:    { emoji:"📌", cor:"#7a6020" },
+    outro:    { emoji:"📌", cor:"#6c263b" },
   };
 
   lista.innerHTML = campanha.eventos.map(e => {
     const t = tipoInfo[e.tipo] || tipoInfo.outro;
     return `
     <div style="
-      background:#F0EBD8;
-      border:1px solid rgba(196,169,91,0.3);
+      background:#eadeea;
+      border:1px solid rgba(233,224,236,0.2);
       border-left:3px solid ${t.cor};
       border-radius:10px;
       padding:14px 16px;
@@ -15023,14 +15022,14 @@ function renderEventosLore() {
           background:${t.cor}22;color:${t.cor};border:1px solid ${t.cor}44;">
           ${t.emoji} ${e.tipo || "outro"}
         </span>
-        ${e.data ? `<span style="font-size:11px;color:#7a6040;margin-left:auto;">${e.data}</span>` : ""}
+        ${e.data ? `<span style="font-size:11px;color:#645367;margin-left:auto;">${e.data}</span>` : ""}
       </div>
-      <strong style="color:#2A1A10;font-size:14px;">${escapeHtml(e.nome)}</strong>
-      ${e.descricao ? `<p style="font-size:12px;color:#7A6A50;margin:6px 0 10px;line-height:1.5;">${escapeHtml(e.descricao)}</p>` : ""}
-      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(196,169,91,0.2);padding-top:8px;margin-top:4px;">
+      <strong style="color:#1e1324;font-size:14px;">${escapeHtml(e.nome)}</strong>
+      ${e.descricao ? `<p style="font-size:12px;color:#6c5a70;margin:6px 0 10px;line-height:1.5;">${escapeHtml(e.descricao)}</p>` : ""}
+      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(233,224,236,0.13);padding-top:8px;margin-top:4px;">
         <button onclick="event.stopPropagation();editarEventoLore(${e.id})" style="
-          background:transparent;border:1px solid rgba(196,169,91,0.4);border-radius:6px;
-          color:#7A6A50;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
+          background:transparent;border:1px solid rgba(233,224,236,0.26);border-radius:6px;
+          color:#6c5a70;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
         <button onclick="event.stopPropagation();deletarEventoLore(${e.id})" style="
           background:transparent;border:1px solid rgba(143,34,34,0.3);border-radius:6px;
           color:#8f2222;font-size:13px;padding:4px 10px;cursor:pointer;">🗑</button>
@@ -15070,24 +15069,24 @@ function editarSessaoLore(id) {
 
   const modal = document.createElement("div");
   modal.id = "modalEditarSessao";
-  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(20,12,6,0.85);display:flex;align-items:center;justify-content:center;padding:24px;`;
+  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(14,8,16,0.85);display:flex;align-items:center;justify-content:center;padding:24px;`;
   modal.innerHTML = `
-    <div style="background:#1E1208;border:1px solid rgba(196,169,91,0.35);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;">
-      <button onclick="document.getElementById('modalEditarSessao').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#7A6A50;font-size:20px;cursor:pointer;">✕</button>
-      <h3 style="color:#C4A95B;font-size:16px;margin:0 0 16px;font-family:'Cinzel',serif;">✏ Editar Sessão</h3>
+    <div style="background:#140c18;border:1px solid rgba(233,224,236,0.23);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;">
+      <button onclick="document.getElementById('modalEditarSessao').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#8e324e;font-size:20px;cursor:pointer;">✕</button>
+      <h3 style="color:#efe7ef;font-size:16px;margin:0 0 16px;font-family:'Cinzel',serif;">✏ Editar Sessão</h3>
 
-      <label style="color:#7A6A50;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Nome</label>
-      <input id="editSessaoNome" value="${escapeHtml(s.nome)}" style="width:100%;background:#2A1A10;border:1px solid rgba(196,169,91,0.3);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Nome</label>
+      <input id="editSessaoNome" value="${escapeHtml(s.nome)}" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
 
-      <label style="color:#7A6A50;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Status</label>
-      <select id="editSessaoStatus" style="width:100%;background:#2A1A10;border:1px solid rgba(196,169,91,0.3);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Status</label>
+      <select id="editSessaoStatus" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
         <option value="planejada" ${s.status==='planejada'?'selected':''}>🟡 Planejada</option>
         <option value="completa"  ${s.status==='completa' ?'selected':''}>✅ Completa</option>
         <option value="cancelada" ${s.status==='cancelada'?'selected':''}>❌ Cancelada</option>
       </select>
 
-      <label style="color:#7A6A50;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Descrição</label>
-      <textarea id="editSessaoDescricao" rows="4" style="width:100%;background:#2A1A10;border:1px solid rgba(196,169,91,0.3);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:13px;margin:6px 0 16px;box-sizing:border-box;resize:vertical;">${escapeHtml(s.descricao || '')}</textarea>
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Descrição</label>
+      <textarea id="editSessaoDescricao" rows="4" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:13px;margin:6px 0 16px;box-sizing:border-box;resize:vertical;">${escapeHtml(s.descricao || '')}</textarea>
 
       <button onclick="salvarEdicaoSessaoLore(${id})" style="width:100%;background:#7B1E28;border:none;border-radius:8px;color:#F8F4E3;padding:12px;font-size:14px;font-family:'Cinzel',serif;cursor:pointer;">Salvar alterações</button>
     </div>
@@ -15121,22 +15120,22 @@ function editarEventoLore(id) {
 
   const modal = document.createElement("div");
   modal.id = "modalEditarEvento";
-  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(20,12,6,0.85);display:flex;align-items:center;justify-content:center;padding:24px;`;
+  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(14,8,16,0.85);display:flex;align-items:center;justify-content:center;padding:24px;`;
   modal.innerHTML = `
-    <div style="background:#1E1208;border:1px solid rgba(196,169,91,0.35);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;">
-      <button onclick="document.getElementById('modalEditarEvento').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#7A6A50;font-size:20px;cursor:pointer;">✕</button>
-      <h3 style="color:#C4A95B;font-size:16px;margin:0 0 16px;font-family:'Cinzel',serif;">✏ Editar Evento</h3>
+    <div style="background:#140c18;border:1px solid rgba(233,224,236,0.23);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;">
+      <button onclick="document.getElementById('modalEditarEvento').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#8e324e;font-size:20px;cursor:pointer;">✕</button>
+      <h3 style="color:#efe7ef;font-size:16px;margin:0 0 16px;font-family:'Cinzel',serif;">✏ Editar Evento</h3>
 
-      <label style="color:#7A6A50;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Nome</label>
-      <input id="editEventoNome" value="${escapeHtml(e.nome)}" style="width:100%;background:#2A1A10;border:1px solid rgba(196,169,91,0.3);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Nome</label>
+      <input id="editEventoNome" value="${escapeHtml(e.nome)}" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
 
-      <label style="color:#7A6A50;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Tipo</label>
-      <select id="editEventoTipo" style="width:100%;background:#2A1A10;border:1px solid rgba(196,169,91,0.3);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Tipo</label>
+      <select id="editEventoTipo" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
         ${Object.entries(tipoInfo).map(([val, label]) => `<option value="${val}" ${e.tipo===val?'selected':''}>${label}</option>`).join('')}
       </select>
 
-      <label style="color:#7A6A50;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Descrição</label>
-      <textarea id="editEventoDescricao" rows="4" style="width:100%;background:#2A1A10;border:1px solid rgba(196,169,91,0.3);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:13px;margin:6px 0 16px;box-sizing:border-box;resize:vertical;">${escapeHtml(e.descricao || '')}</textarea>
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Descrição</label>
+      <textarea id="editEventoDescricao" rows="4" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:13px;margin:6px 0 16px;box-sizing:border-box;resize:vertical;">${escapeHtml(e.descricao || '')}</textarea>
 
       <button onclick="salvarEdicaoEventoLore(${id})" style="width:100%;background:#7B1E28;border:none;border-radius:8px;color:#F8F4E3;padding:12px;font-size:14px;font-family:'Cinzel',serif;cursor:pointer;">Salvar alterações</button>
     </div>
@@ -15199,7 +15198,7 @@ window.abrirDarItem = async function (tipo, index) {
   document.getElementById("modalDarItem").style.display = "block";
 
   const lista = document.getElementById("listaDarItem");
-  lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;text-align:center;">Carregando...</p>`;
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Carregando...</p>`;
 
   try {
     const grupoSnap = await getDoc(doc(db, "grupos", ficha.grupoAtivo));
@@ -15212,12 +15211,12 @@ window.abrirDarItem = async function (tipo, index) {
     const outros = g.membros.filter(m => m.uid !== meuUid && m.fichaId);
 
     if (outros.length === 0) {
-      lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;text-align:center;">Ninguém do grupo tem uma ficha vinculada ainda.</p>`;
+      lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Ninguém do grupo tem uma ficha vinculada ainda.</p>`;
       return;
     }
 
     lista.innerHTML = outros.map(m => `
-      <button onclick="window.confirmarDarItem('${m.uid}', '${m.fichaId}', '${escapeHtml(m.nickname)}')" style="width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid rgba(196,169,91,0.2);background:rgba(255,255,255,0.03);color:#F8F4E3;font-size:13px;cursor:pointer;">
+      <button onclick="window.confirmarDarItem('${m.uid}', '${m.fichaId}', '${escapeHtml(m.nickname)}')" style="width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid rgba(233,224,236,0.13);background:rgba(255,255,255,0.03);color:#F8F4E3;font-size:13px;cursor:pointer;">
         ${escapeHtml(m.nickname)}<span style="opacity:.5;">#${escapeHtml(m.tag)}</span>
       </button>
     `).join("");
@@ -15290,13 +15289,13 @@ window.renderInboxItens = async function () {
   const lista = document.getElementById("listaInboxItens");
   const meuUid = window.usuarioAtual.uid;
 
-  lista.innerHTML = `<p style="color:#9A8A70;font-size:12px;text-align:center;">Carregando...</p>`;
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Carregando...</p>`;
 
   try {
     const snap = await getDocs(collection(db, "usuarios", meuUid, "itensRecebidos"));
 
     if (snap.empty) {
-      lista.innerHTML = `<p style="color:#9A8A70;font-size:13px;text-align:center;padding:16px 0;font-style:italic;">Nada por aqui.</p>`;
+      lista.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:16px 0;font-style:italic;">Nada por aqui.</p>`;
       atualizarBadgeInboxItens(0);
       return;
     }
@@ -15305,9 +15304,9 @@ window.renderInboxItens = async function () {
     snap.forEach(docSnap => {
       const d = docSnap.data();
       html += `
-        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,91,0.15);border-radius:10px;padding:10px 12px;">
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:10px;padding:10px 12px;">
           <div style="font-size:13px;color:#F8F4E3;font-weight:bold;">${escapeHtml(d.item?.nome || "Sem nome")}</div>
-          <div style="font-size:11px;color:#9A8A70;margin:2px 0 8px;">de ${escapeHtml(d.deNickname)}<span style="opacity:.5;">#${escapeHtml(d.deTag)}</span> · ${d.tipo}</div>
+          <div style="font-size:11px;color:#d5cbd8;margin:2px 0 8px;">de ${escapeHtml(d.deNickname)}<span style="opacity:.5;">#${escapeHtml(d.deTag)}</span> · ${d.tipo}</div>
           <div style="display:flex;gap:8px;">
             <button onclick="window.aceitarItemRecebido('${docSnap.id}')" style="flex:1;padding:6px;border-radius:6px;border:none;background:#4a7c3a;color:#fff;font-size:12px;cursor:pointer;">Aceitar</button>
             <button onclick="window.recusarItemRecebido('${docSnap.id}')" style="flex:1;padding:6px;border-radius:6px;border:none;background:#7B1E28;color:#fff;font-size:12px;cursor:pointer;">Recusar</button>
@@ -15582,7 +15581,7 @@ function renderNPCsMundo() {
 
   const relInfo = {
     aliado:  { cor:"#2a7a40", label:"Aliado"  },
-    neutro:  { cor:"#7a6020", label:"Neutro"  },
+    neutro:  { cor:"#6c263b", label:"Neutro"  },
     inimigo: { cor:"#8f2222", label:"Inimigo" },
   };
 
@@ -15595,29 +15594,29 @@ function renderNPCsMundo() {
     const hpMax    = n.hpMax || d.hpMax || d.hp || 20;
     const hpAtual  = n.hpAtual !== undefined ? n.hpAtual : hpMax;
     const hpPct    = Math.max(0, Math.min(100, Math.round((hpAtual/hpMax)*100)));
-    const hpCor    = hpPct > 60 ? "#2a7a40" : hpPct > 30 ? "#7a6020" : "#8f2222";
+    const hpCor    = hpPct > 60 ? "#2a7a40" : hpPct > 30 ? "#6c263b" : "#8f2222";
 
     const bloco = (titulo, valor) => valor ? `
-      <div style="background:#F0EBD8;border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid rgba(196,169,91,0.2);">
-        <div style="background:#DDD5BC;padding:6px 12px;text-align:center;">
-          <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+      <div style="background:#eadeea;border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid rgba(233,224,236,0.13);">
+        <div style="background:#d9b3e6;padding:6px 12px;text-align:center;">
+          <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
         </div>
-        <p style="color:#2A1A10;font-size:13px;margin:0;padding:10px 12px;line-height:1.5;text-align:center;">${escapeHtml(valor)}</p>
+        <p style="color:#1e1324;font-size:13px;margin:0;padding:10px 12px;line-height:1.5;text-align:center;">${escapeHtml(valor)}</p>
       </div>` : "";
 
     return `
-<div class="npc-card-mundo" id="npcMundo_${n.id}" style="background:#F8F4E3;border:1px solid rgba(196,169,91,0.3);border-left:3px solid ${rel.cor};border-radius:10px;margin-bottom:12px;">
+<div class="npc-card-mundo" id="npcMundo_${n.id}" style="background:#F8F4E3;border:1px solid rgba(233,224,236,0.2);border-left:3px solid ${rel.cor};border-radius:10px;margin-bottom:12px;">
   <div class="npc-card-header" onclick="toggleNPCMundo(${n.id})" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;">
     <div style="width:38px;height:38px;border-radius:50%;background:${cor};color:#fff;font-size:14px;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
   ${n.imagem ? `<img src="${n.imagem}" style="width:100%;height:100%;object-fit:cover;">` : iniciais}
 </div>
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-        <strong style="color:#2A1A10;font-size:14px;">${escapeHtml(n.nome)}</strong>
+        <strong style="color:#1e1324;font-size:14px;">${escapeHtml(n.nome)}</strong>
         <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${rel.cor}22;color:${rel.cor};border:1px solid ${rel.cor}44;">${rel.label}</span>
-        <span class="npc-toggle-seta" style="margin-left:auto;color:#7A6A50;font-size:12px;">▼</span>
+        <span class="npc-toggle-seta" style="margin-left:auto;color:#6c5a70;font-size:12px;">▼</span>
       </div>
-      <small style="color:#7A6A50;font-size:11px;">${[escapeHtml(n.classe||""), escapeHtml(n.regiao||"")].filter(Boolean).join(" · ")}</small>
+      <small style="color:#6c5a70;font-size:11px;">${[escapeHtml(n.classe||""), escapeHtml(n.regiao||"")].filter(Boolean).join(" · ")}</small>
       <div style="margin-top:6px;">
   <div style="display:flex;align-items:center;gap:8px;">
     <span id="npcHpCoracao_${n.id}" style="font-size:11px;color:${hpCor};font-weight:bold;">❤ ${hpAtual}/${hpMax}</span>
@@ -15625,7 +15624,7 @@ function renderNPCsMundo() {
       <div id="npcHpBarra_${n.id}" style="height:100%;width:${hpPct}%;background:${hpCor};border-radius:4px;transition:width 0.3s ease;"></div>
     </div>
   </div>
-  ${d.ca ? `<div style="font-size:11px;color:#7A6A50;font-weight:bold;margin-top:3px;">🛡️ CA ${d.ca}</div>` : ""}
+  ${d.ca ? `<div style="font-size:11px;color:#6c5a70;font-weight:bold;margin-top:3px;">🛡️ CA ${d.ca}</div>` : ""}
 </div>
     </div>
   </div>
@@ -15633,7 +15632,7 @@ function renderNPCsMundo() {
   <div class="npc-card-detalhes" id="npcDetalhes_${n.id}" style="display:none;max-height:0;overflow:hidden;" data-aberto="0">
     <div style="padding:0 16px 16px;">
 
-     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;padding:10px;background:#F0EBD8;border-radius:8px;border:1px solid rgba(196,169,91,0.2);">
+     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;padding:10px;background:#eadeea;border-radius:8px;border:1px solid rgba(233,224,236,0.13);">
   <div style="display:flex;gap:4px;">
     <button onclick="event.stopPropagation();alterarHpNPC(${n.id},-10)" style="flex:1;background:#6b1818!important;border:none!important;border-radius:6px;color:#fff!important;padding:8px 4px;font-size:12px;cursor:pointer;font-weight:bold;">-10</button>
     <button onclick="event.stopPropagation();alterarHpNPC(${n.id},-5)"  style="flex:1;background:#8f2222!important;border:none!important;border-radius:6px;color:#fff!important;padding:8px 4px;font-size:12px;cursor:pointer;font-weight:bold;">-5</button>
@@ -15648,9 +15647,9 @@ function renderNPCsMundo() {
       ${(d.status && Object.keys(d.status).length) ? `
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px;">
         ${["for","des","con","int","sab","car"].map(a=>`
-          <div style="background:#F0EBD8;border-radius:8px;padding:8px 4px;text-align:center;border:1px solid rgba(196,169,91,0.2);">
-            <div style="font-size:9px;color:#7A6A50;text-transform:uppercase;letter-spacing:0.5px;">${a}</div>
-            <div style="font-size:15px;font-weight:bold;color:#2A1A10;">${d.status[a]||10}</div>
+          <div style="background:#eadeea;border-radius:8px;padding:8px 4px;text-align:center;border:1px solid rgba(233,224,236,0.13);">
+            <div style="font-size:9px;color:#6c5a70;text-transform:uppercase;letter-spacing:0.5px;">${a}</div>
+            <div style="font-size:15px;font-weight:bold;color:#1e1324;">${d.status[a]||10}</div>
             <div style="font-size:10px;color:#7B1E28;">${mod(d.status[a]||10)}</div>
           </div>`).join("")}
       </div>` : ""}
@@ -15663,8 +15662,8 @@ function renderNPCsMundo() {
 
       ${(d.velocidade || d.desafio) ? `
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        ${d.velocidade ? `<span style="background:#F0EBD8;border:1px solid rgba(196,169,91,0.3);border-radius:8px;padding:5px 10px;font-size:12px;color:#2A1A10;"><strong>Vel</strong> ${escapeHtml(d.velocidade)}</span>` : ""}
-        ${d.desafio ? `<span style="background:#F0EBD8;border:1px solid rgba(196,169,91,0.3);border-radius:8px;padding:5px 10px;font-size:12px;color:#2A1A10;"><strong>ND</strong> ${escapeHtml(d.desafio)}</span>` : ""}
+        ${d.velocidade ? `<span style="background:#eadeea;border:1px solid rgba(233,224,236,0.2);border-radius:8px;padding:5px 10px;font-size:12px;color:#1e1324;"><strong>Vel</strong> ${escapeHtml(d.velocidade)}</span>` : ""}
+        ${d.desafio ? `<span style="background:#eadeea;border:1px solid rgba(233,224,236,0.2);border-radius:8px;padding:5px 10px;font-size:12px;color:#1e1324;"><strong>ND</strong> ${escapeHtml(d.desafio)}</span>` : ""}
       </div>` : ""}
 
       ${bloco("⚔️ Habilidades Especiais", d.habilidades)}
@@ -15732,7 +15731,7 @@ function alterarHpNPC(id, delta) {
   n.hpAtual     = hpAtual;
 
   const hpPct = Math.max(0, Math.min(100, Math.round((hpAtual/hpMax)*100)));
-  const hpCor = hpPct > 60 ? "#2a7a40" : hpPct > 30 ? "#7a6020" : "#8f2222";
+  const hpCor = hpPct > 60 ? "#2a7a40" : hpPct > 30 ? "#6c263b" : "#8f2222";
 
   const barra   = document.getElementById(`npcHpBarra_${id}`);
   const valor   = document.getElementById(`npcHpValor_${id}`);
@@ -15776,7 +15775,7 @@ function toggleNPCMundo(id) {
 }
 
 function _corAvatar(nome) {
-  const cores = ["#8f2222","#1a5f8f","#2a7a40","#7a6020","#5a2a8f","#8f5a20"];
+  const cores = ["#8f2222","#1a5f8f","#2a7a40","#6c263b","#5a2a8f","#7b2b43"];
   let hash = 0;
   for (let c of (nome||"")) hash += c.charCodeAt(0);
   return cores[hash % cores.length];
@@ -15906,14 +15905,14 @@ function renderMissoesMundo() {
   }
 
   const priorInfo = {
-    andamento:  { cor:"#7a6020", label:"Em andamento" },
+    andamento:  { cor:"#6c263b", label:"Em andamento" },
     concluida:  { cor:"#2a7a40", label:"Concluída"    },
     abandonada: { cor:"#4a4a4a", label:"Abandonada"   },
   };
 
   const difInfo = {
     facil:  { cor:"#2a7a40", label:"Fácil"  },
-    medio:  { cor:"#7a6020", label:"Médio"  },
+    medio:  { cor:"#6c263b", label:"Médio"  },
     dificil:{ cor:"#8f2222", label:"Difícil"},
     epico:  { cor:"#5a1a7a", label:"Épico"  },
   };
@@ -15927,17 +15926,17 @@ const pct = etapasTotal ? Math.min(100, Math.round((etapasConcluidas / etapasTot
 const etapasHtml = (m.etapas || []).map((e, i) => `
   <div class="missao-etapa" onclick="toggleEtapaMissao(${m.id}, ${i})" style="
     display:flex;align-items:center;gap:8px;
-    padding:6px 0;border-bottom:1px solid rgba(216,200,170,0.06);
+    padding:6px 0;border-bottom:1px solid rgba(233,224,236,0.12);
     cursor:pointer;">
     <span style="
       width:18px;height:18px;border-radius:4px;flex-shrink:0;
-      border:1px solid ${e.feita ? p.cor : 'rgba(216,200,170,0.25)'};
+      border:1px solid ${e.feita ? p.cor : 'rgba(198,186,200,0.25)'};
       background:${e.feita ? p.cor + '33' : 'transparent'};
       display:flex;align-items:center;justify-content:center;
       font-size:11px;color:${p.cor};">
       ${e.feita ? '✓' : ''}
     </span>
-    <span style="font-size:13px;color:${e.feita ? '#7a6a5a' : '#d8c8aa'};
+    <span style="font-size:13px;color:${e.feita ? '#725e76' : '#c6bac8'};
       text-decoration:${e.feita ? 'line-through' : 'none'};">
       ${escapeHtml(e.nome)}
     </span>
@@ -15959,13 +15958,13 @@ ${m.dificuldade ? `<span class="lore-badge" style="background:${(difInfo[m.dific
           <div class="missao-barra-bg">
             <div class="missao-barra-fill" style="width:${pct}%;background:${p.cor};"></div>
           </div>
-          <small style="color:#7a6a5a;font-size:11px;">${etapasConcluidas} de ${etapasTotal} etapas</small>
+          <small style="color:#725e76;font-size:11px;">${etapasConcluidas} de ${etapasTotal} etapas</small>
         </div>
       </div>
 
       <!-- detalhes expansíveis -->
       <div class="npc-card-detalhes" id="missaoDetalhes_${m.id}" style="display:none;max-height:0;overflow:hidden;" data-aberto="0">
-        ${m.desc ? `<p style="color:#b9a98c;font-size:13px;margin:0 0 10px;">${escapeHtml(m.desc)}</p>` : ""}
+        ${m.desc ? `<p style="color:#d5cbd8;font-size:13px;margin:0 0 10px;">${escapeHtml(m.desc)}</p>` : ""}
         <div style="margin-bottom:8px;">${etapasHtml}</div>
         <div style="margin-top:10px;text-align:right;">
           <span onclick="deletarMissaoMundo(${m.id})" style="cursor:pointer;font-size:12px;color:#8f2222;opacity:0.8;display:inline-block;">🗑 Remover missão</span>
@@ -16134,20 +16133,20 @@ function renderEncontrosMundo() {
 
     return `
     <div style="
-      background:#F0EBD8;border:1px solid rgba(196,169,91,0.3);
+      background:#eadeea;border:1px solid rgba(233,224,236,0.2);
       border-left:3px solid #7B1E28;border-radius:10px;
       padding:14px 16px;margin-bottom:12px;cursor:pointer;
     " onclick="abrirDetalheEncontro(${e.id})">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <div style="display:flex;align-items:center;gap:6px;">
-          <strong style="color:#2A1A10;font-size:14px;">${escapeHtml(e.nome)}</strong>
-          ${e.dificuldade ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${({facil:'rgba(60,140,40,0.15)',medio:'rgba(180,140,20,0.15)',dificil:'rgba(180,80,20,0.15)',lendario:'rgba(139,26,26,0.15)'}[e.dificuldade]||'transparent')};color:${({facil:'#2a6010',medio:'#6a5010',dificil:'#7a3810',lendario:'#6a1010'}[e.dificuldade]||'#7A6A50')};">${e.dificuldade.charAt(0).toUpperCase()+e.dificuldade.slice(1)}</span>` : ""}
+          <strong style="color:#1e1324;font-size:14px;">${escapeHtml(e.nome)}</strong>
+          ${e.dificuldade ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${({facil:'rgba(60,140,40,0.15)',medio:'rgba(141,49,77,0.15)',dificil:'rgba(141,49,77,0.15)',lendario:'rgba(139,26,26,0.15)'}[e.dificuldade]||'transparent')};color:${({facil:'#2a6010',medio:'#40274c',dificil:'#492d57',lendario:'#6a1010'}[e.dificuldade]||'#8e324e')};">${e.dificuldade.charAt(0).toUpperCase()+e.dificuldade.slice(1)}</span>` : ""}
         </div>
-        ${e.regiao ? `<span style="font-size:11px;color:#7A6A50;background:rgba(196,169,91,0.15);padding:2px 8px;border-radius:20px;">${escapeHtml(e.regiao)}</span>` : ""}
+        ${e.regiao ? `<span style="font-size:11px;color:#8e324e;background:rgba(174,55,83,0.15);padding:2px 8px;border-radius:20px;">${escapeHtml(e.regiao)}</span>` : ""}
       </div>
-      <p style="font-size:12px;color:#7A6A50;margin:0 0 10px;line-height:1.5;">${preview}</p>
-      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(196,169,91,0.2);padding-top:8px;">
-        <button onclick="event.stopPropagation();editarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(196,169,91,0.4);border-radius:6px;color:#7A6A50;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
+      <p style="font-size:12px;color:#6c5a70;margin:0 0 10px;line-height:1.5;">${preview}</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(233,224,236,0.13);padding-top:8px;">
+        <button onclick="event.stopPropagation();editarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(233,224,236,0.26);border-radius:6px;color:#8e324e;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
         <button onclick="event.stopPropagation();deletarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(143,34,34,0.3);border-radius:6px;color:#8f2222;font-size:13px;padding:4px 10px;cursor:pointer;">🗑</button>
       </div>
     </div>`;
@@ -16161,24 +16160,24 @@ function abrirDetalheEncontro(id) {
 
   const campo = (label, valor) => valor ? `
     <div style="margin-bottom:12px;">
-      <span style="font-size:10px;color:#7A6A50;text-transform:uppercase;letter-spacing:1px;">${label}</span>
-      <p style="color:#D8C8AA;font-size:13px;line-height:1.6;margin:4px 0 0;background:#2A1A10;border-radius:8px;padding:10px 12px;border:1px solid rgba(196,169,91,0.15);">${escapeHtml(valor)}</p>
+      <span style="font-size:10px;color:#6c5a70;text-transform:uppercase;letter-spacing:1px;">${label}</span>
+      <p style="color:#d5cbd8;font-size:13px;line-height:1.6;margin:4px 0 0;background:#1e1324;border-radius:8px;padding:10px 12px;border:1px solid rgba(233,224,236,0.12);">${escapeHtml(valor)}</p>
     </div>` : "";
 
   const modal = document.createElement("div");
   modal.id = "modalDetalheEncontro";
-  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(20,12,6,0.85);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;`;
+  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(14,8,16,0.85);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;`;
   modal.innerHTML = `
-    <div style="background:#1E1208;border:1px solid rgba(196,169,91,0.35);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;margin:auto;">
-      <button onclick="document.getElementById('modalDetalheEncontro').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#7A6A50;font-size:20px;cursor:pointer;">✕</button>
+    <div style="background:#140c18;border:1px solid rgba(233,224,236,0.23);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;margin:auto;">
+      <button onclick="document.getElementById('modalDetalheEncontro').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#8e324e;font-size:20px;cursor:pointer;">✕</button>
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(123,30,40,0.2);color:#C4A95B;border:1px solid rgba(123,30,40,0.4);">🗺️ Encontro</span>
-        ${e.regiao ? `<span style="font-size:11px;color:#7A6A50;">${escapeHtml(e.regiao)}</span>` : ""}
-        ${e.localizacao ? `<span style="font-size:11px;color:#7A6A50;">· ${escapeHtml(e.localizacao)}</span>` : ""}
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(123,30,40,0.2);color:#efe7ef;border:1px solid rgba(123,30,40,0.4);">🗺️ Encontro</span>
+        ${e.regiao ? `<span style="font-size:11px;color:#6c5a70;">${escapeHtml(e.regiao)}</span>` : ""}
+        ${e.localizacao ? `<span style="font-size:11px;color:#6c5a70;">· ${escapeHtml(e.localizacao)}</span>` : ""}
       </div>
 
-      <h3 style="color:#C4A95B;font-size:18px;margin:0 0 16px;font-family:'Cinzel',serif;">${escapeHtml(e.nome)}</h3>
+      <h3 style="color:#efe7ef;font-size:18px;margin:0 0 16px;font-family:'Cinzel',serif;">${escapeHtml(e.nome)}</h3>
 
       ${campo("Envolvidos", e.envolvidos)}
       ${campo("Objetivo", e.objetivo)}
@@ -16189,7 +16188,7 @@ function abrirDetalheEncontro(id) {
       ${campo("Notas do Mestre", e.notas)}
 
       <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
-        <button onclick="document.getElementById('modalDetalheEncontro').remove();editarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(196,169,91,0.4);border-radius:8px;color:#C4A95B;padding:8px 16px;cursor:pointer;font-size:13px;">✏ Editar</button>
+        <button onclick="document.getElementById('modalDetalheEncontro').remove();editarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(233,224,236,0.26);border-radius:8px;color:#efe7ef;padding:8px 16px;cursor:pointer;font-size:13px;">✏ Editar</button>
         <button onclick="document.getElementById('modalDetalheEncontro').remove();deletarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(143,34,34,0.4);border-radius:8px;color:#8f2222;padding:8px 16px;cursor:pointer;font-size:13px;">🗑 Remover</button>
       </div>
     </div>
@@ -16247,8 +16246,8 @@ function mostrarToastMundo(msg) {
   t.textContent = msg;
   t.style.cssText = `
     position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);
-    background:linear-gradient(180deg,#5f1717,#2a0b0b);color:#d8c8aa;
-    border:1px solid rgba(216,200,170,0.22);border-radius:999px;
+    background:linear-gradient(180deg,#5f1717,#2a0b0b);color:#d5cbd8;
+    border:1px solid rgba(233,224,236,0.14);border-radius:999px;
     padding:9px 22px;font-size:14px;font-weight:bold;z-index:99999;
     opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;
   `;
@@ -16263,21 +16262,21 @@ function abrirDetalheSessaoLore(id) {
   const s = campanha.sessoes.find(s => s.id === id);
   if (!s) return;
 
-  const corStatus = { completa:"#2a7a40", planejada:"#7a6020", cancelada:"#7a2020" };
+  const corStatus = { completa:"#2a7a40", planejada:"#6c263b", cancelada:"#7a2020" };
   const labelStatus = { completa:"Completa", planejada:"Planejada", cancelada:"Cancelada" };
-  const cor = corStatus[s.status] || "#7a6020";
+  const cor = corStatus[s.status] || "#6c263b";
 
   const modal = document.createElement("div");
   modal.style.cssText = `
     position:fixed;inset:0;z-index:9999;
-    background:rgba(20,12,6,0.82);
+    background:rgba(14,8,16,0.82);
     display:flex;align-items:center;justify-content:center;
     padding:24px;
   `;
   modal.innerHTML = `
     <div style="
-      background:#1E1208;
-      border:1px solid rgba(196,169,91,0.35);
+      background:#140c18;
+      border:1px solid rgba(233,224,236,0.23);
       border-radius:14px;
       padding:24px;
       width:100%;max-width:420px;
@@ -16285,7 +16284,7 @@ function abrirDetalheSessaoLore(id) {
     ">
       <button onclick="this.closest('[style*=fixed]').remove()" style="
         position:absolute;top:12px;right:14px;
-        background:transparent;border:none;color:#7A6A50;
+        background:transparent;border:none;color:#8e324e;
         font-size:20px;cursor:pointer;line-height:1;">✕</button>
 
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
@@ -16294,23 +16293,23 @@ function abrirDetalheSessaoLore(id) {
           background:${cor}22;color:${cor};border:1px solid ${cor}44;">
           ${labelStatus[s.status] || "Planejada"}
         </span>
-        ${s.data ? `<span style="font-size:11px;color:#7A6A50;">${s.data}</span>` : ""}
+        ${s.data ? `<span style="font-size:11px;color:#6c5a70;">${s.data}</span>` : ""}
       </div>
 
-      <h3 style="color:#C4A95B;font-size:18px;margin:0 0 12px;">${escapeHtml(s.nome)}</h3>
+      <h3 style="color:#efe7ef;font-size:18px;margin:0 0 12px;">${escapeHtml(s.nome)}</h3>
 
       ${s.descricao ? `
         <div style="
-          background:#2A1A10;border-radius:8px;padding:14px;
-          border:1px solid rgba(196,169,91,0.15);
+          background:#1e1324;border-radius:8px;padding:14px;
+          border:1px solid rgba(233,224,236,0.12);
         ">
-          <p style="color:#D8C8AA;font-size:13px;line-height:1.7;margin:0;">${escapeHtml(s.descricao)}</p>
+          <p style="color:#d5cbd8;font-size:13px;line-height:1.7;margin:0;">${escapeHtml(s.descricao)}</p>
         </div>` : ""}
 
       <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
         <button onclick="this.closest('[style*=fixed]').remove();editarSessaoLore(${s.id})" style="
-          background:transparent;border:1px solid rgba(196,169,91,0.4);
-          border-radius:8px;color:#C4A95B;padding:8px 16px;cursor:pointer;font-size:13px;">
+          background:transparent;border:1px solid rgba(233,224,236,0.26);
+          border-radius:8px;color:#efe7ef;padding:8px 16px;cursor:pointer;font-size:13px;">
           ✏ Editar
         </button>
         <button onclick="this.closest('[style*=fixed]').remove();deletarSessaoLore(${s.id})" style="
@@ -16336,21 +16335,21 @@ function abrirDetalheEventoLore(id) {
     revelacao:{ emoji:"🔍", cor:"#1a5f8f" },
     morte:    { emoji:"💀", cor:"#4a4a4a" },
     alianca:  { emoji:"🤝", cor:"#2a7a40" },
-    outro:    { emoji:"📌", cor:"#7a6020" },
+    outro:    { emoji:"📌", cor:"#6c263b" },
   };
   const t = tipoInfo[e.tipo] || tipoInfo.outro;
 
   const modal = document.createElement("div");
   modal.style.cssText = `
     position:fixed;inset:0;z-index:9999;
-    background:rgba(20,12,6,0.82);
+    background:rgba(14,8,16,0.82);
     display:flex;align-items:center;justify-content:center;
     padding:24px;
   `;
   modal.innerHTML = `
     <div style="
-      background:#1E1208;
-      border:1px solid rgba(196,169,91,0.35);
+      background:#140c18;
+      border:1px solid rgba(233,224,236,0.23);
       border-left:3px solid ${t.cor};
       border-radius:14px;
       padding:24px;
@@ -16359,7 +16358,7 @@ function abrirDetalheEventoLore(id) {
     ">
       <button onclick="this.closest('[style*=fixed]').remove()" style="
         position:absolute;top:12px;right:14px;
-        background:transparent;border:none;color:#7A6A50;
+        background:transparent;border:none;color:#8e324e;
         font-size:20px;cursor:pointer;line-height:1;">✕</button>
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
@@ -16368,23 +16367,23 @@ function abrirDetalheEventoLore(id) {
           background:${t.cor}22;color:${t.cor};border:1px solid ${t.cor}44;">
           ${t.emoji} ${e.tipo || "outro"}
         </span>
-        ${e.data ? `<span style="font-size:11px;color:#7A6A50;">${e.data}</span>` : ""}
+        ${e.data ? `<span style="font-size:11px;color:#6c5a70;">${e.data}</span>` : ""}
       </div>
 
-      <h3 style="color:#C4A95B;font-size:18px;margin:0 0 12px;">${escapeHtml(e.nome)}</h3>
+      <h3 style="color:#efe7ef;font-size:18px;margin:0 0 12px;">${escapeHtml(e.nome)}</h3>
 
       ${e.descricao ? `
         <div style="
-          background:#2A1A10;border-radius:8px;padding:14px;
-          border:1px solid rgba(196,169,91,0.15);
+          background:#1e1324;border-radius:8px;padding:14px;
+          border:1px solid rgba(233,224,236,0.12);
         ">
-          <p style="color:#D8C8AA;font-size:13px;line-height:1.7;margin:0;">${escapeHtml(e.descricao)}</p>
+          <p style="color:#d5cbd8;font-size:13px;line-height:1.7;margin:0;">${escapeHtml(e.descricao)}</p>
         </div>` : ""}
 
       <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
         <button onclick="this.closest('[style*=fixed]').remove();editarEventoLore(${e.id})" style="
-          background:transparent;border:1px solid rgba(196,169,91,0.4);
-          border-radius:8px;color:#C4A95B;padding:8px 16px;cursor:pointer;font-size:13px;">
+          background:transparent;border:1px solid rgba(233,224,236,0.26);
+          border-radius:8px;color:#efe7ef;padding:8px 16px;cursor:pointer;font-size:13px;">
           ✏ Editar
         </button>
         <button onclick="this.closest('[style*=fixed]').remove();deletarEventoLore(${e.id})" style="
@@ -16660,19 +16659,19 @@ window.abrirDetalheGrupo = async function (grupoId) {
 
   const membrosDiv = document.getElementById("detalheGrupoMembros");
   membrosDiv.innerHTML = g.membros.map(m => `
-    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,91,0.12);border-radius:8px;padding:8px 10px;">
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:8px;padding:8px 10px;">
       <div style="display:flex;align-items:center;gap:8px;">
 <div ${m.uid !== meuUid ? `onclick="abrirAcoesMembro('${m.uid}','${escapeHtml(m.nickname)}','${escapeHtml(m.tag)}')" style="cursor:pointer;flex:1;font-size:13px;"` : `style="flex:1;font-size:13px;"`}>${escapeHtml(m.nickname)}<span style="opacity:.5;">#${escapeHtml(m.tag)}</span></div>        ${souMestre && m.uid !== meuUid ? `
-          <button onclick="alternarPapelMembro('${m.uid}')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid rgba(196,169,91,0.3);background:transparent;color:#C4A95B;cursor:pointer;text-transform:uppercase;">${m.papel === "mestre" ? "Mestre" : "Jogador"}</button>
+          <button onclick="alternarPapelMembro('${m.uid}')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid rgba(233,224,236,0.2);background:transparent;color:#efe7ef;cursor:pointer;text-transform:uppercase;">${m.papel === "mestre" ? "Mestre" : "Jogador"}</button>
           <button onclick="removerMembroGrupo('${m.uid}')" style="width:22px;height:22px;border-radius:50%;border:none;background:#7B1E28;color:#fff;cursor:pointer;font-size:11px;">✕</button>
-        ` : `<span style="font-size:10px;color:#9A8A70;text-transform:uppercase;">${m.papel === "mestre" ? "Mestre" : "Jogador"}</span>`}
+        ` : `<span style="font-size:10px;color:#d5cbd8;text-transform:uppercase;">${m.papel === "mestre" ? "Mestre" : "Jogador"}</span>`}
       </div>
       ${m.uid === meuUid ? `
-        <select id="selectFichaGrupo" style="margin-top:8px;width:100%;background:#1b120c;border:1px solid rgba(196,169,91,0.25);border-radius:6px;padding:6px 8px;color:#F8F4E3;font-size:12px;">
+        <select id="selectFichaGrupo" style="margin-top:8px;width:100%;background:#150d18;border:1px solid rgba(233,224,236,0.16);border-radius:6px;padding:6px 8px;color:#F8F4E3;font-size:12px;">
           <option value="">— minha ficha nesse grupo —</option>
           ${minhasFichas.map(f => `<option value="${String(f.id)}" ${String(f.id) === String(m.fichaId) ? "selected" : ""}>${escapeHtml(f.nome || "Sem nome")}</option>`).join("")}
         </select>
-        <button onclick="window.salvarFichaGrupoBotao(this)" style="margin-top:6px;width:100%;padding:7px;border-radius:6px;border:none;background:#C4A95B;color:#1a0e05;font-weight:bold;font-size:12px;cursor:pointer;">Salvar vínculo</button>
+        <button onclick="window.salvarFichaGrupoBotao(this)" style="margin-top:6px;width:100%;padding:7px;border-radius:6px;border:none;background:#ae3753;color:#100a13;font-weight:bold;font-size:12px;cursor:pointer;">Salvar vínculo</button>
         <div id="statusFichaGrupo" style="font-size:11px;margin-top:4px;text-align:center;"></div>
       ` : ""}
     </div>
@@ -16681,7 +16680,7 @@ window.abrirDetalheGrupo = async function (grupoId) {
   const acoesDiv = document.getElementById("detalheGrupoAcoes");
   let acoesHtml = "";
   if (souMestre) {
-    acoesHtml += `<button onclick="mostrarRenomearGrupo('${escapeHtml(g.nome)}')" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(196,169,91,0.3);background:transparent;color:#E8CC80;font-size:13px;cursor:pointer;">Renomear grupo</button>`;
+    acoesHtml += `<button onclick="mostrarRenomearGrupo('${escapeHtml(g.nome)}')" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(233,224,236,0.2);background:transparent;color:#efe7ef;font-size:13px;cursor:pointer;">Renomear grupo</button>`;
     acoesHtml += `<button onclick="excluirGrupo()" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(123,30,40,0.4);background:rgba(123,30,40,0.15);color:#e07a7a;font-size:13px;cursor:pointer;">Excluir grupo</button>`;
   } else {
     acoesHtml += `<button onclick="sairDoGrupo()" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(123,30,40,0.4);background:rgba(123,30,40,0.15);color:#e07a7a;font-size:13px;cursor:pointer;">Sair do grupo</button>`;
@@ -16891,11 +16890,11 @@ window.renderGrupoMaster = async function () {
   const grupoId = campanha?.grupoVinculado;
 
   if (!grupoId) {
-    conteudo.innerHTML = `<p style="color:#9A8A70;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Essa campanha não tem um grupo vinculado. Edite a campanha pra escolher um.</p>`;
+    conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Essa campanha não tem um grupo vinculado. Edite a campanha pra escolher um.</p>`;
     return;
   }
 
-  conteudo.innerHTML = `<p style="color:#9A8A70;font-size:13px;text-align:center;">Carregando grupo...</p>`;
+  conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;">Carregando grupo...</p>`;
 
   const grupoSnap = await getDoc(doc(db, "grupos", grupoId));
   if (!grupoSnap.exists()) {
@@ -16909,15 +16908,15 @@ window.renderGrupoMaster = async function () {
   window._grupoMasterAlvos = alvos;
 
   if (alvos.length === 0) {
-    conteudo.innerHTML = `<p style="color:#9A8A70;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum jogador vinculou uma ficha a esse grupo ainda.</p>`;
+    conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum jogador vinculou uma ficha a esse grupo ainda.</p>`;
     return;
   }
 
   conteudo.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       ${alvos.map(m => `
-        <div id="dashCard-${m.uid}" onclick="window.abrirFichaFlutuante('${m.uid}')" style="cursor:pointer;aspect-ratio:1;border-radius:16px;overflow:hidden;position:relative;background:#1a1310 center/cover no-repeat;border:1px solid rgba(196,169,91,0.25);box-shadow:0 4px 14px rgba(0,0,0,0.35);">
-          <p style="color:#9A8A70;font-size:11px;padding:10px;">Carregando...</p>
+        <div id="dashCard-${m.uid}" onclick="window.abrirFichaFlutuante('${m.uid}')" style="cursor:pointer;aspect-ratio:1;border-radius:16px;overflow:hidden;position:relative;background:#160f19 center/cover no-repeat;border:1px solid rgba(233,224,236,0.16);box-shadow:0 4px 14px rgba(0,0,0,0.35);">
+          <p style="color:#d5cbd8;font-size:11px;padding:10px;">Carregando...</p>
         </div>
       `).join("")}
     </div>
@@ -16940,18 +16939,18 @@ const vidaAtual = f.vidaAtual ?? vidaMax;
 const vidaTemp = f.vidaTemp ?? 0;
 const pctVida = Math.max(0, Math.min(100, (vidaAtual / vidaMax) * 100));
 const pctTemp = Math.max(0, Math.min(100, (vidaTemp / vidaMax) * 100));
-const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32";
+const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#983553" : "#4a6b32";
 
       card.style.backgroundImage = f.imagem ? `url('${f.imagem}')` : "none";
       card.innerHTML = `
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.88) 100%);"></div>
         <div style="position:absolute;left:0;right:0;bottom:0;padding:10px;">
           <div style="font-family:'Cinzel',serif;font-weight:bold;font-size:13px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);line-height:1.2;">${escapeHtml(f.nome || "Sem nome")}</div>
-          <div style="font-size:10.5px;color:#e0d5c0;margin-top:1px;text-shadow:0 1px 4px rgba(0,0,0,0.8);">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""}</div>
+          <div style="font-size:10.5px;color:#d5cbd8;margin-top:1px;text-shadow:0 1px 4px rgba(0,0,0,0.8);">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""}</div>
           <div style="height:5px;background:rgba(255,255,255,0.2);border-radius:99px;overflow:hidden;margin-top:6px;">
             <div style="height:100%;width:${pctVida}%;background:${corVida};"></div>
           </div>
-          <div style="font-size:9.5px;color:#cbbfa7;margin-top:2px;">HP ${vidaAtual}/${vidaMax}</div>
+          <div style="font-size:9.5px;color:#d5cbd8;margin-top:2px;">HP ${vidaAtual}/${vidaMax}</div>
         </div>
       `;
 
@@ -16971,7 +16970,7 @@ const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32
 function _fichaDashPillCirculo(c) {
   if (c === "" || c == null) return "";
   let texto = c === "talento" ? "Talento" : c === "passiva" ? "Passiva" : `Círculo ${c}`;
-  return `<span style="display:inline-block;font-size:9.5px;font-weight:bold;padding:2px 8px;border-radius:99px;background:#8a2c22;color:#f5ece0;margin-left:6px;letter-spacing:.02em;">${texto}</span>`;
+  return `<span style="display:inline-block;font-size:9.5px;font-weight:bold;padding:2px 8px;border-radius:99px;background:#8a2c22;color:#efe7ef;margin-left:6px;letter-spacing:.02em;">${texto}</span>`;
 }
 
 function _fichaDashPillCargas(item) {
@@ -16979,30 +16978,30 @@ function _fichaDashPillCargas(item) {
   const gastas = (item.cargasGastas || []).filter(Boolean).length;
   const max = item.maxCargas || 0;
   const restantes = max - gastas;
-  const cor = restantes === 0 ? "#8a2c22" : "#7c6425";
-  return `<span style="display:inline-block;font-size:9.5px;font-weight:bold;padding:2px 8px;border-radius:99px;background:rgba(124,100,37,0.15);border:1px solid ${cor};color:${cor};margin-left:6px;">${restantes}/${max}</span>`;
+  const cor = restantes === 0 ? "#8a2c22" : "#71283e";
+  return `<span style="display:inline-block;font-size:9.5px;font-weight:bold;padding:2px 8px;border-radius:99px;background:rgba(113,40,62,0.15);border:1px solid ${cor};color:${cor};margin-left:6px;">${restantes}/${max}</span>`;
 }
 
 let _fichaDashContadorLinha = 0;
 function _fichaDashLinha(uid, nome, extra, pill, desc) {
   const idLinha = `fichaFlutLinha-${uid}-${_fichaDashContadorLinha++}`;
   return `
-  <div style="padding:8px 0;border-bottom:1px solid rgba(74,55,40,0.12);${desc ? "cursor:pointer;" : ""}" ${desc ? `onclick="window.alternarDescDash('${idLinha}')"` : ""}>
+  <div style="padding:8px 0;border-bottom:1px solid rgba(60,38,70,0.12);${desc ? "cursor:pointer;" : ""}" ${desc ? `onclick="window.alternarDescDash('${idLinha}')"` : ""}>
     <div style="display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:13px;color:#2A1A10;font-weight:600;">${escapeHtml(nome)}${extra ? ` <span style="color:#6b5a42;font-weight:normal;font-size:11.5px;">· ${escapeHtml(extra)}</span>` : ""}</span>
+      <span style="font-size:13px;color:#1e1324;font-weight:600;">${escapeHtml(nome)}${extra ? ` <span style="color:#5d4d60;font-weight:normal;font-size:11.5px;">· ${escapeHtml(extra)}</span>` : ""}</span>
       <span style="flex-shrink:0;">${pill}</span>
     </div>
-    ${desc ? `<div id="${idLinha}" data-aberto="0" style="font-size:11.5px;color:#5a4a38;margin-top:4px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(desc)}</div>` : ""}  </div>`;
+    ${desc ? `<div id="${idLinha}" data-aberto="0" style="font-size:11.5px;color:#672438;margin-top:4px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(desc)}</div>` : ""}  </div>`;
 }
 
 function _fichaDashSecao(titulo, itens) {
   return `
-  <div style="background:#E8E0CC;border-radius:10px;margin:10px 14px 0;overflow:hidden;border:1px solid rgba(196,169,91,0.25);">
-    <div style="background:#D4C9A8;padding:7px 12px;text-align:center;">
-      <span style="font-size:10px;color:#4A3728;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+  <div style="background:#e2d2e2;border-radius:10px;margin:10px 14px 0;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+    <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+      <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
     </div>
     <div style="padding:8px 12px 10px;">
-      ${itens || `<p style="font-size:12px;color:#7A6A50;font-style:italic;padding:4px 0;text-align:center;">Nada aqui.</p>`}
+      ${itens || `<p style="font-size:12px;color:#6c5a70;font-style:italic;padding:4px 0;text-align:center;">Nada aqui.</p>`}
     </div>
   </div>`;
 }
@@ -17013,7 +17012,7 @@ const vidaAtual = f.vidaAtual ?? vidaMax;
 const vidaTemp = f.vidaTemp ?? 0;
 const pctVida = Math.max(0, Math.min(100, (vidaAtual / vidaMax) * 100));
 const pctTemp = Math.max(0, Math.min(100, (vidaTemp / vidaMax) * 100));
-const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32";
+const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#983553" : "#4a6b32";
 
   const todosPoderes = f.poderes || [];
   const poderesGerais = todosPoderes.filter(p => (p.circulo ?? "") === "").map(p => _fichaDashLinha(m.uid, p.nome || "Sem nome", "", _fichaDashPillCargas(p), p.desc)).join("");
@@ -17034,15 +17033,15 @@ const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32
 
     magias += `
       <div style="margin-top:10px;text-align:center;">
-        <div style="font-size:11px;color:#4A3728;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;">Círculo ${c}</div>
+        <div style="font-size:11px;color:#3c2646;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;">Círculo ${c}</div>
         ${bolinhasCirculo(c)}
-        ${magiasDoCirculo.map(p => _fichaDashLinha(m.uid, p.nome || "Sem nome", "", _fichaDashPillCargas(p), p.desc)).join("") || `<p style="font-size:11px;color:#8a7860;font-style:italic;">Sem magias registradas.</p>`}
+        ${magiasDoCirculo.map(p => _fichaDashLinha(m.uid, p.nome || "Sem nome", "", _fichaDashPillCargas(p), p.desc)).join("") || `<p style="font-size:11px;color:#d5cbd8;font-style:italic;">Sem magias registradas.</p>`}
       </div>`;
   }
 
   const armas = (f.armas || []).map(a => _fichaDashLinha(m.uid, a.nome || "Sem nome", a.dano || "", _fichaDashPillCargas(a), a.desc)).join("");
   const armaduras = (f.armaduras || []).map(a => _fichaDashLinha(m.uid, a.nome || "Sem nome", a.ca ? "CA " + a.ca : "", _fichaDashPillCargas(a), a.desc)).join("");
-  const inventario = (f.inventario || []).map(i => _fichaDashLinha(m.uid, i.nome || "Sem nome", "", `<span style="font-size:11px;color:#6b5a42;">x${i.qtd || 1}</span>`, i.desc)).join("");
+  const inventario = (f.inventario || []).map(i => _fichaDashLinha(m.uid, i.nome || "Sem nome", "", `<span style="font-size:11px;color:#5d4d60;">x${i.qtd || 1}</span>`, i.desc)).join("");
 
   const dominioArr = f.dominio || [];
   const dominioHtml = `
@@ -17053,21 +17052,21 @@ const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32
     const efeitosExaustaoDash = ["Sem exaustão","Desvantagem em testes de atributo","Deslocamento reduzido pela metade ","Desvantagem em jogadas de ataque e salvaguardas","Pontos de vida maximos reduzidos pela metade","Deslocamento reduzido a 0","Morte"];
   const nivelExaustao = f.exaustao ?? 0;
   const exaustaoHtml = `
-    <div style="font-size:12px;color:#2A1A10;padding:10px 0 4px;">
-      Nível ${nivelExaustao} ${nivelExaustao > 0 ? `<span style="color:#6b5a42;">— ${escapeHtml(efeitosExaustaoDash[nivelExaustao] || "")}</span>` : ""}
+    <div style="font-size:12px;color:#1e1324;padding:10px 0 4px;">
+      Nível ${nivelExaustao} ${nivelExaustao > 0 ? `<span style="color:#5d4d60;">— ${escapeHtml(efeitosExaustaoDash[nivelExaustao] || "")}</span>` : ""}
     </div>`;
 
   const morteObj = f.morte || { sucessos: [false,false,false], falhas: [false,false,false] };
   const morteHtml = `
     <div style="display:flex;justify-content:center;gap:24px;padding:10px 0 4px;">
       <div style="text-align:center;">
-        <div style="font-size:10px;color:#6b5a42;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Sucessos</div>
+        <div style="font-size:10px;color:#5d4d60;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Sucessos</div>
         <div style="display:flex;gap:6px;">
           ${morteObj.sucessos.map(marcado => `<span style="width:16px;height:16px;border-radius:50%;display:inline-block;background:${marcado ? "#4a6b32" : "transparent"};border:2px solid #4a6b32;"></span>`).join("")}
         </div>
       </div>
       <div style="text-align:center;">
-        <div style="font-size:10px;color:#6b5a42;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Falhas</div>
+        <div style="font-size:10px;color:#5d4d60;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Falhas</div>
         <div style="display:flex;gap:6px;">
           ${morteObj.falhas.map(marcado => `<span style="width:16px;height:16px;border-radius:50%;display:inline-block;background:${marcado ? "#8a2c22" : "transparent"};border:2px solid #8a2c22;"></span>`).join("")}
         </div>
@@ -17079,14 +17078,14 @@ const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32
 
   document.getElementById("fichaFlutuanteConteudo").innerHTML = `
     <div style="padding:14px 14px 0;">
-      <div style="font-family:'Cinzel',serif;font-weight:bold;font-size:17px;color:#4A3728;">${escapeHtml(f.nome || "Sem nome")}</div>
-      <div style="font-size:12px;color:#6b5a42;margin-top:2px;">${escapeHtml(m.nickname)} · ${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""} · CA ${escapeHtml(String(f.ca ?? "-"))}</div>
+      <div style="font-family:'Cinzel',serif;font-weight:bold;font-size:17px;color:#3c2646;">${escapeHtml(f.nome || "Sem nome")}</div>
+      <div style="font-size:12px;color:#5d4d60;margin-top:2px;">${escapeHtml(m.nickname)} · ${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""} · CA ${escapeHtml(String(f.ca ?? "-"))}</div>
     </div>
-    <div style="height:6px;background:rgba(74,55,40,0.15);margin:10px 14px 0;border-radius:99px;overflow:hidden;">
+    <div style="height:6px;background:rgba(60,38,70,0.15);margin:10px 14px 0;border-radius:99px;overflow:hidden;">
       <div style="height:100%;width:${pctVida}%;background:${corVida};transition:width .4s ease;"></div>
     </div>
-    <div style="font-size:11px;color:#6b5a42;padding:4px 14px 4px;">HP: ${vidaAtual} / ${vidaMax}</div>
-<div style="height:5px;background:rgba(74,55,40,0.12);margin:2px 14px 0;border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pctTemp}%;background:#4b8f9a;transition:width .4s ease;"></div></div>
+    <div style="font-size:11px;color:#5d4d60;padding:4px 14px 4px;">HP: ${vidaAtual} / ${vidaMax}</div>
+<div style="height:5px;background:rgba(60,38,70,0.12);margin:2px 14px 0;border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pctTemp}%;background:#4b8f9a;transition:width .4s ease;"></div></div>
 <div style="font-size:10px;color:#4b8f9a;padding:3px 14px 4px;">PV temporários: ${vidaTemp}</div>
     ${_fichaDashSecao("Poderes", poderesGerais)}
     ${_fichaDashSecao("Magias", magias)}
@@ -17119,7 +17118,7 @@ window._mostrarFichaFlutuanteAtual = function () {
 
   document.getElementById("fichaFlutuanteOverlay").style.display = "block";
   document.getElementById("fichaFlutuante").style.display = "flex";
-  document.getElementById("fichaFlutuanteConteudo").innerHTML = `<p style="color:#9A8A70;font-size:13px;text-align:center;padding:20px 0;">Carregando ${escapeHtml(m.nickname)}...</p>`;
+  document.getElementById("fichaFlutuanteConteudo").innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;">Carregando ${escapeHtml(m.nickname)}...</p>`;
 
   const ref = doc(db, "usuarios", m.uid, "fichas", m.fichaId);
   window._fichaFlutuanteUnsub = onSnapshot(ref, snap => {
@@ -17247,7 +17246,7 @@ window.abrirDashboardMestre = async function (grupoId) {
   document.getElementById("modalDashboard").style.display = "block";
 
   const conteudo = document.getElementById("dashboardConteudo");
-  conteudo.innerHTML = `<p style="color:#9A8A70;font-size:13px;text-align:center;">Carregando...</p>`;
+  conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;">Carregando...</p>`;
 
   window._dashboardUnsubs.forEach(unsub => unsub());
   window._dashboardUnsubs = [];
@@ -17260,13 +17259,13 @@ window.abrirDashboardMestre = async function (grupoId) {
   const alvos = g.membros.filter(m => m.uid !== meuUid && m.fichaId);
 
   if (alvos.length === 0) {
-    conteudo.innerHTML = `<p style="color:#9A8A70;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum jogador vinculou uma ficha a esse grupo ainda.</p>`;
+    conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum jogador vinculou uma ficha a esse grupo ainda.</p>`;
     return;
   }
 
   conteudo.innerHTML = alvos.map(m => `
-    <div id="dashCard-${m.uid}" style="background:rgba(255,255,255,0.03);border:1px solid rgba(196,169,91,0.15);border-radius:12px;padding:12px;">
-      <p style="color:#9A8A70;font-size:12px;">Carregando ${escapeHtml(m.nickname)}...</p>
+    <div id="dashCard-${m.uid}" style="background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:12px;padding:12px;">
+      <p style="color:#d5cbd8;font-size:12px;">Carregando ${escapeHtml(m.nickname)}...</p>
     </div>
   `).join("");
 
@@ -17286,21 +17285,21 @@ const vidaAtual = f.vidaAtual ?? vidaMax;
 const vidaTemp = f.vidaTemp ?? 0;
 const pctTemp = Math.max(0, Math.min(100, (vidaTemp / vidaMax) * 100));
 const pctVida = Math.max(0, Math.min(100, (vidaAtual / vidaMax) * 100));
-const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#a9822f" : "#4a6b32";
+const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#983553" : "#4a6b32";
 
       card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
           <span style="font-weight:bold;font-size:14px;">${escapeHtml(f.nome || "Sem nome")}</span>
-          <span style="font-size:11px;color:#9A8A70;">${escapeHtml(m.nickname)}</span>
+          <span style="font-size:11px;color:#d5cbd8;">${escapeHtml(m.nickname)}</span>
         </div>
-        <div style="font-size:12px;color:#9A8A70;margin-bottom:8px;">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""} · CA ${escapeHtml(String(f.ca ?? "-"))}</div>
+        <div style="font-size:12px;color:#d5cbd8;margin-bottom:8px;">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""} · CA ${escapeHtml(String(f.ca ?? "-"))}</div>
 
-        <div style="font-size:11px;color:#9A8A70;margin-bottom:2px;">HP: ${vidaAtual} / ${vidaMax}</div>
+        <div style="font-size:11px;color:#d5cbd8;margin-bottom:2px;">HP: ${vidaAtual} / ${vidaMax}</div>
         <div style="height:8px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;margin-bottom:10px;">
           <div style="height:100%;width:${pctVida}%;background:${pctVida <= 25 ? "#7B1E28" : "#4a7c3a"};"></div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:#cdb791;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:#d5cbd8;">
           <div>Itens: ${(f.inventario || []).length}</div>
           <div>Armas: ${(f.armas || []).length}</div>
           <div>Vestimentas: ${(f.armaduras || []).length}</div>
@@ -17431,7 +17430,7 @@ function renderEtapasForm() {
 
   lista.innerHTML = _etapasForm.map((e, i) => `
     <div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
-      <span style="font-size:12px;color:#b9a98c;flex:1;">${escapeHtml(e.nome)}</span>
+      <span style="font-size:12px;color:#d5cbd8;flex:1;">${escapeHtml(e.nome)}</span>
       <span onclick="removerEtapaForm(${i})" style="cursor:pointer;color:#8f2222;font-size:14px;">✕</span>
     </div>`).join("");
 }
