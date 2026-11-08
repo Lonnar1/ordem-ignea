@@ -481,6 +481,27 @@ function limparFiltrosOP() { _flSelOP = {}; filtrarPickerOP(); }
 
 function removerFiltroOP(f) { delete _flSelOP[f]; filtrarPickerOP(); }
 
+function _ritualPartesOP(efeito) {
+  const m = String(efeito || "").match(/^([^.:]+?)([.:])\s+([\s\S]*)$/);
+  if (!m || !/círculo/i.test(m[1])) return null;
+  const chips = [];
+  m[1].split(/,\s+/).forEach((parte) => {
+    let resto = parte.trim();
+    const custos = [];
+    resto = resto.replace(/\(([^)]*PE[^)]*)\)/g, (_, c) => { custos.push(c.trim()); return ""; }).replace(/\s+/g, " ").trim();
+    if (resto) chips.push({ t: resto.replace(/^(\d+º círculo) de /i, "$1 · "), k: /círculo/i.test(resto) ? "circ" : "" });
+    custos.forEach((c) => chips.push({ t: c, k: "pe" }));
+  });
+  return { chips, texto: m[3] };
+}
+
+function _ritualCorpoOP(kind, texto) {
+  const r = kind === "rituais" ? _ritualPartesOP(texto) : null;
+  if (!r) return `<p class="eq-pk-resumo">${esc(texto || "")}</p>`;
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  return `<div class="eq-pk-meta">${r.chips.map((c) => `<span class="${c.k}">${esc(c.k === "pe" ? c.t : cap(c.t))}</span>`).join("")}</div><p class="eq-pk-resumo">${esc(r.texto)}</p>`;
+}
+
 function _cartaoSeletorOP(kind, e, cfg) {
   const catalogoBase = kind === "armas" || kind === "protecoes" || kind === "itens";
   const etiquetas = [];
@@ -499,7 +520,7 @@ function _cartaoSeletorOP(kind, e, cfg) {
   return `
     <div class="eq-pk-card" data-f="${esc(JSON.stringify(_facetasOP(kind, e).map((f) => f[1] || "")))}" data-busca="${esc(_norm([e.nome, e.grupo, texto, e.dano, APLICA_TAG_OP[e.aplica] || ""].join(" ")))}" onclick="alternarCardPickerOP(event, this)">
       <div class="eq-pk-topo"><strong>${esc(e.nome)}</strong><span class="eq-pk-tags">${etiquetas.join("")}</span></div>
-      <p class="eq-pk-resumo">${esc(texto || "")}</p>
+      ${_ritualCorpoOP(kind, texto)}
       ${livro ? `<small class="eq-pk-livro">${livro}</small>` : ""}
       <div class="eq-pk-extra">
         ${stats ? `<div class="eq-pk-stats">${stats}</div>` : ""}
@@ -648,7 +669,7 @@ function htmlSeletorModsOP(prefixo, tipo) {
     <div class="eq-mods-sel">
       <div class="eq-seg">${mod.botao}${mal.botao}${rit ? rit.botao : ""}</div>
       ${mod.painel}${mal.painel}${rit ? rit.painel : ""}
-      <div class="eq-legenda"><span class="k-mod">Modificação +I</span><span class="k-mal">Maldição +II, depois +I</span>${tipo === "arma" ? '<span class="k-rit">Ritual: sem custo</span>' : ""}</div>
+      <div class="eq-legenda"><span class="k-mod"><b>Modificação</b><i>+I</i></span><span class="k-mal"><b>Maldição</b><i>+II, depois +I</i></span>${tipo === "arma" ? '<span class="k-rit"><b>Ritual</b><i>sem custo</i></span>' : ""}</div>
       <div class="eq-editar-links"><button type="button" class="eq-link" onclick="abrirGerenciadorEquipOP('mods')">⚙ Editar catálogos</button></div>
     </div>`;
 }
@@ -1282,6 +1303,12 @@ function _melhorarEspacosOP(input) {
 }
 
 function melhorarFormulariosEquipOP() {
+  /* sem sugestões do navegador (os números "que já foram") nos campos da ficha; login e e-mail ficam como estão */
+  document.querySelectorAll("input:not([autocomplete]):not([type=password]):not([type=email]):not([type=file]):not([type=checkbox]):not([type=radio]):not([type=range])").forEach((el) => {
+    if (el.closest(".login-v3, #tela-login, .cc-pop, #popupCriarConta")) return;
+    el.setAttribute("autocomplete", "off");
+  });
+  document.querySelectorAll("textarea:not([autocomplete])").forEach((el) => el.setAttribute("autocomplete", "off"));
   document.querySelectorAll("input").forEach((el) => {
     if (!el.id) return;
     if (_RE_CAMPO_CAT.test(el.id)) _melhorarCategoriaOP(el);
@@ -1647,7 +1674,7 @@ function atualizarCargaOP() {
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
   if (!document.getElementById("ivCargaUsoOP")) return;
   const uso = calcularEspacosInventario();
-  const max = numeroInventario(document.getElementById("inventarioEspacosMax")?.value);
+  const max = capacidadeCargaOP();
   set("ivCargaUsoOP", _ivN(uso));
   set("ivCargaMaxOP", _ivN(max));
   const barra = document.getElementById("ivCargaBarOP");
@@ -2411,11 +2438,17 @@ function _pjAtualizarSeletorOP(sel) {
   const vazio = !op || op.value === "";
   if (txt.textContent !== t) txt.textContent = t;
   sel._pjBtn.classList.toggle("vazio", vazio);
+  sel._pjBtn.classList.toggle("bloq", !!sel.disabled);
 }
 /* alterações feitas por código (carregar ficha, trocar classe…) não geram evento: confere de vez em quando */
 setInterval(() => { if (!document.hidden) _pjSelsOP.forEach(_pjAtualizarSeletorOP); }, 1200);
 
 function _pjAbrirListaOP(sel, titulo) {
+  if (sel.disabled) {
+    const motivo = (sel.options[0] && sel.options[0].textContent.trim()) || "Indisponível por enquanto.";
+    if (typeof alertBonito === "function") alertBonito(motivo); else alert(motivo);
+    return;
+  }
   let ov = document.getElementById("pjSelOP");
   if (!ov) {
     ov = document.createElement("div");
@@ -2435,7 +2468,13 @@ function _pjAbrirListaOP(sel, titulo) {
   const corpo = ov.querySelector("#pjSelCorpoOP");
   const opcoes = [...sel.querySelectorAll("option")];
   const curtas = opcoes.length > 8 && opcoes.every((o) => o.textContent.trim().length <= 4);
-  const item = (o) => `<button type="button" class="pj-opt${o.value === sel.value ? " on" : ""}${o.value === "" ? " vazio" : ""}" ${o.disabled ? "disabled" : ""} data-i="${o.index}">${esc(o.textContent.trim() || "—")}${o.value === sel.value ? `<i>${_ivI("check")}</i>` : ""}</button>`;
+  const itemSimples = (o) => `<button type="button" class="pj-opt${o.value === sel.value ? " on" : ""}${o.value === "" ? " vazio" : ""}" ${o.disabled ? "disabled" : ""} data-i="${o.index}">${esc(o.textContent.trim() || "—")}${o.value === sel.value ? `<i>${_ivI("check")}</i>` : ""}</button>`;
+  const detFn = { origemOP: _pjDetOrigemOP, trilhaOP: _pjDetTrilhaOP }[sel.id];
+  const item = (o) => {
+    const det = detFn && o.value !== "" ? detFn(o.value) : "";
+    if (!det) return itemSimples(o);
+    return `<div class="pj-opc${o.value === sel.value ? " atual" : ""}"><button type="button" class="pj-opt${o.value === sel.value ? " on" : ""}" data-det="1" data-i="${o.index}">${esc(o.textContent.trim())}${o.value === sel.value ? `<i>${_ivI("check")}</i>` : `<i class="pj-mais">${_ivI("chev")}</i>`}</button><div class="pj-det">${det}<button type="button" class="pj-conf" data-i="${o.index}">${o.value === sel.value ? "Manter essa" : "Confirmar"}</button></div></div>`;
+  };
   const blocos = [];
   [...sel.children].forEach((g) => {
     if (g.tagName === "OPTGROUP") blocos.push(`<div class="pj-opt-grupo">${esc(g.label)}</div><div class="pj-opts">${[...g.querySelectorAll("option")].map(item).join("")}</div>`);
@@ -2449,8 +2488,16 @@ function _pjAbrirListaOP(sel, titulo) {
   corpo.className = "iv-sheet-body pj-lista" + (curtas ? " pj-grade" : "");
   corpo.innerHTML = html;
   corpo.onclick = (e) => {
-    const b = e.target.closest(".pj-opt");
+    const conf = e.target.closest(".pj-conf");
+    const b = conf || e.target.closest(".pj-opt");
     if (!b || b.disabled) return;
+    if (b.dataset.det) {
+      const card = b.closest(".pj-opc");
+      const abrir = !card.classList.contains("aberto");
+      corpo.querySelectorAll(".pj-opc.aberto").forEach((c) => c.classList.remove("aberto"));
+      if (abrir) { card.classList.add("aberto"); setTimeout(() => card.scrollIntoView({ block: "nearest", behavior: "smooth" }), 40); }
+      return;
+    }
     sel.selectedIndex = parseInt(b.dataset.i);
     sel.dispatchEvent(new Event("input", { bubbles: true }));
     sel.dispatchEvent(new Event("change", { bubbles: true }));
@@ -2805,4 +2852,234 @@ function abrirDiarioOP() {
     };
     vv.addEventListener("resize", ov._vv);
   }
+}
+
+/* =====================================================================
+   ORIGEM e TRILHA: resumo curto antes de confirmar
+   ===================================================================== */
+function _pjDetOrigemOP(id) {
+  const o = typeof ORIGENS_OP !== "undefined" ? ORIGENS_OP.find((x) => x.id === id) : null;
+  if (!o) return "";
+  const pericias = (o.pericias || []).join(", ") + (o.escolhas ? ` + ${o.escolhas} à sua escolha` : "");
+  const poder = o.poder || {};
+  return `
+    <div class="pj-det-l"><span>Perícias treinadas</span><p>${esc(pericias || "—")}</p></div>
+    <div class="pj-det-l"><span>Poder · ${esc(poder.nome || "—")}</span><p>${esc(poder.resumo || "")}</p></div>`;
+}
+
+function _pjDetTrilhaOP(id) {
+  const t = typeof buscarTrilhaOP === "function" ? buscarTrilhaOP(id) : null;
+  if (!t) return "";
+  const hab = (t.habilidades || []).map((h) => `<em><b>${h.nex ? h.nex + "%" : ""}</b> ${esc(h.nome)}</em>`).join("");
+  return `
+    ${t.resumo ? `<div class="pj-det-l"><p>${esc(t.resumo)}</p></div>` : ""}
+    ${hab ? `<div class="pj-det-l"><span>Habilidades</span><div class="pj-det-hab">${hab}</div></div>` : ""}`;
+}
+
+/* =====================================================================
+   REORDENAR: segurar no ícone e arrastar (itens, armas e vestimentas)
+   ===================================================================== */
+(function () {
+  const LISTAS = [
+    { sel: "#ivListaItensOP", item: ".iv-item", dados: () => inventario, render: () => _renderListaItensOP() },
+    { sel: "#listaArmas", item: "li", dados: () => armas, render: () => { _cbAbertoOP.arma = null; renderArmas(); } },
+    { sel: "#listaArmaduras", item: "li", dados: () => armaduras, render: () => { _cbAbertoOP.armadura = null; renderArmaduras(); } },
+  ];
+  const ESPERA = 350, TOLERANCIA = 8;
+  let st = null; // estado do gesto
+  let bloquearClique = 0;
+
+  function achar(alvo) {
+    const seal = alvo.closest && alvo.closest(".iv-seal");
+    if (!seal) return null;
+    for (const cfg of LISTAS) {
+      const caixa = seal.closest(cfg.sel);
+      if (!caixa) continue;
+      const el = [...caixa.children].find((c) => c.contains(seal) && c.matches(cfg.item));
+      if (el) return { cfg, caixa, el };
+    }
+    return null;
+  }
+
+  function irmaos() { return [...st.caixa.children].filter((c) => c.matches(st.cfg.item)); }
+
+  function posicionar(y) {
+    const el = st.el;
+    el.style.transform = "none";
+    const base = el.getBoundingClientRect().top;
+    el.style.transform = `translateY(${y - st.pega - base}px) scale(1.015)`;
+  }
+
+  function mover(y) {
+    posicionar(y);
+    const el = st.el;
+    const r = el.getBoundingClientRect();
+    const centro = r.top + r.height / 2;
+    const outros = irmaos().filter((c) => c !== el);
+    let alvo = 0;
+    outros.forEach((c) => { const b = c.getBoundingClientRect(); if (b.top + b.height / 2 < centro) alvo++; });
+    const atual = irmaos().indexOf(el);
+    if (alvo !== atual) {
+      const ref = outros[alvo] || null;
+      st.caixa.insertBefore(el, ref);
+      posicionar(y);
+    }
+  }
+
+  function autoRolar() {
+    if (!st || !st.ativo) return;
+    const y = st.y;
+    const h = window.innerHeight;
+    if (y < 80) window.scrollBy(0, -10);
+    else if (y > h - 80) window.scrollBy(0, 10);
+    else { st.raf = requestAnimationFrame(autoRolar); return; }
+    mover(y);
+    st.raf = requestAnimationFrame(autoRolar);
+  }
+
+  function comecar() {
+    if (!st) return;
+    st.ativo = true;
+    const el = st.el;
+    const r = el.getBoundingClientRect();
+    st.pega = st.y - r.top;
+    st.origem = irmaos().indexOf(el);
+    el.classList.add("iv-arrastando");
+    st.caixa.classList.add("iv-reordenando");
+    document.body.classList.add("iv-sem-selecao");
+    try { el.setPointerCapture(st.id); } catch (e) {}
+    try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
+    mover(st.y);
+    st.raf = requestAnimationFrame(autoRolar);
+  }
+
+  function limpar() {
+    if (!st) return;
+    clearTimeout(st.timer);
+    cancelAnimationFrame(st.raf);
+    st.el.classList.remove("iv-arrastando");
+    st.el.style.transform = "";
+    st.caixa.classList.remove("iv-reordenando");
+    document.body.classList.remove("iv-sem-selecao");
+    st = null;
+  }
+
+  function terminar(cancelado) {
+    if (!st) return;
+    const ativo = st.ativo;
+    const { cfg } = st;
+    const de = st.origem;
+    const para = ativo ? irmaos().indexOf(st.el) : de;
+    limpar();
+    if (!ativo) return;
+    bloquearClique = Date.now() + 500;
+    if (cancelado || de === para || de < 0) { cfg.render(); return; }
+    const lista = cfg.dados();
+    const [m] = lista.splice(de, 1);
+    lista.splice(para, 0, m);
+    cfg.render();
+    try { salvarTudo(); } catch (e) {}
+  }
+
+  document.addEventListener("pointerdown", (e) => {
+    if (st || (e.pointerType === "mouse" && e.button !== 0)) return;
+    const a = achar(e.target);
+    if (!a) return;
+    st = { ...a, id: e.pointerId, x0: e.clientX, y0: e.clientY, y: e.clientY, ativo: false };
+    st.timer = setTimeout(comecar, ESPERA);
+  }, true);
+
+  document.addEventListener("pointermove", (e) => {
+    if (!st || e.pointerId !== st.id) return;
+    st.y = e.clientY;
+    if (!st.ativo) {
+      if (Math.abs(e.clientX - st.x0) > TOLERANCIA || Math.abs(e.clientY - st.y0) > TOLERANCIA) limpar();
+      return;
+    }
+    e.preventDefault();
+    mover(e.clientY);
+  }, { capture: true, passive: false });
+
+  document.addEventListener("pointerup", (e) => { if (st && e.pointerId === st.id) terminar(false); }, true);
+  document.addEventListener("pointercancel", (e) => { if (st && e.pointerId === st.id) terminar(true); }, true);
+
+  /* enquanto arrasta, a tela não rola; o menu de segurar do celular não aparece */
+  document.addEventListener("touchmove", (e) => { if (st && st.ativo) e.preventDefault(); }, { capture: true, passive: false });
+  document.addEventListener("contextmenu", (e) => { if (e.target.closest && e.target.closest(".iv-seal") && achar(e.target)) e.preventDefault(); }, true);
+  document.addEventListener("click", (e) => {
+    if (bloquearClique > Date.now()) { e.stopPropagation(); e.preventDefault(); }
+  }, true);
+})();
+
+/* formulários dentro das folhas nunca ficam "fechados" (o app lembra seções fechadas e escondia o campo de nome) */
+(function () {
+  const abrirOriginal = abrirFolhaOP;
+  abrirFolhaOP = function (k) {
+    const r = abrirOriginal.apply(this, arguments);
+    document.querySelectorAll("#ivOv_" + k + " .conteudo-toggle").forEach((b) => { b.classList.remove("fechado"); b.classList.add("aberto"); });
+    return r;
+  };
+})();
+
+/* veículo: rótulos do formulário sem emoji, no mesmo padrão das modificações */
+(function () {
+  if (typeof _rotulosExtras !== "function") return;
+  const original = _rotulosExtras;
+  _rotulosExtras = function (tipo) {
+    const r = original(tipo);
+    if (tipo === "veiculo") return { ...r, det: "Características", detPopup: "Características", mods: "Aprimoramentos", modsPopup: "Aprimoramentos", add: "Adicionar aprimoramento", nomePh: "Nome do aprimoramento" };
+    return r;
+  };
+})();
+
+/* =====================================================================
+   CAPACIDADE DE CARGA: 5 × Força (com Força 0, 2 espaços).
+   Se você digitar um valor na capacidade máxima, ele manda no cálculo.
+   ===================================================================== */
+function capacidadeCargaOP() {
+  const manual = numeroInventario(document.getElementById("inventarioEspacosMax")?.value);
+  if (manual > 0) return manual;
+  return capacidadeAutoOP();
+}
+
+function capacidadeAutoOP() {
+  const f = Math.max(0, parseInt(document.getElementById("forca")?.value) || 0);
+  return f > 0 ? f * 5 : 2;
+}
+
+function _capAtualizarTudoOP() {
+  const campo = document.getElementById("inventarioEspacosMax");
+  if (campo) campo.placeholder = "auto: " + capacidadeAutoOP();
+  const rot = document.querySelector('label[for="inventarioEspacosMax"]');
+  if (rot && !rot.dataset.op) { rot.textContent = "Capacidade máxima (vazio ou 0 = automática: 5 × Força)"; rot.dataset.op = "1"; }
+  try { atualizarResumoInventario(); } catch (e) {}
+  try { atualizarCargaOP(); } catch (e) {}
+}
+
+document.addEventListener("input", (e) => { if (e.target && e.target.id === "forca") _capAtualizarTudoOP(); }, true);
+document.addEventListener("change", (e) => { if (e.target && e.target.id === "forca") _capAtualizarTudoOP(); }, true);
+(function () {
+  if (typeof atualizarTudo !== "function") return;
+  const original = atualizarTudo;
+  atualizarTudo = function () {
+    const r = original.apply(this, arguments);
+    _capAtualizarTudoOP();
+    return r;
+  };
+})();
+setTimeout(_capAtualizarTudoOP, 600);
+setTimeout(_capAtualizarTudoOP, 2000);
+
+/* folha do veículo: detalhes (características e aprimoramentos) vão para o fim, depois dos números */
+(function () {
+  const extras = document.getElementById("veiculoExtrasBox");
+  const corpo = document.getElementById("ivBody_vei");
+  if (!extras || !corpo) { document.addEventListener("DOMContentLoaded", () => setTimeout(arrumarFolhaVeiculoOP, 800)); setTimeout(arrumarFolhaVeiculoOP, 1500); return; }
+  arrumarFolhaVeiculoOP();
+})();
+function arrumarFolhaVeiculoOP() {
+  const extras = document.getElementById("veiculoExtrasBox");
+  const corpo = document.getElementById("ivBody_vei");
+  const alvo = corpo && corpo.querySelector(".veiculo-add");
+  if (extras && alvo && alvo.lastElementChild !== extras) alvo.appendChild(extras);
 }
