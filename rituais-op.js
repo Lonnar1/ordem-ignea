@@ -1,4 +1,4 @@
-/* Rituais de Ordem Paranormal — gerado a partir do Livro de Regras v1.3 */
+/* Rituais de Ordem Paranormal — gerado a partir do Livro de Regras v1.3 e Sobrevivendo ao Horror v1.3-1 */
 const RITUAIS_OP_PADRAO = [
  {
   "id": "rit.amaldicoar-arma",
@@ -2010,6 +2010,413 @@ const RITUAIS_OP_PADRAO = [
   "verdadeiro": null,
   "fonte": "livro",
   "pagina": "143"
+ },
+ {
+  "id": "rit.esfolar",
+  "nome": "Esfolar",
+  "circulo": 1,
+  "elementos": [
+   "Sangue"
+  ],
+  "execucao": "padrão",
+  "alcance": "curto",
+  "tipoAlvo": "Alvo",
+  "alvo": "1 ser",
+  "duracao": "instantânea",
+  "resistencia": "Reflexos parcial",
+  "resumo": "Agulhas de Sangue causam dano de corte e sangramento.",
+  "descricao": "Você usa seu corpo como passagem para o Sangue, projetando agulhas e lâminas rubras praticamente imperceptíveis contra o alvo. O ser sofre 3d4+3 pontos de dano de corte e fica sangrando. Se passar no teste de resistência, sofre apenas metade do dano e evita a condição.",
+  "discente": {
+   "pe": 2,
+   "texto": "muda o alcance para médio, o dano para 5d4+5 e o alvo para explosão com 6m de raio. Requer 2º círculo."
+  },
+  "verdadeiro": {
+   "pe": 5,
+   "texto": "muda o alcance para longo, o dano para 10d4+10 e o alvo para explosão com 6m de raio. Passar no teste de resistência não evita a condição. Requer 3º círculo."
+  },
+  "fonte": "sah",
+  "pagina": "48"
+ },
+ {
+  "id": "rit.sede-de-adrenalina",
+  "nome": "Sede de Adrenalina",
+  "circulo": 2,
+  "elementos": [
+   "Sangue"
+  ],
+  "execucao": "reação",
+  "alcance": "pessoal",
+  "tipoAlvo": "Alvo",
+  "alvo": "você",
+  "duracao": "instantânea",
+  "resistencia": "",
+  "resumo": "Repete teste de Acrobacia/Atletismo com Presença ou reduz dano de impacto.",
+  "descricao": "Quando você falha em um teste de Acrobacia ou Atletismo, pode conjurar este ritual para repetir o teste, usando Presença no lugar do atributo base da perícia. Alternativamente, quando sofre dano de impacto, pode usar este ritual para reduzir esse dano em 20. Em qualquer caso, só pode usar este ritual uma vez por rodada. Se usá-lo para reduzir dano, mesmo que reduza o dano a 0, logo após o impacto o Sangue retorce seus ossos e tendões e você passa 1 rodada atordoado.",
+  "discente": {
+   "pe": 3,
+   "texto": "muda a redução de dano de impacto para 40."
+  },
+  "verdadeiro": {
+   "pe": 7,
+   "texto": "muda a redução de dano de impacto para 70. Requer 4º círculo e afinidade."
+  },
+  "fonte": "sah",
+  "pagina": "49"
+ },
+ {
+  "id": "rit.odor-da-cacada",
+  "nome": "Odor da Caçada",
+  "circulo": 3,
+  "elementos": [
+   "Sangue"
+  ],
+  "execucao": "padrão",
+  "alcance": "pessoal",
+  "tipoAlvo": "Alvo",
+  "alvo": "você",
+  "duracao": "cena",
+  "resistencia": "",
+  "resumo": "Faro e vantagem em perseguições; cobra fome e sede na cena seguinte.",
+  "descricao": "Enquanto estiver sob efeito deste ritual você recebe faro. Em uma cena de perseguição você recebe +5 nos testes de Atletismo e não perde PV pela ação de esforço extra, desde que o caçador que o persegue, ou a presa que você caça, emita odores. Na próxima cena você está sob efeito de fome e sede como se tivesse falhado no teste de Fortitude do primeiro dia e precisa suprir essa necessidade ou continuará sofrendo os efeitos.",
+  "discente": {
+   "pe": 4,
+   "texto": "muda o alcance para toque e o alvo para 1 ser."
+  },
+  "verdadeiro": {
+   "pe": 9,
+   "texto": "muda o alcance para curto e o alvo para até 5 seres. Requer afinidade."
+  },
+  "fonte": "sah",
+  "pagina": "49"
+ },
+ {
+  "id": "rit.martirio-de-sangue",
+  "nome": "Martírio de Sangue",
+  "circulo": 4,
+  "elementos": [
+   "Sangue"
+  ],
+  "execucao": "padrão",
+  "alcance": "pessoal",
+  "tipoAlvo": "Alvo",
+  "alvo": "você",
+  "duracao": "veja texto",
+  "resistencia": "",
+  "resumo": "Vira uma besta de Sangue: fica muito mais forte, mas perde o personagem ao fim da cena.",
+  "descricao": "Você se entrega ao Sangue e é devorado em uma monstruosidade bestial. Recebe faro, visão no escuro, cura acelerada 10, +10 em testes de ataque e rolagens de dano corpo a corpo e na Defesa, 30 PV temporários e seus ataques desarmados causam 1 dado de dano adicional e são letais (corte, impacto ou perfuração à escolha). Não pode mais fazer ações que demandem foco e concentração (como conjurar um ritual) e sofre -3 dados em testes de interação social. Este ritual não possui fim: quando a cena em que foi conjurado acaba, você se torna permanentemente uma criatura de Sangue, perdendo o personagem para sempre.",
+  "discente": {
+   "pe": 5,
+   "texto": "muda os bônus para +20 e os PV temporários para 50. Requer afinidade."
+  },
+  "verdadeiro": null,
+  "fonte": "sah",
+  "pagina": "50"
+ },
+ {
+  "id": "rit.apagar-as-luzes",
+  "nome": "Apagar as Luzes",
+  "circulo": 1,
+  "elementos": [
+   "Morte"
+  ],
+  "execucao": "padrão",
+  "alcance": "pessoal",
+  "tipoAlvo": "Alvo",
+  "alvo": "você",
+  "duracao": "instantânea",
+  "resistencia": "",
+  "resumo": "Apaga fontes de luz em alcance curto; você ganha visão no escuro.",
+  "descricao": "Qualquer fonte de luz em alcance curto, natural ou paranormal, se apaga (criando penumbra ou escuridão). O efeito é instantâneo, mas eventos temporários como nuvens cobrindo o sol ou janelas fechadas mantêm a escuridão pelo menos até o fim da cena. Você recebe visão no escuro até o fim da cena.",
+  "discente": {
+   "pe": 2,
+   "texto": "muda o alcance para determinar as fontes de luz afetadas para longo. Requer 2º círculo."
+  },
+  "verdadeiro": {
+   "pe": 5,
+   "texto": "como discente e, além de você, até cinco outros seres dentro do alcance recebem visão no escuro. Requer 3º círculo."
+  },
+  "fonte": "sah",
+  "pagina": "50"
+ },
+ {
+  "id": "rit.lingua-morta",
+  "nome": "Língua Morta",
+  "circulo": 2,
+  "elementos": [
+   "Morte"
+  ],
+  "execucao": "padrão",
+  "alcance": "toque",
+  "tipoAlvo": "Alvo",
+  "alvo": "1 cadáver",
+  "duracao": "sustentada",
+  "resistencia": "",
+  "resumo": "Reanima um cadáver para responder perguntas.",
+  "descricao": "Ao preparar um cadáver humano e conjurar este ritual, o Lodo da Morte o reanima forçadamente. O cadáver responde uma pergunta por rodada em que você mantém o ritual sustentado, até o limite de três rodadas. Se finalizar o ritual antes da terceira pergunta, o cadáver se desmancha em Lodo preto; ao final da terceira resposta, ele se transforma em um esqueleto de Lodo. Não há testes para obter as respostas, mas a clareza depende do estado do cadáver e do mestre.",
+  "discente": {
+   "pe": 3,
+   "texto": "aumenta o limite para quatro rodadas. Ao final da quarta rodada, o cadáver se transforma em um enraizado."
+  },
+  "verdadeiro": {
+   "pe": 7,
+   "texto": "aumenta o limite para cinco rodadas. Ao final da quinta rodada, o cadáver se transforma em uma marionete. Requer 4º círculo e afinidade."
+  },
+  "fonte": "sah",
+  "pagina": "51"
+ },
+ {
+  "id": "rit.fedor-putrido",
+  "nome": "Fedor Pútrido",
+  "circulo": 3,
+  "elementos": [
+   "Morte"
+  ],
+  "execucao": "padrão",
+  "alcance": "pessoal",
+  "tipoAlvo": "Alvo",
+  "alvo": "você",
+  "duracao": "sustentada",
+  "resistencia": "",
+  "resumo": "Cheira a cadáver: +furtividade e fingir-se de morto, ao custo de dano por rodada.",
+  "descricao": "Você cobre o corpo com o fedor da Morte, parando suas funções biológicas. Animais se afastam de você e você sofre -3 dados em Diplomacia. Recebe +5 em Furtividade e +10 em Enganação para se fingir de morto. Em cena de furtividade, enquanto ficar parado, sua visibilidade é considerada 1 ponto menor. Você não está imune a doenças nem precisa deixar de dormir. A cada rodada em que mantém o ritual sofre 1d4 de dano de Morte que ignora resistências.",
+  "discente": {
+   "pe": 4,
+   "texto": "muda o alcance para toque e o alvo para 1 ser voluntário."
+  },
+  "verdadeiro": {
+   "pe": 9,
+   "texto": "muda o alcance para curto e o alvo para até 5 seres voluntários. Requer afinidade."
+  },
+  "fonte": "sah",
+  "pagina": "52"
+ },
+ {
+  "id": "rit.singularidade-temporal",
+  "nome": "Singularidade Temporal",
+  "circulo": 4,
+  "elementos": [
+   "Morte"
+  ],
+  "execucao": "padrão",
+  "alcance": "curto",
+  "tipoAlvo": "Alvo",
+  "alvo": "1 objeto não paranormal Médio",
+  "duracao": "instantânea",
+  "resistencia": "veja texto",
+  "resumo": "Avança o objeto no tempo até seu estado mais decomposto.",
+  "descricao": "Você altera as condições temporais de um objeto, fazendo com que ele atinja o estado de decomposição mais avançado possível para um objeto do seu tipo. A interpretação depende do mestre: uma maçã apodrece completamente, um diamante pode não sofrer efeito. O objeto pode ficar danificado (-5 em testes em que seja empregado) ou ser completamente destruído. Se o objeto estiver em uso por alguém, o ser pode fazer um teste de Fortitude para protegê-lo.",
+  "discente": {
+   "pe": 5,
+   "texto": "muda o tamanho do objeto afetado para Grande."
+  },
+  "verdadeiro": {
+   "pe": 10,
+   "texto": "muda o tamanho do objeto afetado para Enorme."
+  },
+  "fonte": "sah",
+  "pagina": "52"
+ },
+ {
+  "id": "rit.desfazer-sinapses",
+  "nome": "Desfazer Sinapses",
+  "circulo": 1,
+  "elementos": [
+   "Conhecimento"
+  ],
+  "execucao": "padrão",
+  "alcance": "curto",
+  "tipoAlvo": "Alvo",
+  "alvo": "1 ser",
+  "duracao": "instantânea",
+  "resistencia": "Vontade parcial",
+  "resumo": "Dano de Conhecimento e frustrado.",
+  "descricao": "O Conhecimento inexiste bilhões de neurônios do cérebro do alvo. O alvo sofre 2d6+2 pontos de dano de Conhecimento e fica frustrado por uma rodada. Se passar no teste de resistência, sofre apenas metade do dano e evita a condição. O alvo precisa ter um cérebro.",
+  "discente": {
+   "pe": 2,
+   "texto": "muda o alcance para longo, o dano para 3d6+3 e o alvo para até 5 seres a sua escolha. Requer 2º círculo."
+  },
+  "verdadeiro": {
+   "pe": 5,
+   "texto": "muda o alcance para extremo, o dano para 8d6+8 e a condição para esmorecido. Se passar no teste de resistência, em vez de esmorecido, fica frustrado. Requer 3º círculo."
+  },
+  "fonte": "sah",
+  "pagina": "53"
+ },
+ {
+  "id": "rit.aurora-da-verdade",
+  "nome": "Aurora da Verdade",
+  "circulo": 2,
+  "elementos": [
+   "Conhecimento"
+  ],
+  "execucao": "padrão",
+  "alcance": "curto",
+  "tipoAlvo": "Área",
+  "alvo": "esfera com 3m de raio",
+  "duracao": "sustentada",
+  "resistencia": "Vontade parcial",
+  "resumo": "Obriga seres na área a falar a verdade e revela escondidos.",
+  "descricao": "Uma luz espectral dourada surge na área e qualquer ser dentro dela é obrigado a falar apenas a verdade, inclusive o conjurador. Se passar no teste de resistência, o ser pode mentir (o que ainda pode ser percebido com testes de Intuição). Qualquer ser que tente se esconder, obter camuflagem ou ficar invisível dentro da luz é imediatamente revelado.",
+  "discente": {
+   "pe": 3,
+   "texto": "muda o alcance para médio e a área para esfera com 9m de raio; o conjurador não é mais afetado."
+  },
+  "verdadeiro": {
+   "pe": 7,
+   "texto": "como discente, mas muda o alcance para longo e a duração para cena. Além disso, independentemente da distância, você ouve tudo que é falado na área. Requer 4º círculo e afinidade."
+  },
+  "fonte": "sah",
+  "pagina": "53"
+ },
+ {
+  "id": "rit.relembrar-fragmento",
+  "nome": "Relembrar Fragmento",
+  "circulo": 3,
+  "elementos": [
+   "Conhecimento"
+  ],
+  "execucao": "padrão",
+  "alcance": "toque",
+  "tipoAlvo": "Alvo",
+  "alvo": "1 objeto",
+  "duracao": "instantânea",
+  "resistencia": "",
+  "resumo": "Restaura texto ilegível ou danificado.",
+  "descricao": "Você toca uma fonte de conhecimento escrito ilegível ou danificada (livro, caderno, papel, pergaminho) e só precisa de um pedacinho do texto do tamanho de um dedo mindinho. O objeto é restaurado para o momento de sua última anotação e permanece assim enquanto você o tocar; se soltá-lo, volta ao estado danificado. Não restaura objetos destruídos por meios paranormais.",
+  "discente": {
+   "pe": 4,
+   "texto": "o objeto permanece restaurado até o fim da missão."
+  },
+  "verdadeiro": {
+   "pe": 9,
+   "texto": "em vez da descrição original, o ritual pode alterar o objeto de forma imperceptível conforme sua vontade (por exemplo, forjar um documento de porte de armas \"legítimo\"), e ele permanece alterado até o fim da missão. Requer afinidade."
+  },
+  "fonte": "sah",
+  "pagina": "54"
+ },
+ {
+  "id": "rit.pronunciar-sigilo",
+  "nome": "Pronunciar Sigilo",
+  "circulo": 4,
+  "elementos": [
+   "Conhecimento"
+  ],
+  "execucao": "padrão",
+  "alcance": "curto",
+  "tipoAlvo": "Alvo",
+  "alvo": "1 ser",
+  "duracao": "instantânea ou veja texto",
+  "resistencia": "Vontade parcial",
+  "resumo": "Esquecer, Cegar ou Inexistir o alvo.",
+  "descricao": "Você pronuncia um Sigilo do Conhecimento, causando um dos efeitos à sua escolha. Esquecer: o alvo fica atordoado por 1d4+1 rodadas (apenas uma vez por cena); se passar no teste, ou se já foi atordoado por este ritual, fica desprevenido por 1d4 rodadas. Cegar: o alvo fica cego; se passar, fica ofuscado por 1d4 rodadas. Inexistir: o alvo deixa de existir por 1d4+1 rodadas (1 rodada se passar no teste) e retorna ao espaço onde estava (criaturas retornam a um ponto à escolha delas em um raio de 18m). Um ser só pode ser inexistido uma vez por cena.",
+  "discente": {
+   "pe": 5,
+   "texto": "muda o alcance para extremo."
+  },
+  "verdadeiro": {
+   "pe": 10,
+   "texto": "muda o alvo para até cinco seres. Requer afinidade."
+  },
+  "fonte": "sah",
+  "pagina": "54"
+ },
+ {
+  "id": "rit.overclock",
+  "nome": "Overclock",
+  "circulo": 1,
+  "elementos": [
+   "Energia"
+  ],
+  "execucao": "reação",
+  "alcance": "pessoal",
+  "tipoAlvo": "Alvo",
+  "alvo": "você",
+  "duracao": "instantânea",
+  "resistencia": "",
+  "resumo": "Obtém a informação de um teste de Tecnologia por um jogo de estátua.",
+  "descricao": "Ao fazer um teste de Tecnologia para lidar com um objeto eletrônico, você pode, após saber se passou ou não, conjurar este ritual para receber as informações de outra forma: o mestre toca uma música e você deve mover os dedos no ar enquanto ela durar, ficando completamente imóvel quando for interrompida. Se não falhar até o fim, descobre o que queria. Depois disso o objeto é tomado por falhas e fica impossível de usar, como sob um vírus paranormal.",
+  "discente": {
+   "pe": 2,
+   "texto": "você só falha se errar duas vezes no jogo de estátua. Requer 2º círculo."
+  },
+  "verdadeiro": {
+   "pe": 5,
+   "texto": "você só falha se errar três vezes no jogo de estátua. Requer 3º círculo."
+  },
+  "fonte": "sah",
+  "pagina": "55"
+ },
+ {
+  "id": "rit.tremeluzir",
+  "nome": "Tremeluzir",
+  "circulo": 2,
+  "elementos": [
+   "Energia"
+  ],
+  "execucao": "padrão",
+  "alcance": "pessoal",
+  "tipoAlvo": "Alvo",
+  "alvo": "você",
+  "duracao": "sustentada",
+  "resistencia": "",
+  "resumo": "Atravessa objetos sólidos, mas sofre dano de Energia a cada rodada.",
+  "descricao": "Você e tudo que carrega são capazes de atravessar objetos sólidos. Para atravessar cada objeto você deve gastar uma ação de movimento; há 25% (1 em 1d4) de não atravessar, batendo no objeto. Em perseguição, permite cortar caminho sem penalidade em Atletismo. A cada rodada ativo você sofre 1d4 de dano de Energia que ignora resistência, e mais 1d4 se terminar a rodada com parte do corpo em um objeto sólido.",
+  "discente": {
+   "pe": 3,
+   "texto": "muda o alcance para toque e o alvo para 1 ser voluntário."
+  },
+  "verdadeiro": {
+   "pe": 7,
+   "texto": "muda o alcance para curto e o alvo para até 5 seres voluntários. Requer 4º círculo."
+  },
+  "fonte": "sah",
+  "pagina": "55"
+ },
+ {
+  "id": "rit.mutar",
+  "nome": "Mutar",
+  "circulo": 3,
+  "elementos": [
+   "Energia"
+  ],
+  "execucao": "padrão",
+  "alcance": "pessoal",
+  "tipoAlvo": "Alvo",
+  "alvo": "você",
+  "duracao": "cena",
+  "resistencia": "",
+  "resumo": "Silencia você: +10 em Furtividade, mas você não ouve nada.",
+  "descricao": "Você inibe a emissão de qualquer som a partir de você, e nenhum som alcança você. Concede +10 em testes de Furtividade e reduz qualquer ganho de visibilidade em cenas de furtividade em 1, a critério do mestre. O jogador só pode falar à mesa com permissão do mestre; se falar sem permissão, o ritual se esvai.",
+  "discente": {
+   "pe": 4,
+   "texto": "muda o alcance para toque e o alvo para 1 ser."
+  },
+  "verdadeiro": {
+   "pe": 9,
+   "texto": "muda o alcance para curto e o alvo para até 5 seres. Requer afinidade com Energia."
+  },
+  "fonte": "sah",
+  "pagina": "56"
+ },
+ {
+  "id": "rit.milagre-ionizante",
+  "nome": "Milagre Ionizante",
+  "circulo": 3,
+  "elementos": [
+   "Energia"
+  ],
+  "execucao": "completa",
+  "alcance": "toque",
+  "tipoAlvo": "Alvo",
+  "alvo": "1 ser",
+  "duracao": "instantânea",
+  "resistencia": "",
+  "resumo": "Cura uma condição, doença ou veneno, com risco de infectcídio.",
+  "descricao": "Você pode curar o ser de uma condição entre abalado, apavorado, alquebrado, atordoado, cego, confuso, debilitado, enjoado, envenenado, esmorecido, exausto, fascinado, fatigado, fraco, frustrado, lento, ofuscado, paralisado, pasmo ou surdo, ou uma doença ou um veneno, à sua escolha. Afeta efeitos paranormais, exceto os causados pela entidade de Energia e condições permanentes. Após curar, o ser faz um teste de Fortitude (DT 30); se falhar, é incubado pelo vírus do infectcídio.",
+  "discente": null,
+  "verdadeiro": null,
+  "fonte": "sah",
+  "pagina": "56"
  }
 ];
 
@@ -2112,7 +2519,7 @@ function resumoRituaisOP() {
     const cm = circuloMaximoOP(nex);
     if (cm) partes.push(`até o ${cm}º círculo`);
   }
-  partes.push(`Aprender Ritual: ${c.aprender.length} de ${_intelectoRitOP()} (Intelecto)`);
+  partes.push(`Aprender Ritual: ${c.aprender.length} de ${_intelectoRitOP()} (limite = Intelecto)`);
   if (c.extra.length) partes.push(`Extras: ${c.extra.length}`);
   return partes.join(" · ");
 }
@@ -2177,6 +2584,56 @@ function _poderDoRitualOP(r, elemento, origemTipo) {
 }
 
 /* ---------- aprender ---------- */
+/* círculo máximo conforme a fonte: rituais de classe (Ocultista) seguem 25/55/85%; o poder Aprender Ritual, 45/75% */
+function _circuloMaxFonteOP(origem, classe, nex) {
+  const n = _numOP(nex);
+  if (origem === "classe" && classe === "ocultista") return circuloMaximoOP(n);
+  if (origem === "aprender") return n >= 75 ? 3 : n >= 45 ? 2 : n >= 5 ? 1 : 0;
+  return circuloMaximoOP(n);
+}
+
+/* NEX mínimo de cada círculo, conforme a fonte do ritual */
+const _NEX_CIRCULO_OP = {
+  classe: [5, 25, 55, 85],     // rituais de classe do Ocultista
+  aprender: [5, 45, 75, null], // poder Aprender Ritual (não chega ao 4º círculo)
+};
+
+/* lista, em linguagem simples, o que falta para aprender o ritual (vazia = tudo certo) */
+function _requisitosRitualOP(r, origem, classe, nex) {
+  const faltas = [];
+  const c = rituaisConhecidosOP();
+  const n = _numOP(nex);
+  const tabela = _NEX_CIRCULO_OP[origem === "aprender" ? "aprender" : "classe"];
+  const cm = _circuloMaxFonteOP(origem, classe, nex);
+
+  if (n < 5) {
+    faltas.push(`Você precisa de NEX 5% ou mais para usar rituais (agora: ${n}%).`);
+  } else if (r.circulo > cm) {
+    const exigido = tabela[r.circulo - 1];
+    faltas.push(exigido
+      ? `É um ritual de ${r.circulo}º círculo e seu NEX (${n}%) só chega ao ${cm}º. O ${r.circulo}º círculo libera em NEX ${exigido}%.`
+      : `É um ritual de ${r.circulo}º círculo e o poder Aprender Ritual só chega ao ${cm}º círculo.`);
+  }
+
+  if (origem === "classe") {
+    if (classe !== "ocultista") faltas.push("Só o Ocultista ganha rituais de classe. Escolha \"Aprender\" ou \"Extra\".");
+    else {
+      const total = rituaisDeClasseTotalOP(classe, nex);
+      if (c.classe.length >= total) faltas.push(`Seus rituais de classe já estão completos (${c.classe.length} de ${total}). Eles aumentam quando seu NEX sobe.`);
+    }
+  } else if (origem === "aprender") {
+    const temPoder = (typeof poderes !== "undefined" ? poderes : []).some((p) => /aprender ritual/i.test(p.nome || "") && !p.origemRitual);
+    if (!temPoder) faltas.push("Falta o poder Aprender Ritual. Adicione-o na aba Poderes primeiro.");
+    const lim = _intelectoRitOP();
+    if (c.aprender.length >= lim) faltas.push(`O limite do Aprender Ritual é o seu Intelecto (${lim}) e já está cheio (${c.aprender.length} de ${lim}).`);
+  } else {
+    faltas.push("Só vale se uma trilha, poder, selo ou campanha deu este ritual. Confirme com o mestre.");
+  }
+
+  if (r.exigePoder) faltas.push("Precisa do poder de trilha que libera este ritual.");
+  return faltas;
+}
+
 async function aprenderRitualOP(id) {
   const r = buscarRitualOP(id);
   if (!r) return;
@@ -2191,25 +2648,9 @@ async function aprenderRitualOP(id) {
   const classe = document.getElementById("classeOP")?.value || "";
   const nex = nexClasseOP();
 
-  if (classe === "ocultista" && origem === "classe") {
-    const cm = circuloMaximoOP(nex);
-    if (r.circulo > cm) {
-      const ok = await confirmBonito(`${r.nome} é de ${r.circulo}º círculo, mas você só alcança o ${cm || "—"}º círculo (${rotuloNivelNexOP(nex)}). Aprender mesmo assim?`);
-      if (!ok) return;
-    }
-  }
-
-  const c = rituaisConhecidosOP();
-  if (origem === "classe" && classe === "ocultista" && c.classe.length >= rituaisDeClasseTotalOP(classe, nex)) {
-    const ok = await confirmBonito(`Você já aprendeu todos os rituais de classe disponíveis (${c.classe.length}). Aprender mesmo assim?`);
-    if (!ok) return;
-  }
-  if (origem === "aprender" && c.aprender.length >= _intelectoRitOP()) {
-    const ok = await confirmBonito(`O poder Aprender Ritual limita em Intelecto (${_intelectoRitOP()}) os rituais aprendidos assim. Aprender mesmo assim?`);
-    if (!ok) return;
-  }
-  if (r.exigePoder) {
-    const ok = await confirmBonito(`${r.nome} exige um poder de trilha específico (habilidade final da trilha). Aprender mesmo assim?`);
+  const faltas = _requisitosRitualOP(r, origem, classe, nex);
+  if (faltas.length) {
+    const ok = await confirmBonito(`${r.nome}: ainda falta cumprir ${faltas.length === 1 ? "1 requisito" : faltas.length + " requisitos"}.\n\n${faltas.map((f) => "• " + f).join("\n\n")}\n\nAprender mesmo assim?`);
     if (!ok) return;
   }
 
@@ -2220,14 +2661,43 @@ async function aprenderRitualOP(id) {
   abrirGrimorioOP();
 }
 
+/* quantos rituais ainda cabem em cada fonte, numa olhada */
+function _ritContadoresOP(classe, nex) {
+  const c = rituaisConhecidosOP();
+  const caixa = (rot, usados, total, dica) => {
+    const cheio = total > 0 && usados >= total;
+    return `<span class="rit-cx${cheio ? " cheio" : ""}" title="${esc(dica)}"><b>${usados}/${total}</b><small>${rot}</small></span>`;
+  };
+  const itens = [];
+  if (classe === "ocultista") itens.push(caixa("De classe", c.classe.length, rituaisDeClasseTotalOP(classe, nex), "Rituais que o Ocultista ganha pela classe. Aumentam com o NEX."));
+  itens.push(caixa("Aprender Ritual", c.aprender.length, _intelectoRitOP(), "Rituais aprendidos pelo poder Aprender Ritual. O limite é o seu Intelecto."));
+  if (c.extra.length) itens.push(`<span class="rit-cx"><b>${c.extra.length}</b><small>Extras</small></span>`);
+  return `<div class="rit-cont">${itens.join("")}</div>`;
+}
+
+function _ritReqHtmlOP(r, origem, classe, nex) {
+  const f = _requisitosRitualOP(r, origem, classe, nex);
+  if (!f.length) return `<span class="rit-req-ok">✓ Pode aprender</span>`;
+  const curto = (x) => x.split(/\.\s/)[0].replace(/\.$/, "");
+  return `<details class="rit-req-d"><summary><b>Bloqueado:</b> ${esc(curto(f[0]))}${f.length > 1 ? ` <em>+${f.length - 1}</em>` : ""}</summary><ul>${f.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>`;
+}
+
+function _ritReqOP(id, idSeg) {
+  const r = buscarRitualOP(id);
+  const sel = document.getElementById("ritOrigem_" + idSeg);
+  const box = document.getElementById("ritReq_" + idSeg);
+  if (!r || !sel || !box) return;
+  box.innerHTML = _ritReqHtmlOP(r, sel.value, document.getElementById("classeOP")?.value || "", nexClasseOP());
+}
+
 /* ---------- janela do grimório ---------- */
 function _cartaoRitualOP(r, nex, classe) {
   const idSeg = r.id.replace(/[^a-z0-9]/gi, "_");
   const multi = r.elementos.length > 1;
   const jaTem = multi ? false : _possuiRitualOP(r.id);
-  const cm = circuloMaximoOP(nex);
-  const alem = classe === "ocultista" && r.circulo > cm;
   const sugerida = _origemSugeridaOP();
+  const cm = _circuloMaxFonteOP(sugerida, classe, nex);
+  const alem = r.circulo > cm;
   const tags = [
     `<em class="cat-tag">${r.circulo}º círculo</em>`,
     ...r.elementos.map((e) => `<em class="cat-tag rit-el rit-el-${e.toLowerCase()}">${ICONE_ELEMENTO_OP[e] || ""} ${esc(e)}</em>`),
@@ -2262,12 +2732,13 @@ function _cartaoRitualOP(r, nex, classe) {
       </details>
       ${jaTem
         ? `<div class="cat-estado">✔ Já aprendido</div>`
-        : `<div class="rit-acoes">
+        : `<div class="rit-req" id="ritReq_${idSeg}">${_ritReqHtmlOP(r, sugerida, classe, nex)}</div>
+          <div class="rit-acoes">
             ${selElem}
-            <select id="ritOrigem_${idSeg}" class="rit-sel" title="Como você aprendeu">
-              <option value="classe" ${sugerida === "classe" ? "selected" : ""}>Rituais de classe</option>
-              <option value="aprender" ${sugerida === "aprender" ? "selected" : ""}>Aprender Ritual (limite Int)</option>
-              <option value="extra" ${sugerida === "extra" ? "selected" : ""}>Extra (trilha/poder/selo/campo)</option>
+            <select id="ritOrigem_${idSeg}" class="rit-sel rit-como" title="Como este ritual entra na sua ficha" onchange="_ritReqOP('${esc(r.id)}', '${idSeg}')">
+              <option value="classe" ${sugerida === "classe" ? "selected" : ""}>Entra como: ritual de classe</option>
+              <option value="aprender" ${sugerida === "aprender" ? "selected" : ""}>Entra como: Aprender Ritual</option>
+              <option value="extra" ${sugerida === "extra" ? "selected" : ""}>Entra como: extra (trilha/poder)</option>
             </select>
             <button type="button" class="cat-add" onclick="aprenderRitualOP('${esc(r.id)}')">Aprender</button>
           </div>`}
@@ -2296,15 +2767,15 @@ function abrirGrimorioOP() {
   const total = rituaisDeClasseTotalOP(classe, nex);
   const html = `
     <div class="popup-bloco rit-popup">
-      <div class="cat-contador">${esc(resumoRituaisOP())}</div>
+      ${_ritContadoresOP(classe, nex)}
 
-      <div class="rit-regra">
-        <label for="regraRituaisSelOP">Regra de aprendizado</label>
+      <details class="rit-regra">
+        <summary><span>Regra de aprendizado</span><b>${esc(REGRAS_APRENDIZADO_OP[regraRituaisOP].nome)}</b></summary>
         <select id="regraRituaisSelOP" onchange="mudarRegraRituaisOP(this.value)">
           ${Object.entries(REGRAS_APRENDIZADO_OP).map(([k, v]) => `<option value="${k}" ${regraRituaisOP === k ? "selected" : ""}>${esc(v.nome)}</option>`).join("")}
         </select>
         <small class="evo-dica">${esc(REGRAS_APRENDIZADO_OP[regraRituaisOP].texto)}${classe === "ocultista" ? ` Você tem direito a ${total} ritual(is) de classe.` : ""}</small>
-      </div>
+      </details>
 
       <input id="buscaRitOP" class="rit-busca" type="search" placeholder="Buscar ritual…" value="${esc(_buscaRitOP)}" oninput="buscarRituaisOP(this.value)" />
 
