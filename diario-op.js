@@ -24,14 +24,16 @@ function renderDiarioOP() {
   const sessao = _sessaoAtualDiarioOP();
   const geral = document.getElementById("diario");
 
-  const aba = (id, rotulo) =>
-    `<button type="button" class="diario-aba ${diarioAbaOP === id ? "ativa" : ""}" onclick="abrirAbaDiarioOP('${id}')" title="${esc(rotulo)}">${esc(rotulo)}</button>`;
+  const aba = (id, rotulo, sub) =>
+    `<button type="button" class="diario-aba ${diarioAbaOP === id ? "ativa" : ""}" onclick="abrirAbaDiarioOP('${id}')" title="${esc(rotulo)}"><span class="da-t">${esc(rotulo)}</span><small class="da-d">${esc(sub || "")}</small></button>`;
 
   raiz.innerHTML = `
-    <div class="diario-abas">
-      ${aba("geral", "Geral")}
-      ${diarioSessoesOP.map((s) => aba(s.id, s.titulo || "Sem título")).join("")}
-      <button type="button" class="diario-aba diario-nova" onclick="novaSessaoDiarioOP()" title="Nova sessão">+ Sessão</button>
+    <div class="diario-barra">
+      <div class="diario-abas">
+        ${aba("geral", "Geral", "notas rápidas")}
+        ${diarioSessoesOP.map((s) => aba(s.id, s.titulo || "Sem título", String(s.criado || "").slice(0, 5))).join("")}
+      </div>
+      <button type="button" class="diario-aba diario-nova" onclick="novaSessaoDiarioOP()" title="Nova sessão"><span class="da-t">+</span><small class="da-d">sessão</small></button>
     </div>
 
     ${
@@ -81,7 +83,11 @@ function mudarTituloDiarioOP(valor) {
   sessao.titulo = valor;
   // atualiza só o rótulo da aba, sem recriar a tela (para não perder o foco)
   const ativa = document.querySelector("#diarioOP .diario-aba.ativa");
-  if (ativa) { ativa.textContent = valor || "Sem título"; ativa.title = valor; }
+  if (ativa) {
+    const t = ativa.querySelector(".da-t");
+    if (t) t.textContent = valor || "Sem título"; else ativa.textContent = valor || "Sem título";
+    ativa.title = valor;
+  }
   salvarTudo();
 }
 
