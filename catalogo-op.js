@@ -124,20 +124,20 @@ const CATALOGO_OP_PADRAO = {
     },
     {
       id: "comb.monstruoso", classe: "combatente", nome: "Monstruoso", fonte: "sah", pagina: "17-21",
-      resumo: "Altera o próprio corpo para que a Entidade o invada com mais intensidade. Usa a Progressão de NEX da regra opcional (p. 98 do SaH). Os efeitos dependem do elemento escolhido (Sangue, Morte, Conhecimento ou Energia): consulte o livro.",
+      resumo: "Altera o próprio corpo para que a Entidade o invada com mais intensidade. Usa a Progressão de NEX da regra opcional (p. 98 do SaH). Os efeitos dependem do elemento escolhido (Sangue, Morte, Conhecimento ou Energia). Monstruosa Transformação (SaH p. 21): ao atingir NEX 75%, o personagem fica permanentemente perturbado e perde o suporte da Ordem (começa cada missão com equipamento de uma patente abaixo da sua). Ao atingir 99%, a Sanidade é reduzida a 1 e, sempre que ficar enlouquecendo, em vez de sofrer um efeito de insanidade (OPRPG p. 111), o personagem fica confuso (a condição termina normalmente ou quando deixa de estar enlouquecendo); se enlouquecer com 99% de NEX, torna-se permanentemente uma criatura do Outro Lado.",
       habilidades: [
         { id: "comb.monstruoso.10", nex: 10, nome: "Ser Amaldiçoado", ativacao: "especial",
-          resumo: "Treino em Ocultismo (ou +2). Escolha um elemento (Sangue, Morte, Conhecimento ou Energia) e execute uma etapa ritualística 1 vez por dia para receber os efeitos desse elemento; sem ela, sofre fome e sede. Veja os efeitos no livro.",
-          efeitos: [{ tipo: "manual", texto: "Efeitos por elemento: SaH p. 17-19" }] },
+          resumo: "Treino em Ocultismo (ou +2 se já treinado). Escolha um elemento: Sangue, Morte, Conhecimento ou Energia. Uma vez por dia você precisa executar uma etapa ritualística desse elemento (beber sangue humano, inalar cinzas de mortos, tatuar palavras que causam medo, receber choques de cabos elétricos...). Se fizer isso, até o fim do dia recebe os efeitos abaixo; caso contrário sofre de fome e sede. Ao adquirir afinidade, deve escolher o elemento desta habilidade.\n• Sangue: resistência a balístico e Sangue 5, faro e, ao fazer um contra-ataque bem-sucedido, soma o Vigor na rolagem de dano; sofre -1 dado em Ciências e Intuição.\n• Morte: resistência a perfuração e Morte 5, imunidade a fadiga e soma a Força ao total de PV; sofre -1 dado em Diplomacia e Enganação.\n• Conhecimento: resistência a balístico e Conhecimento 5, visão no escuro e soma o Intelecto na Defesa; sofre -1 dado em Atletismo e Acrobacia.\n• Energia: resistência a corte, eletricidade, fogo e Energia 5 e soma a Agilidade na RD recebida por um bloqueio bem-sucedido; sofre -1 dado em Investigação e Percepção.",
+          efeitos: [{ tipo: "manual", texto: "Efeitos do elemento escolhido: SaH p. 17-18" }] },
         { id: "comb.monstruoso.40", nex: 40, nome: "Ser Macabro", ativacao: "especial",
-          resumo: "A resistência a dano da etapa ritualística sobe para 10 e a penalidade em perícias para -2 dados, com efeitos adicionais por elemento. Veja o livro.",
-          efeitos: [{ tipo: "manual", texto: "Efeitos por elemento: SaH p. 18-19" }] },
+          resumo: "A resistência a dano recebida ao executar a etapa ritualística sobe para 10 e a penalidade em perícias para -2 dados. Ao executá-la, recebe também:\n• Sangue: pode usar Força (em vez de Presença) para calcular PE. Ação de movimento + 1 ou mais PE (limitado pela Força): recupera 1d8 PV por PE gasto.\n• Morte: +1 dado em Intimidação e pode usar Vigor para calcular PE. Só morre ao iniciar quatro turnos morrendo na mesma cena (em vez de três) e não precisa mais comer ou beber, mas ainda sofre a fome paranormal.\n• Conhecimento: Intelecto +1. Pode usar Intelecto como atributo-chave de Enganação e para calcular PE.\n• Energia: pode usar Agilidade para calcular PE. Ao acertar um ataque corpo a corpo, pode gastar 1 ou mais PE (limitado pela Agilidade) para causar +1d6 de dano de Energia por PE.",
+          efeitos: [{ tipo: "manual", texto: "Efeitos adicionais por elemento: SaH p. 18-19" }] },
         { id: "comb.monstruoso.65", nex: 65, nome: "Ser Assustador", ativacao: "especial",
-          resumo: "A resistência sobe para 15, mas Presença cai 1 permanentemente, com efeitos adicionais por elemento. Veja o livro.",
-          efeitos: [{ tipo: "manual", texto: "Presença -1. Efeitos por elemento: SaH p. 19-20" }] },
+          resumo: "A resistência a dano da etapa ritualística sobe para 15, mas sua Presença é reduzida permanentemente em 1. Ao executá-la, recebe também:\n• Sangue: 50% de chance de ignorar o dano adicional de acerto crítico ou ataque furtivo. Recebe arma natural de mordida (1d8, crítico x2, perfuração). Uma vez por rodada, ao usar agredir com outra arma, pode gastar 1 PE para um ataque corpo a corpo extra com a mordida.\n• Morte: no início de cada turno em que estiver morrendo, teste de Vigor (DT 15); se passar, encerra a condição e acorda com 1 PV. Ao fazer acerto crítico em combate ou reduzir um inimigo a 0 PV, recupera 2 PE.\n• Conhecimento: pode deixar de ser treinado em uma perícia para receber dados de bônus igual ao Intelecto. Até o fim da cena, ao fazer um teste, pode gastar um desses dados para +1 dado. Recupera as perícias perdidas no próximo interlúdio.\n• Energia: a resistência passa a valer também contra dano químico. Ação de movimento + tocar fonte elétrica: recupera PE (1d4 dispositivo portátil, 2d4 dispositivo grande, 4d4 fonte do tamanho de uma casa); a fonte é descarregada e seus circuitos ficam incapazes de transmitir energia.",
+          efeitos: [{ tipo: "manual", texto: "Presença -1 permanente. Efeitos por elemento: SaH p. 19-20" }] },
         { id: "comb.monstruoso.99", nex: 99, nome: "Ser Aterrorizante", ativacao: "especial",
-          resumo: "Os efeitos da etapa ritualística tornam-se permanentes, a resistência sobe para 20 e você passa a contar como criatura paranormal, com efeitos finais por elemento. Veja o livro.",
-          efeitos: [{ tipo: "manual", texto: "Efeitos por elemento: SaH p. 20-21" }] },
+          resumo: "Os efeitos da etapa ritualística tornam-se permanentes (mas ainda precisa executá-la para evitar fome e sede), você passa a ser considerado criatura paranormal para habilidades e itens e a resistência a dano sobe para 20. Recebe também:\n• Sangue: Intelecto -1 e Força +1. Ao causar dano com a mordida, recupera 5 PV (multiplicado em crítico). Aprende o ritual Forma Monstruosa. Sempre que sofre dano, teste de Vontade (DT 10 + dano); se falhar e não estiver sob Forma Monstruosa, a próxima ação padrão deve ser conjurá-lo (se não puder, perde a ação).\n• Morte: Presença -1 e Vigor +1. Imunidade a dano de Morte e imortalidade (se morrer, volta no dia seguinte, restaurado pelo Lodo), exceto se reduzido a 0 PV por dano de fogo ou Energia. Aprende o ritual Fim Inevitável.\n• Conhecimento: Força -1 e Intelecto +1. Recebe Percepção às Cegas e aprende um ritual de Conhecimento de 4º círculo à escolha; sempre que o conjura, perde a memória de tudo desde o início da cena.\n• Energia: Força -1 e Agilidade +1. Pode pairar a 1,5m do chão (deslocamento 12m, ignora terreno difícil, imune a dano por queda), passa por espaços onde passaria criatura Minúscula e é imune a paralisia de origem física. Não pode se beneficiar de itens vestidos e só manipula um objeto por vez com a mente. Aprende o ritual Deflagração de Energia.",
+          efeitos: [{ tipo: "manual", texto: "Efeitos finais por elemento: SaH p. 20-21" }] },
       ],
     },
   ],
@@ -310,9 +310,9 @@ const CATALOGO_OP_PADRAO = {
   P("esp.sah.esconderijo", "especialista", "Esconderijo Desesperado", "sah", "22", "passiva", "Sem penalidade em Furtividade por se mover no deslocamento normal. Em cenas de furtividade, ao passar em esconder-se a visibilidade diminui em 2.");
   P("esp.sah.diletante", "especialista", "Especialista Diletante", "sah", "22", "passiva", "Aprende um poder de fora da sua classe (exceto trilha ou paranormais), cumprindo os pré-requisitos.", { requisitos: { nexMin: 30 } });
   P("esp.sah.flashback", "especialista", "Flashback", "sah", "22", "passiva", "Escolha uma origem que não seja a sua e receba o poder dessa origem.");
-  P("esp.sah.leiturafria", "especialista", "Leitura Fria", "sah", "22", "especial", "Uma vez por interlúdio, após interagir com um NPC, faz três perguntas pessoais sobre ele. Para cada pergunta não respondida, recebe 2 PE temporários até o fim da missão. Uma vez por pessoa.", { requisitos: { periciasAll: ["Intuição"] } });
+  P("esp.sah.leiturafria", "especialista", "Leitura Fria", "sah", "22", "especial", "Uma vez por interlúdio, após interagir com um NPC, faz três perguntas pessoais sobre ele. Para cada pergunta não respondida, recebe 2 PE temporários até o fim da missão. Uma vez por pessoa.", { limite: "1 vez por interlúdio", requisitos: { periciasAll: ["Intuição"] } });
   P("esp.sah.maosfirmes", "especialista", "Mãos Firmes", "sah", "22", "livre", "+1 dado em Furtividade para esconder-se ou em ação discreta que manipule um objeto.", { custo: "2 PE", requisitos: { periciasAll: ["Furtividade"] } });
-  P("esp.sah.planofuga", "especialista", "Plano de Fuga", "sah", "23", "passiva", "Usa Intelecto no lugar de Força para a ação criar obstáculos em perseguição. Uma vez por cena, gasta 2 PE para ser bem-sucedido nessa ação sem teste.", { custo: "2 PE (opcional)" });
+  P("esp.sah.planofuga", "especialista", "Plano de Fuga", "sah", "23", "passiva", "Usa Intelecto no lugar de Força para a ação criar obstáculos em perseguição. Uma vez por cena, gasta 2 PE para ser bem-sucedido nessa ação sem teste.", { custo: "2 PE (opcional)", limite: "1 vez por cena" });
   P("esp.sah.remoermemorias", "especialista", "Remoer Memórias", "sah", "23", "livre", "Troca um teste de perícia baseada em Intelecto ou Presença por um teste de Intelecto (DT 15).", { custo: "2 PE", limite: "1 vez por cena", requisitos: { atributos: { intelecto: 1 } } });
   P("esp.sah.resistirpressao", "especialista", "Resistir à Pressão", "sah", "23", "especial", "Coordena os companheiros: a urgência da investigação aumenta em 1 rodada, e nela todos (você incluso) recebem +2 em testes de perícia.", { custo: "5 PE", limite: "1 vez por cena de investigação", requisitos: { periciasAll: ["Investigação"] } });
 
@@ -355,14 +355,14 @@ const CATALOGO_OP_PADRAO = {
     H("ocu.sah.exorcista", 65, "Parareligiosidade", "livre", "Ao conjurar um ritual, adiciona o efeito de um catalisador ritualístico à escolha.", { custo: "+2 PE" }),
     H("ocu.sah.exorcista", 99, "Chagas da Resistência", "reacao", "Quando sua Sanidade seria reduzida a 0, gasta PV para ficar com SAN 1.", { custo: "10 PV" }),
   ]);
-  T("ocu.sah.possuido", "ocultista", "Possuído", "sah", "29-30", "O paranormal cresce dentro de você; sem opção, só resta lutar.", [
+  T("ocu.sah.possuido", "ocultista", "Possuído", "sah", "28-29", "O paranormal cresce dentro de você; sem opção, só resta lutar.", [
     H("ocu.sah.possuido", 10, "Poder Não Desejado", "passiva", "Sempre que receberia um poder de ocultista, recebe Transcender. Ganha pontos de possessão (PP): 3 + 2 por poder Transcender. Limite por turno igual à Presença; cada PP gasto recupera 10 PV ou 2 PE. Recupera 1 PP por ação dormir.", { efeitos: [{ tipo: "manual", texto: "Controle os PP na ficha (SaH p. 29)" }] }),
     H("ocu.sah.possuido", 40, "As Sombras Dentro de Mim", "livre", "Recupera 2 PP por ação dormir. Pode deixar a Entidade controlar seus músculos: +1 dado em Acrobacia, Atletismo e Furtividade por uma rodada e menor aumento de visibilidade em furtividade.", { custo: "2 PE" }),
     H("ocu.sah.possuido", 65, "Ele Me Ensina", "passiva", "Escolha entre transcender ou receber o primeiro poder de uma trilha de ocultista que não seja a sua (cumprindo os pré-requisitos)."),
-    H("ocu.sah.possuido", 99, "Tornamo-nos Um", "especial", "Recebe um presente conforme o elemento de afinidade: Obsessão (Sangue), Tempo (Morte), Saber (Conhecimento) ou Espaço (Energia). Consulte o livro.", { efeitos: [{ tipo: "manual", texto: "Presente por elemento: SaH p. 30" }] }),
+    H("ocu.sah.possuido", 99, "Tornamo-nos Um", "especial", "Recebe um presente conforme o elemento de afinidade:\n• Obsessão (Sangue): uma vez por rodada, 6 PE para recuperar 50 PV; até o início do próximo turno, o bônus de treinamento em perícias de Força, Vigor e em Intimidação muda para +35 e as demais perícias de Presença mudam para -10. Pode ser ativado inconsciente.\n• Tempo (Morte): uma vez por rodada, 6 PE para receber um turno adicional na última contagem de iniciativa da rodada. Pode ser ativado inconsciente.\n• Saber (Conhecimento): uma vez por cena, 6 PE para receber um poder qualquer até o fim da cena (cumprindo pré-requisitos; não vale poder de trilha de NEX 99%). A cada uso, teste de Vontade (DT 15 + 5 por uso anterior na missão); se falhar, perde 1d6 SAN por uso nesta missão.\n• Espaço (Energia): uma vez por rodada, 6 PE para se teletransportar a alcance médio, sem precisar conhecer ou ver o local; se o espaço estiver ocupado, é arremessado ao espaço livre mais próximo.", { custo: "6 PE", efeitos: [{ tipo: "manual", texto: "Presente por elemento: SaH p. 28-29" }] }),
   ]);
   T("ocu.sah.parapsicologo", "ocultista", "Parapsicólogo", "sah", "30-31", "Usa o paranormal para curar a mente. Exige treino em Profissão (psicólogo).", [
-    H("ocu.sah.parapsicologo", 10, "Terapia", "reacao", "Usa Profissão (psicólogo) como Diplomacia. Uma vez por rodada, quando você ou aliado em alcance curto falha em resistência contra dano mental, faz um teste de Profissão (psicólogo) no lugar.", { custo: "2 PE", limite: "1 vez por rodada" }),
+    H("ocu.sah.parapsicologo", 10, "Terapia", "reacao", "Usa Profissão (psicólogo) como Diplomacia. Uma vez por rodada, quando você ou um aliado em alcance curto falha em um teste de resistência contra um efeito que causa dano mental, pode gastar 2 PE para fazer um teste de Profissão (psicólogo) e usar o resultado no lugar do teste falho. Se já possuir esta habilidade (poder Terapia da origem Psicólogo), em vez disso o custo é reduzido em -1 PE e recebe +2 em Profissão (psicólogo).", { custo: "2 PE", limite: "1 vez por rodada" }),
     H("ocu.sah.parapsicologo", 40, "Palavras-chave", "livre", "Ao passar em teste de perícia para acalmar, gasta PE até o seu limite: cada 1 PE devolve 1 ponto de Sanidade à pessoa."),
     H("ocu.sah.parapsicologo", 65, "Reprogramação Mental", "especial", "Em uma ação de interlúdio, concede a uma pessoa voluntária em alcance curto um poder geral, da classe dela ou o primeiro de uma trilha que não seja a dela, até o próximo interlúdio.", { custo: "5 PE" }),
     H("ocu.sah.parapsicologo", 99, "A Sanidade Está Lá Fora", "movimento", "Remove todas as condições de medo ou mentais de uma pessoa adjacente (inclusive você).", { custo: "5 PE" }),
@@ -748,15 +748,28 @@ function atualizarContadorPoderesClasseOP() {
   el.textContent = tem ? `Poderes de classe: ${poderesDeClasseUsadosOP()} de ${tem}` : "";
 }
 
-/* ---------- catálogo de poderes (escolher e adicionar) ---------- */
-function alternarDetalheCatalogoOP(el, ev) {
-  if (ev && ev.target.closest("button, select, option")) return;
-  const d = el.querySelector(".cat-detalhe");
-  const m = el.querySelector(".cat-mais");
-  if (!d) return;
-  const abrir = d.style.display === "none";
-  d.style.display = abrir ? "block" : "none";
-  if (m) m.textContent = abrir ? "Recolher ▴" : "Toque para ver detalhes ▾";
+/* =====================================================================
+   PÁGINA DE PODERES
+   Um popup só, com abas (Todos · Classe · Gerais · Trilhas · Origem ·
+   Paranormais). No topo de cada aba fica "Pode escolher": o que a ficha já
+   cumpre de requisitos (atributos, perícias, NEX/nível, poderes e elementos
+   exigidos pelos livros). Depois vêm os que ainda faltam requisito e, por
+   último, os que já foram adquiridos. Usa o mesmo seletor do catálogo de
+   armas (busca, botão Filtros e cartões que abrem ao tocar).
+   ===================================================================== */
+let _pwAbaOP = "todos";
+
+const _PW_ABAS_OP = [
+  ["todos", "Todos"],
+  ["classe", "Classe"],
+  ["gerais", "Gerais"],
+  ["trilhas", "Trilhas"],
+  ["origem", "Origem"],
+  ["par", "Paranormais"],
+];
+
+function _semAcentoOP(t) {
+  return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 async function escolherTrilhaCatalogoOP(id) {
@@ -766,179 +779,12 @@ async function escolherTrilhaCatalogoOP(id) {
   await aoMudarTrilhaOP();
 }
 
-function _blocoTrilhasCatOP(classe, nex, busca) {
-  const t = _semAcentoOP(busca).trim();
-  const lista = trilhasDaClasseOP(classe).filter(
-    (tr) => !t || _semAcentoOP([tr.nome, tr.resumo, ...(tr.habilidades || []).map((h) => h.nome + " " + h.resumo)].join(" ")).includes(t),
-  );
-  const html = lista.map((tr) => {
-    const minha = tr.id === trilhaOP;
-    const habs = (tr.habilidades || []).map((h) => {
-      const ok = Number(h.nex) <= nex;
-      return `
-        <div class="cat-item trilha-hab ${minha && ok ? "" : "bloqueado"}" style="cursor:default">
-          <div class="cat-topo">
-            <strong>${esc(h.nome)}</strong>
-            <span class="cat-tags">
-              <em class="cat-tag">${esc(rotuloNivelNexOP(h.nex))}</em>
-              ${h.ativacao ? `<em class="cat-tag">${esc(_nomeAtivacaoOP(h.ativacao))}</em>` : ""}
-              ${h.custo ? `<em class="cat-tag">${esc(h.custo)}</em>` : ""}
-            </span>
-          </div>
-          <p class="cat-resumo">${esc(h.resumo || "")}</p>
-          ${minha && ok ? `<div class="cat-estado">✔ Já na sua ficha</div>` : minha ? `<div class="cat-estado falta">Chega em ${esc(rotuloNivelNexOP(h.nex))}</div>` : ""}
-        </div>`;
-    }).join("");
-    return `
-      <details class="cat-trilha" ${minha || t ? "open" : ""}>
-        <summary>
-          <strong>${esc(tr.nome)}</strong>
-          ${minha ? `<em class="cat-tag auto">Sua trilha</em>` : ""}
-          ${tagFonteOP(tr.fonte)}
-        </summary>
-        <p class="cat-resumo">${esc(tr.resumo || "")}${tr.nota ? ` <b>(Exige: ${esc(tr.nota)})</b>` : ""}</p>
-        <div class="cat-lista">${habs}</div>
-        ${minha ? "" : `<button type="button" class="cat-add" onclick="escolherTrilhaCatalogoOP('${esc(tr.id)}')">Escolher esta trilha</button>`}
-      </details>`;
-  }).join("");
-  return { n: lista.length, html };
-}
-
-let _filtroCatalogoOP = "todos";
-let _buscaCatalogoOP = "";
-let _buscaParanormalOP = "";
-function _semAcentoOP(t) {
-  return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-}
-function _casaBuscaOP(p, termo) {
-  const t = _semAcentoOP(termo).trim();
-  if (!t) return true;
-  return _semAcentoOP([p.nome, p.resumo, p.afinidade, p.elemento, p.classe].join(" ")).includes(t);
-}
-function filtrarCatalogoOP(f) {
-  _filtroCatalogoOP = f;
-  abrirCatalogoPoderesOP(true);
-}
-function buscarCatalogoOP(texto, paranormal) {
-  if (paranormal) _buscaParanormalOP = texto; else _buscaCatalogoOP = texto;
-  clearTimeout(window._tBuscaCatOP);
-  window._tBuscaCatOP = setTimeout(() => {
-    if (paranormal) abrirParanormaisOP(true); else abrirCatalogoPoderesOP(true);
-    const el = document.getElementById(paranormal ? "buscaParOP" : "buscaCatOP");
-    if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
-  }, 250);
-}
-
-function abrirCatalogoPoderesOP(manter) {
-  if (!manter) { _buscaCatalogoOP = ""; _filtroCatalogoOP = "todos"; }
-  const classe = document.getElementById("classeOP")?.value || "";
-  if (!classe) {
-    alertBonito("Escolha uma classe para ver os poderes disponíveis.");
-    return;
-  }
-
-  const todosCat = obterCatalogoOP().poderes.filter(
-    (p) => (p.classe === classe || p.classe === "geral" || p.geral) && p.tipo !== "paranormal" && !(modoSeparadoOP() && /\.transcender$/.test(p.id)),
-  );
-  // poderes gerais não repetem um poder de mesmo nome que a própria classe já tem
-  const nomesDaClasse = new Set(todosCat.filter((p) => p.classe === classe).map((p) => p.nome));
-  const listaTotal = todosCat.filter((p) => p.classe === classe || !nomesDaClasse.has(p.nome));
-  const lista = listaTotal.filter((p) => _casaBuscaOP(p, _buscaCatalogoOP));
-  if (!listaTotal.length && !trilhasDaClasseOP(classe).length) {
-    alertBonito("Ainda não há poderes cadastrados para esta classe. Você pode cadastrar em Editar regras.");
-    return;
-  }
-
-  const nex = nexClasseOP();
-  const tem = poderesDeClasseDisponiveisOP(classe, nex);
-  const usados = poderesDeClasseUsadosOP();
-
-  const cartao = (p) => {
-    const jaTem = _possuiPoderCatalogoOP(p.id);
-    const falhas = verificarRequisitosOP(p);
-    const bloqueado = (jaTem && !p.repetivel) || falhas.length > 0;
-    const auto = (p.efeitos || []).some((e) => e.tipo === "recurso");
-    const req = _requisitosTextoOP(p);
-
-    const efs = (p.efeitos || [])
-      .map((e) => {
-        if (e.tipo === "recurso") {
-          const a = { pv: "PV", pe: "PE", san: "SAN" }[e.alvo] || e.alvo;
-          const sn = (n) => (n > 0 ? "+" : "") + n;
-          if (e.valor && e.porNivel) return `⚙ ${sn(e.valor)} ${a} e ${sn(e.porNivel)} por nível (automático)`;
-          if (e.valor) return `⚙ ${sn(e.valor)} ${a} (automático)`;
-          if (e.porNivel) return `⚙ ${sn(e.porNivel)} ${a} por nível (automático)`;
-          if (e.cadaNiveis) return `⚙ +${e.porCada} ${a} a cada ${e.cadaNiveis} níveis (automático)`;
-          if (e.porAtributo) return `⚙ ${a} por atributo (automático)`;
-          return `⚙ Altera ${a} (automático)`;
-        }
-        if (e.tipo === "treino") return `🎓 Treino em ${e.pericia} (ou +2 se já treinado)`;
-        if (e.tipo === "manual") return `✋ ${e.texto || "Efeito aplicado manualmente na ficha"}`;
-        return "";
-      })
-      .filter(Boolean);
-    const detalhes = [
-      p.ativacao ? `<div><b>Ativação:</b> ${esc(_nomeAtivacaoOP(p.ativacao))}</div>` : "",
-      p.custo ? `<div><b>Custo:</b> ${esc(p.custo)}</div>` : "",
-      p.limite ? `<div><b>Limite:</b> ${esc(p.limite)}</div>` : "",
-      req ? `<div><b>Pré-requisitos:</b> ${esc(req)}</div>` : "",
-      p.repetivel ? `<div><b>Pode ser escolhido várias vezes.</b></div>` : "",
-      efs.length ? `<div><b>Na ficha:</b><br>${efs.map(esc).join("<br>")}</div>` : "",
-      `<div class="cat-fonte">📖 ${nomeFonteOP(p.fonte)}${p.pagina ? `, p. ${esc(p.pagina)}` : ""} — o texto completo está no livro.</div>`,
-    ].join("");
-
-    return `
-      <div class="cat-item ${bloqueado ? "bloqueado" : ""}" onclick="alternarDetalheCatalogoOP(this, event)">
-        <div class="cat-topo">
-          <strong>${esc(p.nome)}</strong>
-          <span class="cat-tags">
-            ${_ehGeralCatOP(p) ? `<em class="cat-tag auto">Geral</em>` : `<em class="cat-tag classe">${p.tipo === "trilha" ? "Trilha" : "Classe"}</em>`}
-            ${tagFonteOP(p.fonte)}
-            ${p.ativacao ? `<em class="cat-tag">${esc(_nomeAtivacaoOP(p.ativacao))}</em>` : ""}
-            ${p.custo ? `<em class="cat-tag">${esc(p.custo)}</em>` : ""}
-            ${auto ? `<em class="cat-tag auto">⚙ automático</em>` : ""}
-          </span>
-        </div>
-        ${req ? `<div class="cat-req">Pré-requisitos: ${esc(req)}</div>` : ""}
-        <p class="cat-resumo">${esc(p.resumo || "")}</p>
-        <div class="cat-detalhe" style="display:none">${detalhes}</div>
-        <div class="cat-mais">Toque para ver detalhes ▾</div>
-        ${
-          jaTem && !p.repetivel
-            ? `<div class="cat-estado">✔ Já adquirido</div>`
-            : falhas.length
-              ? `<div class="cat-estado falta">Falta: ${esc(falhas.join(", "))}</div>`
-              : ""
-        }
-        ${p.escolhePericia && !falhas.length ? `<select id="focoPer_${esc(p.id.replace(/[^a-z0-9]/gi, "_"))}" class="rit-sel">${pericias.filter((x) => x.nome !== "Luta" && x.nome !== "Pontaria" && (profs[x.nome] || 0) >= 1 && !poderesDoCatalogoNaFichaOP().some((q) => q.origemCatalogo === p.id && q.perciaEscolhida === x.nome)).map((x) => `<option value="${esc(x.nome)}">${esc(x.nome)}</option>`).join("")}</select>` : ""}
-        <button type="button" class="cat-add" ${bloqueado ? "disabled" : ""} onclick="adquirirPoderCatalogoOP('${esc(p.id)}')">
-          ${jaTem && p.repetivel ? "Adquirir de novo" : "Adquirir"}
-        </button>
-      </div>`;
-  };
-
-  const gerais = lista.filter(_ehGeralCatOP);
-  const deClasse = lista.filter((p) => !_ehGeralCatOP(p));
-  const f = _filtroCatalogoOP;
-  const trilhasCat = _blocoTrilhasCatOP(classe, nex, _buscaCatalogoOP);
-  const secao = (titulo, itens) =>
-    itens.length ? `<h4 class="cat-secao">${titulo} <span>${itens.length}</span></h4><div class="cat-lista">${itens.map(cartao).join("")}</div>` : "";
-  const chip = (id, rotulo, n) => `<button type="button" class="cat-chip ${f === id ? "ativo" : ""}" onclick="filtrarCatalogoOP('${id}')">${rotulo} <span>${n}</span></button>`;
-
-  const html = `
-    <div class="popup-bloco">
-      <input id="buscaCatOP" class="rit-busca" type="search" placeholder="Buscar poder…" value="${esc(_buscaCatalogoOP)}" oninput="buscarCatalogoOP(this.value)" />
-      <div class="cat-filtros">${chip("todos", "Todos", lista.length)}${chip("classe", "Classe", deClasse.length)}${chip("trilhas", "Trilhas", trilhasCat.n)}${chip("gerais", "Gerais", gerais.length)}</div>
-      ${tem ? `<div class="cat-contador">Poderes de classe: <b>${usados}</b> de <b>${tem}</b> disponíveis (${esc(rotuloNivelNexOP(nex))})</div>` : ""}
-      ${f === "todos" || f === "classe" ? secao("Poderes de classe", deClasse) : ""}
-      ${f === "todos" || f === "trilhas" ? (trilhasCat.n ? `<h4 class="cat-secao">Trilhas <span>${trilhasCat.n}</span></h4><small class="evo-dica">As habilidades da trilha entram sozinhas na ficha conforme o NEX. Escolha a trilha por aqui ou no campo Trilha da ficha.</small>${trilhasCat.html}` : "") : ""}
-      ${f === "todos" || f === "gerais" ? secao("Poderes gerais", gerais) : ""}
-      ${!lista.length && !trilhasCat.n ? `<p class="bp-dica">Nenhum poder encontrado.</p>` : ""}
-      ${modoSeparadoOP() ? `<small class="evo-dica">Na regra de nível separado, Transcender não é poder de classe: ele vem do ritual de conexão quando o NEX permite.</small>` : ""}
-      <small class="evo-dica">Descrições resumidas: o texto completo está no livro (fonte indicada ao adquirir).</small>
-    </div>`;
-
-  abrirPopup("Catálogo de poderes", html, true);
+/* a trilha é escolhida com o popup fechado (o resumo aparece por cima); se cancelar, volta para a página */
+async function escolherTrilhaPwOP(id) {
+  fecharSeletorOP();
+  const antes = trilhaOP;
+  await escolherTrilhaCatalogoOP(id);
+  if (trilhaOP === antes) abrirPoderesOP(null, true);
 }
 
 function _ehGeralCatOP(p) {
@@ -947,6 +793,331 @@ function _ehGeralCatOP(p) {
 
 function _nomeAtivacaoOP(v) {
   return { passiva: "Passiva", padrao: "Ação padrão", interludio: "Interlúdio", movimento: "Movimento", completa: "Completa", livre: "Livre", reacao: "Reação", especial: "Especial" }[v] || v;
+}
+
+/* situação de um poder para esta ficha */
+function _pwEstadoOP(p) {
+  const falhas = verificarRequisitosOP(p);
+  if (p.tipo !== "paranormal") {
+    const jaTem = _possuiPoderCatalogoOP(p.id);
+    const adquirido = jaTem && !p.repetivel;
+    return { falhas, jaTem, adquirido, podeSegunda: false, ok: !adquirido && !falhas.length };
+  }
+  const afin = _afinidadeOP();
+  const temAfin = !!afin && String(p.elemento || "").toLowerCase() === afin;
+  const unico = !p.repetivel && !p.escolheElemento;
+  const copias = unico ? _copiasParanormalOP(p.id) : 0;
+  const podeSegunda = unico && copias === 1 && temAfin;
+  const adquirido = unico && copias >= (temAfin ? 2 : 1);
+  return { falhas, jaTem: copias > 0, adquirido, podeSegunda, temAfin, ok: !adquirido && (!falhas.length || podeSegunda) };
+}
+
+function _pwTrilhaEstadoOP(t) {
+  const falhas = t.requisitos ? verificarRequisitosOP(t) : [];
+  const minha = t.id === trilhaOP;
+  return { falhas, minha, adquirido: minha, ok: !minha && !falhas.length };
+}
+
+/* efeitos que o app aplica sozinho (texto simples, sem emoji) */
+function _pwEfeitosTextoOP(p) {
+  return (p.efeitos || [])
+    .map((e) => {
+      if (e.tipo === "recurso") {
+        const a = { pv: "PV", pe: "PE", san: "SAN" }[e.alvo] || e.alvo;
+        const sn = (n) => (n > 0 ? "+" : "") + n;
+        if (e.valor && e.porNivel) return `${sn(e.valor)} ${a} e ${sn(e.porNivel)} por nível (automático)`;
+        if (e.valor) return `${sn(e.valor)} ${a} (automático)`;
+        if (e.porNivel) return `${sn(e.porNivel)} ${a} por nível (automático)`;
+        if (e.cadaNiveis) return `+${e.porCada} ${a} a cada ${e.cadaNiveis} níveis (automático)`;
+        if (e.porAtributo) return `${a} por atributo (automático)`;
+        return `Altera ${a} (automático)`;
+      }
+      if (e.tipo === "treino") return `Treino em ${e.pericia} (ou +2 se já treinado)`;
+      if (e.tipo === "manual") return `Manual: ${e.texto || "efeito aplicado à mão na ficha"}`;
+      return "";
+    })
+    .filter(Boolean);
+}
+
+function _pwLivroOP(p) {
+  const f = obterCatalogoOP().fontes?.[p.fonte] || nomeFonteOP(p.fonte);
+  return f ? `${f}${p.pagina ? `, p. ${p.pagina}` : ""}` : "";
+}
+
+function _pwFacetasOP(tipo, p, ativ) {
+  return [
+    ["Tipo", tipo],
+    ["Livro", nomeFonteOP(p.fonte)],
+    ["Ativação", ativ ? _nomeAtivacaoOP(ativ) : null],
+    ["Elemento", p.tipo === "paranormal" ? p.elemento || "Qualquer" : null],
+  ];
+}
+
+function _pwSelectOP(prefixo, p, opcoes) {
+  return `<select id="${prefixo}_${esc(p.id.replace(/[^a-z0-9]/gi, "_"))}" class="rit-sel">${opcoes.map((o) => `<option value="${esc(o)}">${esc(o)}</option>`).join("")}</select>`;
+}
+
+/* cartão de poder (classe, geral, origem ou paranormal) */
+function _pwCartaoOP(p, st) {
+  const par = p.tipo === "paranormal";
+  const tipo = par ? "Paranormal" : p.tipo === "origem" ? "Origem" : _ehGeralCatOP(p) ? "Geral" : "Classe";
+  const req = _requisitosTextoOP(p);
+  const efs = _pwEfeitosTextoOP(p);
+  const livro = _pwLivroOP(p);
+  const auto = (p.efeitos || []).some((e) => e.tipo === "recurso");
+
+  const tags = [
+    p.custo ? `<em class="cat">${esc(p.custo)}</em>` : "",
+    `<em>${esc(par ? p.elemento || "Qualquer elemento" : tipo)}</em>`,
+    p.ativacao ? `<em>${esc(_nomeAtivacaoOP(p.ativacao))}</em>` : "",
+    auto ? `<em>Automático</em>` : "",
+    (FONTES_ROTULO_OP[p.fonte] || ["", ""])[1] ? `<em>${esc(FONTES_ROTULO_OP[p.fonte][1])}</em>` : "",
+  ].join("");
+
+  const stats = [
+    p.ativacao ? `<div><small>Ativação</small><b>${esc(_nomeAtivacaoOP(p.ativacao))}</b></div>` : "",
+    p.custo ? `<div><small>Custo</small><b>${esc(p.custo)}</b></div>` : "",
+    p.limite ? `<div><small>Limite</small><b>${esc(p.limite)}</b></div>` : "",
+    p.repetivel ? `<div><small>Escolha</small><b>Pode repetir</b></div>` : "",
+  ].join("");
+
+  let estado = "";
+  if (st.adquirido) estado = `<small class="pw-estado">Já adquirido${st.temAfin ? " (com afinidade)" : ""}</small>`;
+  else if (st.falhas.length && !st.podeSegunda) estado = `<small class="pw-estado falta">Falta: ${esc(st.falhas.join(", "))}</small>`;
+  else if (st.podeSegunda) estado = `<small class="pw-estado">Pode escolher de novo, com afinidade</small>`;
+
+  let acao = "";
+  if (!st.adquirido && (st.ok || st.podeSegunda)) {
+    if (par) {
+      const seletor = p.escolheElemento ? _pwSelectOP("parEl", p, ["Conhecimento", "Energia", "Morte", "Sangue"]) : "";
+      acao = st.podeSegunda
+        ? `<button type="button" class="eq-btn eq-pk-add" onclick="event.stopPropagation(); adquirirParanormalOP('${esc(p.id)}', true)">Adquirir (afinidade)</button>`
+        : `${seletor}<button type="button" class="eq-btn eq-pk-add" onclick="event.stopPropagation(); adquirirParanormalOP('${esc(p.id)}', false)">Adquirir</button>`;
+    } else {
+      let seletor = "";
+      if (p.escolhePericia) {
+        const nomes = pericias
+          .filter((x) => x.nome !== "Luta" && x.nome !== "Pontaria" && (profs[x.nome] || 0) >= 1 && !poderesDoCatalogoNaFichaOP().some((q) => q.origemCatalogo === p.id && q.perciaEscolhida === x.nome))
+          .map((x) => x.nome);
+        seletor = nomes.length ? _pwSelectOP("focoPer", p, nomes) : `<small class="pw-estado falta">Você precisa ser treinado em alguma perícia.</small>`;
+      }
+      acao = `${seletor}<button type="button" class="eq-btn eq-pk-add" onclick="event.stopPropagation(); adquirirPoderCatalogoOP('${esc(p.id)}')">${st.jaTem && p.repetivel ? "Adquirir de novo" : "Adquirir"}</button>`;
+    }
+  }
+
+  return `
+    <div class="eq-pk-card ${st.ok || st.podeSegunda ? "" : "pw-bloq"}" data-f="${esc(JSON.stringify(_pwFacetasOP(tipo, p, p.ativacao).map((f) => f[1] || "")))}" data-busca="${esc(_norm([p.nome, p.resumo, p.afinidade, p.elemento, tipo, req].join(" ")))}" onclick="alternarCardPickerOP(event, this)">
+      <div class="eq-pk-topo"><strong>${esc(p.nome)}</strong><span class="eq-pk-tags">${tags}</span></div>
+      ${req ? `<div class="pw-req">Pré-requisitos: ${esc(req)}</div>` : ""}
+      <p class="eq-pk-resumo">${esc(p.resumo || "")}</p>
+      ${estado}
+      ${livro ? `<small class="eq-pk-livro">${esc(livro)}</small>` : ""}
+      <div class="eq-pk-extra">
+        ${stats ? `<div class="eq-pk-stats">${stats}</div>` : ""}
+        ${par && p.afinidade ? `<p class="pw-det"><b>Afinidade:</b> ${esc(p.afinidade)}</p>` : ""}
+        ${efs.length ? `<p class="pw-det"><b>Na ficha:</b> ${efs.map(esc).join(" · ")}</p>` : ""}
+        ${acao ? `<div class="eq-pk-rodape pw-acao">${acao}</div>` : ""}
+      </div>
+    </div>`;
+}
+
+/* cartão de trilha: ao abrir mostra as habilidades por NEX */
+function _pwCartaoTrilhaOP(t, st, nex) {
+  const habs = (t.habilidades || [])
+    .map((h) => {
+      const ja = st.minha && Number(h.nex) <= nex;
+      return `<div class="pw-hab"><b>${esc(h.nome)}</b> <em>${esc(rotuloNivelNexOP(h.nex))}${ja ? " · já na ficha" : ""}</em><span>${esc(h.resumo || "")}</span></div>`;
+    })
+    .join("");
+  const livro = _pwLivroOP(t);
+  const estado = st.minha
+    ? `<small class="pw-estado">Sua trilha</small>`
+    : st.falhas.length
+      ? `<small class="pw-estado falta">Falta: ${esc(st.falhas.join(", "))}</small>`
+      : "";
+  const ativs = (t.habilidades || []).map((h) => h.nome + " " + (h.resumo || "")).join(" ");
+  return `
+    <div class="eq-pk-card ${st.ok || st.minha ? "" : "pw-bloq"}" data-f="${esc(JSON.stringify(_pwFacetasOP("Trilha", t, null).map((f) => f[1] || "")))}" data-busca="${esc(_norm([t.nome, t.resumo, t.nota, ativs, "trilha"].join(" ")))}" onclick="alternarCardPickerOP(event, this)">
+      <div class="eq-pk-topo"><strong>${esc(t.nome)}</strong><span class="eq-pk-tags"><em>Trilha</em>${(FONTES_ROTULO_OP[t.fonte] || ["", ""])[1] ? `<em>${esc(FONTES_ROTULO_OP[t.fonte][1])}</em>` : ""}</span></div>
+      ${t.nota ? `<div class="pw-req">Exige: ${esc(t.nota)}</div>` : ""}
+      <p class="eq-pk-resumo">${esc(t.resumo || "")}</p>
+      ${estado}
+      ${livro ? `<small class="eq-pk-livro">${esc(livro)}</small>` : ""}
+      <div class="eq-pk-extra">
+        <div class="pw-habs">${habs}</div>
+        <small class="pw-det">As habilidades entram sozinhas na aba Poderes da ficha, conforme o NEX.</small>
+        ${st.minha ? "" : `<div class="eq-pk-rodape pw-acao"><button type="button" class="eq-btn eq-pk-add" onclick="event.stopPropagation(); escolherTrilhaPwOP('${esc(t.id)}')">${st.falhas.length ? "Escolher mesmo assim" : "Escolher trilha"}</button></div>`}
+      </div>
+    </div>`;
+}
+
+/* monta tudo o que a página mostra, já separado por situação */
+function _pwColecoesOP(classe, nex) {
+  const cat = obterCatalogoOP();
+  const doCat = cat.poderes.filter((p) => p.tipo !== "paranormal" && p.tipo !== "origem" && (p.classe === classe || p.classe === "geral" || p.geral) && !(modoSeparadoOP() && /\.transcender$/.test(p.id)));
+  // poderes gerais não repetem um poder de mesmo nome que a própria classe já tem
+  const nomesDaClasse = new Set(doCat.filter((p) => p.classe === classe).map((p) => p.nome));
+  const base = doCat.filter((p) => p.classe === classe || !nomesDaClasse.has(p.nome));
+  const alfa = (a, b) => String(a.nome).localeCompare(String(b.nome), "pt-BR");
+  const poder = (lista) => lista.map((p) => ({ tipo: "poder", p, st: _pwEstadoOP(p) })).sort((a, b) => alfa(a.p, b.p));
+  const trilha = trilhasDaClasseOP(classe).map((t) => ({ tipo: "trilha", p: t, st: _pwTrilhaEstadoOP(t) })).sort((a, b) => alfa(a.p, b.p));
+  return {
+    classe: poder(base.filter((p) => !_ehGeralCatOP(p))),
+    gerais: poder(base.filter(_ehGeralCatOP)),
+    trilhas: trilha,
+    origem: poder(cat.poderes.filter((p) => p.tipo === "origem")),
+    par: poder(cat.poderes.filter((p) => p.tipo === "paranormal")),
+  };
+}
+
+function _pwSecoesOP(aba, col) {
+  const ok = (l) => l.filter((x) => x.st.ok || x.st.podeSegunda);
+  const falta = (l) => l.filter((x) => !x.st.ok && !x.st.podeSegunda && !x.st.adquirido);
+  const adq = (l) => l.filter((x) => x.st.adquirido);
+  const sec = (titulo, itens) => ({ titulo, itens });
+
+  if (aba === "trilhas") {
+    return [sec("Sua trilha", col.trilhas.filter((x) => x.st.minha)), sec("Pode escolher", ok(col.trilhas)), sec("Faltam requisitos", falta(col.trilhas))];
+  }
+  if (aba === "todos") {
+    const cg = col.classe.concat(col.gerais).sort((a, b) => String(a.p.nome).localeCompare(String(b.p.nome), "pt-BR"));
+    return [
+      sec("Pode escolher", ok(cg)),
+      sec("Sua trilha", col.trilhas.filter((x) => x.st.minha)),
+      sec("Trilhas", col.trilhas.filter((x) => !x.st.minha)),
+      sec("Paranormais", ok(col.par).concat(falta(col.par), adq(col.par))),
+      sec("Faltam requisitos", falta(cg)),
+      sec("Já adquiridos", adq(cg)),
+    ];
+  }
+  const l = col[aba] || [];
+  return [sec("Pode escolher", ok(l)), sec("Faltam requisitos", falta(l)), sec("Já adquiridos", adq(l))];
+}
+
+function _pwQuantosOP(aba, col) {
+  const ok = (l) => l.filter((x) => x.st.ok || x.st.podeSegunda).length;
+  if (aba === "todos") return ok(col.classe) + ok(col.gerais);
+  return ok(col[aba] || []);
+}
+
+function _renderPoderesOP(manterFiltros, manterRolagem) {
+  const corpo = document.getElementById("eqSeletorCorpo");
+  if (!corpo) return;
+  const classe = document.getElementById("classeOP")?.value || "";
+  const nex = nexClasseOP();
+  const buscaAnt = corpo.querySelector(".eq-picker-busca")?.value || "";
+  const rolagem = corpo.querySelector(".eq-picker-lista")?.scrollTop || 0;
+  const filtrosAnt = manterFiltros ? { ..._flSelOP } : {};
+
+  const col = _pwColecoesOP(classe, nex);
+  const secoes = _pwSecoesOP(_pwAbaOP, col);
+  const entidades = [];
+  const html = secoes
+    .filter((s) => s.itens.length)
+    .map((s) => {
+      const cartoes = s.itens.map((x) => {
+        const e = x.tipo === "trilha"
+          ? { facetas: _pwFacetasOP("Trilha", x.p, null) }
+          : { facetas: _pwFacetasOP(x.p.tipo === "paranormal" ? "Paranormal" : x.p.tipo === "origem" ? "Origem" : _ehGeralCatOP(x.p) ? "Geral" : "Classe", x.p, x.p.ativacao) };
+        entidades.push(e);
+        return x.tipo === "trilha" ? _pwCartaoTrilhaOP(x.p, x.st, nex) : _pwCartaoOP(x.p, x.st);
+      });
+      return `<h5 class="eq-pk-grupo">${esc(s.titulo)}</h5>${cartoes.join("")}`;
+    })
+    .join("");
+
+  const nenhumOk = !["origem", "trilhas"].includes(_pwAbaOP) && _pwQuantosOP(_pwAbaOP, col) === 0;
+  const tem = poderesDeClasseDisponiveisOP(classe, nex);
+  const usados = poderesDeClasseUsadosOP();
+  const abas = _PW_ABAS_OP.map(([id, rot]) => {
+    const n = _pwQuantosOP(id, col);
+    return `<button type="button" class="pw-aba ${_pwAbaOP === id ? "on" : ""}" onclick="trocarAbaPoderesOP('${id}')">${rot}${n ? ` <span>${n}</span>` : ""}</button>`;
+  }).join("");
+
+  const afin = _afinidadeOP();
+  const elementos = ["Conhecimento", "Energia", "Morte", "Sangue"];
+  const blocoAfin = _pwAbaOP === "par"
+    ? `<div class="pw-afin">
+         <label for="afinidadeParSelOP">Afinidade elemental</label>
+         <select id="afinidadeParSelOP" class="rit-sel" onchange="mudarAfinidadeParOP(this.value)">
+           <option value="">Ainda sem afinidade</option>
+           ${elementos.map((e) => `<option value="${e.toLowerCase()}" ${afin === e.toLowerCase() ? "selected" : ""}>${e}</option>`).join("")}
+         </select>
+       </div>`
+    : "";
+
+  const fl = _htmlFiltrosOP("poderes", entidades);
+  _flSelOP = filtrosAnt;
+
+  const notas = {
+    todos: "",
+    classe: modoSeparadoOP() ? "Na regra de nível separado, Transcender não é poder de classe: ele vem do ritual de conexão quando o NEX permite." : "",
+    gerais: "Poderes gerais podem ser escolhidos no lugar de um poder de classe (Sobrevivendo ao Horror, p. 33-36).",
+    trilhas: "As habilidades da trilha entram sozinhas na ficha conforme o NEX. Também dá para escolher pelo campo Trilha.",
+    origem: "Poder de uma origem sem trocar a sua (por exemplo, o Flashback do Especialista ou um poder concedido pelo mestre). O poder da origem escolhida no seletor de Origem já entra sozinho.",
+    par: "Poderes paranormais vêm do poder Transcender (ou do ritual de conexão na regra de nível separado) e não dão a Sanidade daquele aumento de NEX. Qualquer classe pode escolher. Com afinidade, escolher um poder do seu elemento uma 2ª vez dá o benefício de Afinidade (vem no NEX 50%).",
+  }[_pwAbaOP];
+
+  corpo.innerHTML = `
+    <div class="pw-abas">${abas}</div>
+    <div class="eq-barra">
+      <input type="search" class="eq-picker-busca" placeholder="Buscar pelo nome ou pelo efeito…" oninput="filtrarPickerOP()" />
+      ${fl.botao}
+    </div>
+    ${blocoAfin}
+    <div class="eq-fl-ativos" id="eqFlAtivos" hidden></div>
+    <small class="eq-pk-dica">${tem && ["todos", "classe", "gerais"].includes(_pwAbaOP) ? `Poderes de classe: <b>${usados}</b> de <b>${tem}</b> (${esc(rotuloNivelNexOP(nex))}) · ` : ""}<span id="eqSeletorContagem">${entidades.length} resultados</span> · o número nas abas é quanto você pode escolher agora.</small>
+    <div class="eq-picker-lista">
+      ${nenhumOk && html ? `<p class="pw-nota">Nada disponível agora nesta aba. Os requisitos que faltam aparecem em cada poder.</p>` : ""}
+      ${html || `<p class="pw-nota">Nada cadastrado aqui para esta classe. Você pode cadastrar em Editar regras.</p>`}
+      <p class="eq-pk-vazio" hidden>Nada encontrado com esses filtros.</p>
+      ${notas ? `<p class="pw-nota">${esc(notas)}</p>` : ""}
+      <p class="pw-nota">Descrições resumidas: o texto completo está no livro indicado em cada poder.</p>
+    </div>
+    ${fl.painel}`;
+
+  const busca = corpo.querySelector(".eq-picker-busca");
+  if (busca) busca.value = buscaAnt;
+  // filtro que não existe mais (nenhum poder com aquele valor) sai sozinho
+  const existentes = Array.from(corpo.querySelectorAll(".eq-fl-op")).map((b) => `${b.dataset.faceta}|${b.dataset.val}`);
+  Object.keys(_flSelOP).forEach((i) => { if (!existentes.includes(`${i}|${_flSelOP[i]}`)) delete _flSelOP[i]; });
+  filtrarPickerOP();
+  const lista = corpo.querySelector(".eq-picker-lista");
+  if (lista && manterRolagem) lista.scrollTop = rolagem;
+}
+
+function trocarAbaPoderesOP(aba) {
+  _pwAbaOP = aba;
+  _renderPoderesOP(false, false);
+}
+
+function abrirPoderesOP(aba, manter) {
+  const classe = document.getElementById("classeOP")?.value || "";
+  if (aba) _pwAbaOP = aba;
+  if (!classe && _pwAbaOP !== "par") {
+    alertBonito("Escolha uma classe para ver os poderes disponíveis.");
+    return;
+  }
+  if (typeof _garantirSeletorOP !== "function") {
+    alertBonito("Não foi possível abrir o catálogo de poderes agora.");
+    return;
+  }
+  const el = _garantirSeletorOP();
+  document.getElementById("eqSeletorTitulo").textContent = "Poderes";
+  el.style.display = "flex";
+  const corpo = document.getElementById("eqSeletorCorpo");
+  if (corpo && !manter) corpo.innerHTML = "";
+  _renderPoderesOP(!!manter, !!manter);
+}
+
+function abrirCatalogoPoderesOP(manter) {
+  abrirPoderesOP(manter ? null : "todos", manter);
+}
+
+/* o popup só atualiza se ainda estiver aberto na página de poderes */
+function _atualizarPoderesAbertoOP() {
+  const el = document.getElementById("eqSeletorOP");
+  if (el && el.style.display !== "none" && document.querySelector("#eqSeletorCorpo .pw-abas")) _renderPoderesOP(true, true);
 }
 
 async function adquirirPoderCatalogoOP(id) {
@@ -963,7 +1134,7 @@ async function adquirirPoderCatalogoOP(id) {
   const classe = document.getElementById("classeOP")?.value || "";
   const nex = nexClasseOP();
   const tem = poderesDeClasseDisponiveisOP(classe, nex);
-  if (tem && poderesDeClasseUsadosOP() >= tem) {
+  if (item.tipo !== "origem" && tem && poderesDeClasseUsadosOP() >= tem) {
     const ok = await confirmBonito(`Você já usou os ${tem} poderes de classe disponíveis (${rotuloNivelNexOP(nex)}). Adquirir mesmo assim?`);
     if (!ok) return;
   }
@@ -985,7 +1156,7 @@ async function adquirirPoderCatalogoOP(id) {
   if (typeof atualizarResumoAutoOP === "function") atualizarResumoAutoOP();
   atualizarContadorPoderesClasseOP();
   salvarTudo();
-  abrirCatalogoPoderesOP(true);
+  _atualizarPoderesAbertoOP();
 }
 
 /* ---------- interface injetada ---------- */
@@ -1066,80 +1237,80 @@ function salvarTrilhaOP(p) {
     "", { repetivel: true, abreGrimorio: true });
   E("resistir", "", "Resistir a Elemento", "passiva",
     "Escolha entre Conhecimento, Energia, Morte ou Sangue. Você recebe resistência 10 contra esse elemento. Conta como poder do elemento escolhido.",
-    "a resistência sobe para 20.", { repetivel: true, escolheElemento: true, pagina: "115" });
+    "a resistência sobe para 20.", { repetivel: true, escolheElemento: true, pagina: "114" });
 
   // CONHECIMENTO
   E("expansaoconhecimento", "Conhecimento", "Expansão de Conhecimento", "passiva",
     "Você aprende um poder de classe que não pertença à sua classe (cumprindo os pré-requisitos dele).",
-    "você aprende um segundo poder de classe que não pertença à sua classe.", { requisitos: { elementos: { Conhecimento: 1 } }, pagina: "115" });
+    "você aprende um segundo poder de classe que não pertença à sua classe.", { requisitos: { elementos: { Conhecimento: 1 } }, pagina: "114" });
   E("percepcaoparanormal", "Conhecimento", "Percepção Paranormal", "passiva",
     "Em cenas de investigação, ao fazer um teste para procurar pistas, você pode rolar novamente um dado com resultado menor que 10 (e deve aceitar a segunda rolagem).",
-    "pode rolar novamente até dois dados com resultado menor que 10.", { pagina: "115" });
+    "pode rolar novamente até dois dados com resultado menor que 10.", { pagina: "114" });
   E("precognicao", "Conhecimento", "Precognição", "passiva",
     "Um \"sexto sentido\" avisa do perigo antes que ele aconteça: +2 na Defesa e em testes de resistência.",
-    "você fica imune à condição desprevenido.", { requisitos: { elementos: { Conhecimento: 1 } }, pagina: "115" });
+    "você fica imune à condição desprevenido.", { requisitos: { elementos: { Conhecimento: 1 } }, pagina: "114" });
   E("sensitivo", "Conhecimento", "Sensitivo", "passiva",
     "Você sente emoções e intenções de outros seres (medo, raiva, malícia): +5 em testes de Diplomacia, Intimidação e Intuição.",
-    "em teste oposto com uma dessas perícias, o oponente sofre -1 dado.", { pagina: "115" });
+    "em teste oposto com uma dessas perícias, o oponente sofre -1 dado.", { pagina: "114" });
   E("visaooculto", "Conhecimento", "Visão do Oculto", "passiva",
     "Você enxerga pela percepção do Conhecimento: +5 em testes de Percepção e enxerga no escuro.",
-    "você ignora camuflagem.", { pagina: "116" });
+    "você ignora camuflagem.", { pagina: "115" });
 
   // ENERGIA
   E("afortunado", "Energia", "Afortunado", "passiva",
     "Uma vez por rolagem, você pode rolar novamente um resultado 1 em qualquer dado que não seja d20.",
-    "além disso, uma vez por teste, pode rolar novamente um resultado 1 em d20.", { pagina: "116" });
+    "além disso, uma vez por teste, pode rolar novamente um resultado 1 em d20.", { pagina: "115" });
   E("campoprotetor", "Energia", "Campo Protetor", "livre",
     "Ao usar a ação esquiva, você pode gastar 1 PE para receber +5 na Defesa.",
     "ao usar o poder, você também recebe +5 em Reflexos e, até o início do próximo turno, se passar num teste de Reflexos que reduziria o dano à metade, não sofre dano nenhum.",
-    { custo: "1 PE", requisitos: { elementos: { Energia: 1 } }, pagina: "116" });
+    { custo: "1 PE", requisitos: { elementos: { Energia: 1 } }, pagina: "115" });
   E("causalidadefortuita", "Energia", "Causalidade Fortuita", "passiva",
     "Em cenas de investigação, a DT para procurar pistas diminui em 5 para você até encontrar uma pista.",
-    "a DT para procurar pistas sempre diminui em 5 para você.", { pagina: "116" });
+    "a DT para procurar pistas sempre diminui em 5 para você.", { pagina: "115" });
   E("golpedesorte", "Energia", "Golpe de Sorte", "passiva",
     "Seus ataques recebem +1 na margem de ameaça.",
-    "seus ataques recebem +1 no multiplicador de crítico.", { requisitos: { elementos: { Energia: 1 } }, pagina: "116" });
+    "seus ataques recebem +1 no multiplicador de crítico.", { requisitos: { elementos: { Energia: 1 } }, pagina: "115" });
   E("manipularentropia", "Energia", "Manipular Entropia", "reacao",
     "Quando outro ser em alcance curto faz um teste de perícia, você pode gastar 2 PE para fazê-lo rolar novamente um dos dados desse teste.",
-    "o alvo rola novamente todos os dados que você escolher.", { custo: "2 PE", requisitos: { elementos: { Energia: 1 } }, pagina: "116" });
+    "o alvo rola novamente todos os dados que você escolher.", { custo: "2 PE", requisitos: { elementos: { Energia: 1 } }, pagina: "115" });
 
   // MORTE
   E("encararmorte", "Morte", "Encarar a Morte", "passiva",
     "Durante cenas de ação, seu limite de gasto de PE aumenta em +1 (não afeta a DT dos seus efeitos).",
-    "durante cenas de ação, o limite de gasto de PE aumenta em +2 (total +3).", { pagina: "116" });
+    "durante cenas de ação, o limite de gasto de PE aumenta em +2 (total +3).", { pagina: "115" });
   E("escapardamorte", "Morte", "Escapar da Morte", "reacao",
     "Uma vez por cena, ao receber dano que o deixaria com 0 PV, você fica com 1 PV. Não funciona contra dano massivo.",
     "em vez do normal, você evita completamente o dano (em dano massivo, fica com 1 PV).",
-    { limite: "1 vez por cena", requisitos: { elementos: { Morte: 1 } }, pagina: "116" });
+    { limite: "1 vez por cena", requisitos: { elementos: { Morte: 1 } }, pagina: "115" });
   E("potencialaprimorado", "Morte", "Potencial Aprimorado", "passiva",
     "Você recebe +1 PE por NEX. Ao subir de NEX, os PE deste poder aumentam de acordo (ex.: escolhido no NEX 30% dá 6 PE; ao chegar a 35%, +1 PE).",
     "você recebe +1 PE adicional por NEX (total +2 por NEX).",
-    { efeitos: [{ tipo: "recurso", alvo: "pe", porNivel: 1 }], efeitosAfinidade: [{ tipo: "recurso", alvo: "pe", porNivel: 1 }], pagina: "117" });
+    { efeitos: [{ tipo: "recurso", alvo: "pe", porNivel: 1 }], efeitosAfinidade: [{ tipo: "recurso", alvo: "pe", porNivel: 1 }], pagina: "115" });
   E("potencialreaproveitado", "Morte", "Potencial Reaproveitado", "passiva",
     "Uma vez por rodada, ao passar num teste de resistência, você ganha 2 PE temporários cumulativos, que somem no fim da cena.",
-    "você ganha 3 PE temporários em vez de 2.", { limite: "1 vez por rodada", pagina: "117" });
+    "você ganha 3 PE temporários em vez de 2.", { limite: "1 vez por rodada", pagina: "115" });
   E("surtotemporal", "Morte", "Surto Temporal", "livre",
     "Uma vez por cena, durante o seu turno, você pode gastar 3 PE para realizar uma ação padrão adicional.",
     "em vez de uma vez por cena, você pode usar este poder uma vez por turno.",
-    { custo: "3 PE", limite: "1 vez por cena", requisitos: { elementos: { Morte: 2 } }, pagina: "117" });
+    { custo: "3 PE", limite: "1 vez por cena", requisitos: { elementos: { Morte: 2 } }, pagina: "115" });
 
   // SANGUE
   E("anatomiainsana", "Sangue", "Anatomia Insana", "passiva",
     "Você tem 50% de chance (resultado par em 1d4) de ignorar o dano adicional de um acerto crítico ou ataque furtivo.",
-    "você é imune aos efeitos de acertos críticos e ataques furtivos.", { requisitos: { elementos: { Sangue: 2 } }, pagina: "117" });
+    "você é imune aos efeitos de acertos críticos e ataques furtivos.", { requisitos: { elementos: { Sangue: 2 } }, pagina: "116" });
   E("armadesangue", "Sangue", "Arma de Sangue", "movimento",
     "Gaste uma ação de movimento e 2 PE para produzir garras, chifres ou uma lâmina de sangue: arma simples, corpo a corpo e leve, que não precisa empunhar, 1d6 de dano de Sangue. Uma vez por turno, ao agredir, gasta 1 PE para um ataque adicional com ela. Dura até o fim da cena.",
-    "a arma vira parte permanente de você e causa 1d10 de dano de Sangue.", { custo: "2 PE", pagina: "117" });
+    "a arma vira parte permanente de você e causa 1d10 de dano de Sangue.", { custo: "2 PE", pagina: "116" });
   E("sangueferro", "Sangue", "Sangue de Ferro", "passiva",
     "Você recebe +2 PV por NEX. Ao subir de NEX, os PV deste poder aumentam de acordo (ex.: escolhido no NEX 50% dá 20 PV; ao chegar a 55%, +2 PV).",
     "você recebe +5 em Fortitude e se torna imune a venenos e doenças.",
-    { efeitos: [{ tipo: "recurso", alvo: "pv", porNivel: 2 }], pagina: "117" });
+    { efeitos: [{ tipo: "recurso", alvo: "pv", porNivel: 2 }], pagina: "116" });
   E("sanguefervente", "Sangue", "Sangue Fervente", "passiva",
     "Enquanto estiver machucado, você recebe +1 em Agilidade ou Força, à sua escolha (escolha sempre que o efeito ativar).",
-    "o bônus em Agilidade ou Força aumenta para +2.", { requisitos: { elementos: { Sangue: 2 } }, pagina: "118" });
+    "o bônus em Agilidade ou Força aumenta para +2.", { requisitos: { elementos: { Sangue: 2 } }, pagina: "116" });
   E("sanguevivo", "Sangue", "Sangue Vivo", "passiva",
     "Na primeira vez que ficar machucado numa cena, você recebe cura acelerada 2. Nunca cura acima da metade dos PV máximos e termina no fim da cena ou ao perder a condição machucado.",
-    "a cura acelerada aumenta para 5.", { requisitos: { elementos: { Sangue: 1 } }, pagina: "117" });
+    "a cura acelerada aumenta para 5.", { requisitos: { elementos: { Sangue: 1 } }, pagina: "116" });
 })();
 
 function _contarParanormaisOP(elemento) {
@@ -1159,75 +1330,9 @@ function _copiasParanormalOP(id, elemento) {
   ).length;
 }
 
-/* ---------- janela dos poderes paranormais ---------- */
+/* ---------- janela dos poderes paranormais: agora é a aba Paranormais da página de poderes ---------- */
 function abrirParanormaisOP(manter) {
-  if (!manter) _buscaParanormalOP = "";
-  const lista = obterCatalogoOP().poderes.filter((p) => p.tipo === "paranormal" && _casaBuscaOP(p, _buscaParanormalOP));
-  const afin = _afinidadeOP();
-  const elementos = ["Conhecimento", "Energia", "Morte", "Sangue"];
-
-  const cartao = (p) => {
-    const idSeg = p.id.replace(/[^a-z0-9]/gi, "_");
-    const el = p.elemento;
-    const elLow = el.toLowerCase();
-    const jaTem = !p.escolheElemento && !p.repetivel ? _copiasParanormalOP(p.id) : 0;
-    const temAfin = !!afin && elLow === afin;
-    const podeSegunda = !p.repetivel && !p.escolheElemento && jaTem === 1 && temAfin;
-    const bloqueadoUnico = !p.repetivel && !p.escolheElemento && jaTem >= (temAfin ? 2 : 1);
-    const falhas = verificarRequisitosOP(p);
-    const req = _requisitosTextoOP(p);
-    const bloqueado = bloqueadoUnico || (falhas.length > 0 && !podeSegunda);
-    const tags = [
-      el ? `<em class="cat-tag rit-el rit-el-${elLow}">${ICONE_ELEMENTO_PAR_OP[el] || ""} ${esc(el)}</em>` : `<em class="cat-tag">Qualquer elemento</em>`,
-      tagFonteOP(p.fonte),
-      p.ativacao ? `<em class="cat-tag">${esc(_nomeAtivacaoOP(p.ativacao))}</em>` : "",
-      p.custo ? `<em class="cat-tag">${esc(p.custo)}</em>` : "",
-      (p.efeitos || []).some((e) => e.tipo === "recurso") ? `<em class="cat-tag auto">⚙ automático</em>` : "",
-    ].join("");
-
-    const seletor = p.escolheElemento
-      ? `<select id="parEl_${idSeg}" class="rit-sel">${elementos.map((e) => `<option value="${e}">${e}</option>`).join("")}</select>`
-      : "";
-
-    let botao;
-    if (bloqueadoUnico) botao = `<div class="cat-estado">✔ Já adquirido${temAfin ? " (com afinidade)" : ""}</div>`;
-    else if (podeSegunda) botao = `<button type="button" class="cat-add" onclick="adquirirParanormalOP('${esc(p.id)}', true)">Adquirir 2ª vez (afinidade)</button>`;
-    else if (falhas.length) botao = `<div class="cat-estado falta">Falta: ${esc(falhas.join(", "))}</div><button type="button" class="cat-add" disabled>Adquirir</button>`;
-    else botao = `<div class="rit-acoes">${seletor}<button type="button" class="cat-add" onclick="adquirirParanormalOP('${esc(p.id)}', false)">Adquirir</button></div>`;
-
-    return `
-      <div class="cat-item ${bloqueado ? "bloqueado" : ""}">
-        <div class="cat-topo"><strong>${esc(p.nome)}</strong><span class="cat-tags">${tags}</span></div>
-        ${req ? `<div class="cat-req">Pré-requisitos: ${esc(req)}</div>` : ""}
-        <p class="cat-resumo">${esc(p.resumo)}</p>
-        ${p.afinidade ? `<p class="cat-resumo"><b>Afinidade:</b> ${esc(p.afinidade)}</p>` : ""}
-        ${botao}
-      </div>`;
-  };
-
-  const grupo = (titulo, itens) =>
-    itens.length ? `<div class="rit-circ-titulo"><span>${titulo}</span></div>${itens.map(cartao).join("")}` : "";
-
-  const html = `
-    <div class="popup-bloco">
-      <p class="bp-dica">Poderes paranormais vêm do poder <b>Transcender</b> (ou do ritual de conexão na regra de nível separado). Sempre que transcende você <b>não recebe a Sanidade</b> daquele aumento de NEX. Qualquer classe pode escolher.</p>
-      <div class="rit-regra">
-        <label for="afinidadeParSelOP">Afinidade elemental</label>
-        <select id="afinidadeParSelOP" onchange="mudarAfinidadeParOP(this.value)">
-          <option value="">Ainda sem afinidade</option>
-          ${elementos.map((e) => `<option value="${e.toLowerCase()}" ${afin === e.toLowerCase() ? "selected" : ""}>${e}</option>`).join("")}
-        </select>
-        <small class="evo-dica">Com afinidade você pode escolher poderes do seu elemento uma 2ª vez para receber o benefício de "Afinidade". A afinidade vem no NEX 50%, na primeira vez que transcende.</small>
-      </div>
-      <input id="buscaParOP" class="rit-busca" type="search" placeholder="Buscar poder paranormal…" value="${esc(_buscaParanormalOP)}" oninput="buscarCatalogoOP(this.value, true)" />
-      ${!lista.length ? `<p class="bp-dica">Nenhum poder encontrado.</p>` : ""}
-      <div class="cat-lista">
-        ${grupo("Gerais", lista.filter((p) => !p.elemento))}
-        ${elementos.map((e) => grupo(`${ICONE_ELEMENTO_PAR_OP[e]} ${e}`, lista.filter((p) => p.elemento === e))).join("")}
-      </div>
-      <small class="evo-dica">Livro de Regras, p. 114 a 118 e Arquivos Secretos (veja a etiqueta AS de cada poder). Descrições condensadas: o texto completo está no livro.</small>
-    </div>`;
-  abrirPopup("Poderes paranormais", html, true);
+  abrirPoderesOP("par", manter);
 }
 
 const ICONE_ELEMENTO_PAR_OP = { Sangue: "🩸", Morte: "💀", Conhecimento: "📘", Energia: "⚡" };
@@ -1235,7 +1340,7 @@ const ICONE_ELEMENTO_PAR_OP = { Sangue: "🩸", Morte: "💀", Conhecimento: "�
 function mudarAfinidadeParOP(v) {
   if (typeof aoMudarElementoNexOP === "function") aoMudarElementoNexOP(v);
   else { elementoNexOP = v; salvarTudo(); }
-  abrirParanormaisOP(true);
+  _atualizarPoderesAbertoOP();
 }
 
 async function adquirirParanormalOP(id, segunda) {
@@ -1269,8 +1374,10 @@ async function adquirirParanormalOP(id, segunda) {
   if (typeof atualizarResumoAutoOP === "function") atualizarResumoAutoOP();
   salvarTudo();
 
-  if (item.abreGrimorio && typeof abrirGrimorioOP === "function") abrirGrimorioOP();
-  else abrirParanormaisOP(true);
+  if (item.abreGrimorio && typeof abrirGrimorioOP === "function") {
+    if (typeof fecharSeletorOP === "function") fecharSeletorOP();
+    abrirGrimorioOP();
+  } else _atualizarPoderesAbertoOP();
 }
 
 /* =====================================================================
@@ -1417,9 +1524,253 @@ function reverterTreinoPoderOP(poder) {
   }
 }
 
+/* =====================================================================
+   ABA PODERES DA FICHA (lista dos poderes que o personagem tem)
+   Mesmo desenho do app Ficha Ígnea: busca, filtros com contador, favoritos
+   no topo e seções por tipo de ação. As categorias aparecem todas de uma
+   vez (sem rolar para o lado). Substitui o renderPoderes() antigo do
+   script.js, que fica sem uso.
+   ===================================================================== */
+let _pwFiltroOP = "";
+
+const _PW_ATIV_OP = [
+  ["passiva", "Passivas"],
+  ["padrao", "Ação padrão"],
+  ["movimento", "Movimento"],
+  ["completa", "Completa"],
+  ["livre", "Livre"],
+  ["reacao", "Reação"],
+  ["interludio", "Interlúdio"],
+  ["especial", "Especial"],
+  ["", "Sem ativação"],
+];
+
+const _PW_CATS_OP = [
+  ["", "Todos"],
+  ["classe", "Classe"],
+  ["trilha", "Trilha"],
+  ["paranormal", "Paranormal"],
+  ["origem", "Origem"],
+  ["outros", "Outros"],
+];
+
+const _PW_SVG_OP = {
+  classe: '<path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/>',
+  trilha: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+  paranormal: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  origem: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  ritual: '<path d="M12 3a8 8 0 0 0-5 14v3h10v-3a8 8 0 0 0-5-14z"/><circle cx="9" cy="11" r="1.4"/><circle cx="15" cy="11" r="1.4"/>',
+  outros: '<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>',
+  busca: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  mais: '<path d="M12 5v14M5 12h14"/>',
+  lista: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  estrela: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  lapis: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  lixo: '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>',
+};
+
+function _pwSvgOP(nome, tam = 18, cheio = false) {
+  return `<svg viewBox="0 0 24 24" width="${tam}" height="${tam}" fill="${cheio ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${_PW_SVG_OP[nome] || ""}</svg>`;
+}
+
+function montarPoderesUIOP() {
+  if (document.getElementById("pwOP")) return;
+  const aba = document.getElementById("poderes");
+  const velhoFiltros = aba?.querySelector(".poderes-ordem-filtros");
+  if (!aba || !velhoFiltros) return;
+
+  const rotuloPE = aba.querySelector(".pe-turno-info span");
+  if (rotuloPE) rotuloPE.textContent = "Limite de PE por turno";
+
+  const raiz = document.createElement("div");
+  raiz.id = "pwOP";
+  raiz.className = "pwop";
+  raiz.innerHTML = `
+    <div class="pwop-toolbar">
+      <label class="pwop-busca">${_pwSvgOP("busca", 15)}<input id="pwBuscaOP" type="search" placeholder="Buscar nos seus poderes…" oninput="renderPoderes()" /></label>
+      <button type="button" class="pwop-ico" id="pwCompactoOP" title="Modo compacto" aria-label="Modo compacto" onclick="alternarCompactoPoderesOP()">${_pwSvgOP("lista", 17)}</button>
+      <button type="button" class="pwop-novo" onclick="novoPoderPWOP()">${_pwSvgOP("mais", 15)}<span>Novo</span></button>
+    </div>
+    <div id="pwBarraSlotOP"></div>
+    <div class="pwop-filtros" id="pwFiltrosOP"></div>
+    <div id="pwSecoesOP"></div>`;
+
+  // fica logo depois do formulário "Adicionar Poder"
+  const form = document.getElementById("boxPoderForm")?.closest(".secao-toggle");
+  if (form) form.insertAdjacentElement("afterend", raiz);
+  else velhoFiltros.insertAdjacentElement("beforebegin", raiz);
+
+  // botões do catálogo ficam logo abaixo da busca
+  const barra = document.getElementById("barraCatalogoOP");
+  const slot = document.getElementById("pwBarraSlotOP");
+  if (barra && slot) slot.appendChild(barra);
+
+  // formulário de novo poder começa fechado (o botão Novo abre)
+  try {
+    if (localStorage.getItem("secao_boxPoderForm") === null) {
+      const box = document.getElementById("boxPoderForm");
+      if (box && box.classList.contains("aberto")) toggleSecao("boxPoderForm", form?.querySelector(".titulo-toggle"));
+    }
+  } catch (e) { /* sem armazenamento */ }
+
+  try { window._pwCompactoOP = localStorage.getItem("pwCompactoOP") === "1"; } catch (e) { window._pwCompactoOP = false; }
+}
+
+function novoPoderPWOP() {
+  const box = document.getElementById("boxPoderForm");
+  const titulo = box?.closest(".secao-toggle")?.querySelector(".titulo-toggle");
+  if (box && !box.classList.contains("aberto")) toggleSecao("boxPoderForm", titulo);
+  titulo?.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => document.getElementById("poderNome")?.focus({ preventScroll: true }), 250);
+}
+
+function alternarCompactoPoderesOP() {
+  window._pwCompactoOP = !window._pwCompactoOP;
+  try { localStorage.setItem("pwCompactoOP", window._pwCompactoOP ? "1" : "0"); } catch (e) { /* sem armazenamento */ }
+  renderPoderes();
+}
+
+function filtrarPoderesPWOP(cat) {
+  _pwFiltroOP = cat || "";
+  renderPoderes();
+}
+
+function alternarFavoritoPoderOP(index) {
+  const p = poderes[index];
+  if (!p) return;
+  p.favorito = !p.favorito;
+  if (p.favorito) p.ordemFav = Math.max(-1, ...poderes.filter((x) => x && x.favorito && x !== p).map((x) => x.ordemFav ?? -1)) + 1;
+  renderPoderes();
+  salvarTudo();
+}
+
+function _pwNormOP(t) {
+  return typeof _norm === "function" ? _norm(t) : String(t || "").toLowerCase();
+}
+
+function _pwCartaoOP2(x, mostrarCategoria) {
+  const { p, i, cat } = x;
+  const li = document.createElement("li");
+  li.className = `pwop-card pwop-cat-${cat}`;
+  li.dataset.index = i;
+
+  const tags = [];
+  if (p.custo) tags.push(`<span class="pwop-tag forte">${esc(p.custo)}</span>`);
+  if (p.dano) tags.push(`<span class="pwop-tag forte">${esc(p.dano)}</span>`);
+  if (p.limite) tags.push(`<span class="pwop-tag">${esc(p.limite)}</span>`);
+  if (mostrarCategoria) tags.push(`<span class="pwop-tag suave">${esc(nomeCategoriaPoder(cat))}</span>`);
+
+  const resumo = String(p.desc || "").split(/\n\s*\n/)[0].trim();
+
+  let pips = "";
+  if (p.temCargas && Number(p.maxCargas) > 0) {
+    if (!Array.isArray(p.cargasGastas)) p.cargasGastas = Array(Number(p.maxCargas)).fill(false);
+    pips = `<div class="pwop-pips">${Array.from({ length: Number(p.maxCargas) }, (_, k) =>
+      `<span class="pwop-pip ${p.cargasGastas[k] ? "gasto" : ""}" onclick="event.stopPropagation(); toggleCargaPoder(${i}, ${k})"></span>`).join("")}</div>`;
+  }
+
+  li.innerHTML = `
+    <button type="button" class="drag-handle" aria-label="Arrastar para reordenar"></button>
+    <div class="pwop-selo" onclick="verPoder(${i})">${_pwSvgOP(_PW_SVG_OP[cat] ? cat : "outros", 19)}</div>
+    <div class="pwop-corpo" onclick="verPoder(${i})">
+      <strong class="pwop-nome">${esc(p.nome) || "Sem nome"}</strong>
+      ${tags.length ? `<div class="pwop-tags">${tags.join("")}</div>` : ""}
+      ${resumo ? `<p class="pwop-resumo">${esc(resumo)}</p>` : ""}
+      ${pips}
+    </div>
+    <div class="pwop-acoes">
+      <button type="button" class="pwop-mini ${p.favorito ? "ativo" : ""}" title="Favorito" aria-label="Favorito" onclick="event.stopPropagation(); alternarFavoritoPoderOP(${i})">${_pwSvgOP("estrela", 16, !!p.favorito)}</button>
+      <button type="button" class="pwop-mini" title="Editar" aria-label="Editar" onclick="event.stopPropagation(); editarPoder(${i})">${_pwSvgOP("lapis", 16)}</button>
+      <button type="button" class="pwop-mini perigo" title="Remover" aria-label="Remover" onclick="event.stopPropagation(); removerPoder(${i})">${_pwSvgOP("lixo", 16)}</button>
+    </div>`;
+  return li;
+}
+
+function _pwSecaoOP(titulo, icone, itens, ehFavoritos, mostrarCategoria) {
+  const sec = document.createElement("div");
+  sec.className = "pwop-secao" + (ehFavoritos ? " fav" : "");
+  sec.innerHTML = `<div class="pwop-secao-titulo">${icone ? _pwSvgOP(icone, 14, true) : ""}<span>${esc(titulo)}</span><small>${itens.length}</small></div>`;
+  const ul = document.createElement("ul");
+  ul.className = "pwop-lista" + (window._pwCompactoOP ? " compacto" : "");
+  itens.forEach((x, k) => {
+    const li = _pwCartaoOP2(x, mostrarCategoria);
+    if (ehFavoritos) li.dataset.index = k; // nos favoritos a ordem é só deles
+    ul.appendChild(li);
+  });
+  sec.appendChild(ul);
+
+  if (typeof habilitarArrastarReordenar === "function") {
+    if (ehFavoritos) {
+      const arr = itens.map((x) => x.p);
+      habilitarArrastarReordenar(ul, arr, () => {
+        arr.forEach((p, k) => (p.ordemFav = k));
+        renderPoderes();
+        salvarTudo();
+      });
+    } else {
+      habilitarArrastarReordenar(ul, poderes, renderPoderes);
+    }
+  }
+  return sec;
+}
+
+function renderPoderes() {
+  if (!document.getElementById("pwSecoesOP")) montarPoderesUIOP();
+  const box = document.getElementById("pwSecoesOP");
+  if (!box) return;
+  if (typeof poderes === "undefined") return;
+
+  const emRituais = (p) => p && p.origemRitual && (typeof ritualNaAbaOP !== "function" || ritualNaAbaOP()); // rituais ficam na aba Rituais
+  const todos = [];
+  poderes.forEach((p, i) => {
+    if (!p || emRituais(p)) return;
+    todos.push({ p, i, cat: normalizarCategoriaPoder(p), ativ: normalizarAtivacaoPoder(p) });
+  });
+
+  // filtros: todos de uma vez, com contador
+  const filtros = document.getElementById("pwFiltrosOP");
+  if (filtros) {
+    filtros.innerHTML = _PW_CATS_OP.map(([k, rot]) => {
+      const n = k ? todos.filter((x) => x.cat === k).length : todos.length;
+      return `<button type="button" class="pwop-filtro ${_pwFiltroOP === k ? "ativo" : ""} ${n || !k ? "" : "vazio"}" onclick="filtrarPoderesPWOP('${k}')">${rot}<small>${n}</small></button>`;
+    }).join("");
+  }
+
+  const botaoCompacto = document.getElementById("pwCompactoOP");
+  if (botaoCompacto) botaoCompacto.classList.toggle("ativo", !!window._pwCompactoOP);
+
+  const busca = _pwNormOP(document.getElementById("pwBuscaOP")?.value || "");
+  const passa = (x) =>
+    (!_pwFiltroOP || x.cat === _pwFiltroOP) &&
+    (!busca || _pwNormOP(`${x.p.nome || ""} ${x.p.desc || ""} ${x.p.custo || ""} ${x.p.limite || ""}`).includes(busca));
+
+  box.innerHTML = "";
+  let algum = false;
+  const mostrarCat = !_pwFiltroOP;
+
+  const favoritos = todos.filter((x) => x.p.favorito && passa(x)).sort((a, b) => (a.p.ordemFav ?? 1e9) - (b.p.ordemFav ?? 1e9) || a.i - b.i);
+  if (favoritos.length) {
+    box.appendChild(_pwSecaoOP("Favoritos", "estrela", favoritos, true, mostrarCat));
+    algum = true;
+  }
+
+  _PW_ATIV_OP.forEach(([chave, titulo]) => {
+    const itens = todos.filter((x) => !x.p.favorito && (_PW_ATIV_OP.some((a) => a[0] === x.ativ) ? x.ativ : "") === chave && passa(x));
+    if (!itens.length) return;
+    box.appendChild(_pwSecaoOP(titulo, null, itens, false, mostrarCat));
+    algum = true;
+  });
+
+  if (!algum) {
+    box.innerHTML = `<p class="pwop-vazio">${busca || _pwFiltroOP ? "Nenhum poder encontrado." : "Nenhum poder ainda. Use o botão Novo ou o catálogo de poderes."}</p>`;
+  }
+}
+
 function _iniciarCatalogoOP() {
   montarSeletorTrilhaOP();
   montarBarraCatalogoOP();
+  montarPoderesUIOP();
+  if (typeof renderPoderes === "function") renderPoderes();
   document.getElementById("classeOP")?.addEventListener("change", () => {
     const t = buscarTrilhaOP(trilhaOP);
     const classe = document.getElementById("classeOP")?.value || "";
@@ -1431,6 +1782,27 @@ function _iniciarCatalogoOP() {
     atualizarContadorPoderesClasseOP();
   });
 }
+
+/* ---------------- habilidades base de cada classe (entram sozinhas, como o Empenho do Sobrevivente) ---------------- */
+(function () {
+  CATALOGO_OP_PADRAO.habilidadesClasse = CATALOGO_OP_PADRAO.habilidadesClasse || {};
+  const H = CATALOGO_OP_PADRAO.habilidadesClasse;
+  H.combatente = (H.combatente || []).concat([
+    { id: "cls.comb.ataqueespecial", nex: 5, nome: "Ataque Especial", ativacao: "livre", custo: "2 PE (aumenta com o NEX)", fonte: "livro", habilidadeDeClasse: true,
+      resumo: "Quando faz um ataque, você pode gastar 2 PE para receber +5 no teste de ataque ou na rolagem de dano. Conforme avança, pode gastar mais PE para aumentar o bônus: 3 PE → +10 (NEX 25%), 4 PE → +15 (NEX 55%), 5 PE → +20 (NEX 85%).", efeitos: [] },
+  ]);
+  H.especialista = (H.especialista || []).concat([
+    { id: "cls.esp.ecletico", nex: 5, nome: "Eclético", ativacao: "livre", custo: "2 PE", fonte: "livro", habilidadeDeClasse: true,
+      resumo: "Quando faz um teste de uma perícia, você pode gastar 2 PE para receber os benefícios de ser treinado nessa perícia.", efeitos: [] },
+    { id: "cls.esp.perito", nex: 5, nome: "Perito", ativacao: "livre", custo: "2 PE (aumenta com o NEX)", fonte: "livro", habilidadeDeClasse: true,
+      resumo: "Escolha duas perícias nas quais você é treinado (exceto Luta e Pontaria). Ao fazer um teste de uma delas, você pode gastar 2 PE para somar +1d6 no resultado. Conforme avança: 3 PE → +1d8 (NEX 25%), 4 PE → +1d10 (NEX 55%), 5 PE → +1d12 (NEX 85%).",
+      efeitos: [{ tipo: "manual", texto: "Anote as duas perícias escolhidas" }] },
+  ]);
+  H.ocultista = (H.ocultista || []).concat([
+    { id: "cls.ocu.escolhido", nex: 5, nome: "Escolhido pelo Outro Lado", ativacao: "passiva", fonte: "livro", habilidadeDeClasse: true,
+      resumo: "Você pode lançar rituais de 1º círculo. Conforme avança, pode lançar rituais de círculos maiores: 2º círculo (NEX 25%), 3º círculo (NEX 55%) e 4º círculo (NEX 85%).", efeitos: [] },
+  ]);
+})();
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(_iniciarCatalogoOP, 0));
 else setTimeout(_iniciarCatalogoOP, 0);
