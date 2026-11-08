@@ -2910,3 +2910,211 @@ html body .iv-ov-diario .diario-abas > .diario-aba:nth-child(4n+5):not(.ativa) {
 html body .iv-ov-diario .diario-aba.diario-nova { flex: 0 0 auto; min-width: 58px; max-width: 70px; align-items: center; padding: 0 8px; background: transparent !important; border: 1px dashed rgba(201,166,238,.65) !important; border-left: 1px dashed rgba(201,166,238,.65) !important; color: #e0cdf6 !important; }
 html body .iv-ov-diario .diario-aba.diario-nova .da-t { font-size: 18px; line-height: 1; }
 html body .iv-ov-diario .diario-aba.diario-nova .da-d { color: #cdb6ea; }
+
+/* =====================================================================
+   ORIGEM / TRILHA: toque abre o resumo e depois confirma
+   ===================================================================== */
+.pj-opc { display: flex; flex-direction: column; border-radius: 12px; }
+html body .pj-opc .pj-opt { margin: 0; }
+html body .pj-opc .pj-opt .pj-mais { color: #a899b2; transition: transform .18s; }
+html body .pj-opc.aberto .pj-opt { border-color: rgba(201,166,238,.7) !important; border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+html body .pj-opc.aberto .pj-opt .pj-mais { transform: rotate(180deg); color: #c9a6ee; }
+.pj-det { display: none; padding: 11px 14px 13px; background: linear-gradient(180deg, rgba(143,95,199,.16), rgba(143,95,199,.05)); border: 1px solid rgba(201,166,238,.7); border-top: 0; border-radius: 0 0 12px 12px; }
+.pj-opc.aberto .pj-det { display: block; }
+.pj-det-l { margin: 0 0 9px; }
+.pj-det-l span { display: block; margin: 0 0 3px; font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; color: #a899b2; }
+.pj-det-l p { margin: 0; font-size: 13px; line-height: 1.5; color: #ece3ee; }
+.pj-det-hab { display: flex; flex-wrap: wrap; gap: 5px; }
+.pj-det-hab em { font-style: normal; font-size: 11.5px; padding: 3px 9px; border-radius: 9px; color: #e6dce8; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); }
+.pj-det-hab em b { margin-right: 4px; font-weight: 600; color: #c9a6ee; }
+html body .pj-conf { display: block; width: 100%; height: 40px; margin: 4px 0 0; padding: 0 14px; background: #a52a43 !important; border: 1px solid rgba(255,255,255,.28) !important; border-radius: 11px !important; color: #fbf3f6 !important; font-size: 13.5px; font-weight: 600; letter-spacing: .3px; cursor: pointer; box-shadow: none !important; }
+
+/* campos preenchidos pelo navegador ficam escuros, sem o azul claro */
+html body input:-webkit-autofill, html body input:-webkit-autofill:hover, html body input:-webkit-autofill:focus, html body textarea:-webkit-autofill, html body select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #17121d inset !important; box-shadow: 0 0 0 1000px #17121d inset !important;
+  -webkit-text-fill-color: #f6ece8 !important; caret-color: #f6ece8; border-radius: inherit; transition: background-color 99999s ease-out 0s;
+}
+
+/* =====================================================================
+   POPUPS NO MESMO ESTILO DO SITE (escolha de perícias e janelas gerais)
+   ===================================================================== */
+html body .modal-pericias-classe-overlay { position: fixed !important; inset: 0 !important; z-index: 100010 !important; background: rgba(0,0,0,.72) !important; }
+html body .modal-pericias-classe {
+  position: fixed !important; top: 50% !important; left: 50% !important; right: auto !important; bottom: auto !important; transform: translate(-50%, -50%) !important; z-index: 100011 !important;
+  width: min(92vw, 420px) !important; max-width: 420px !important; max-height: 86vh !important; max-height: 86dvh !important; flex-direction: column; gap: 0; padding: 16px 14px 14px !important; box-sizing: border-box; overflow: hidden;
+  background: linear-gradient(180deg, #211a2a, #141017) !important; border: 1px solid rgba(255,255,255,.17) !important; border-radius: 20px !important; box-shadow: 0 20px 50px rgba(0,0,0,.6) !important; color: #f3eaf1 !important;
+}
+html body .modal-pericias-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin: 0 0 8px; }
+html body .modal-pericias-mini { display: block; font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: #a899b2 !important; }
+html body .modal-pericias-classe h2 { margin: 3px 0 0 !important; font-family: "Cinzel", serif; font-size: 19px !important; font-weight: 600; letter-spacing: .4px; color: #f6ece8 !important; text-shadow: none !important; }
+html body .modal-pericias-fechar { flex: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; font-size: 15px; line-height: 1; color: #f3eaf1 !important; background: rgba(255,255,255,.07) !important; border: 1px solid rgba(255,255,255,.22) !important; border-radius: 50% !important; cursor: pointer; box-shadow: none !important; }
+html body .modal-pericias-desc { margin: 0 0 8px !important; font-size: 12.5px; line-height: 1.45; color: #cfc4d6 !important; }
+html body .lista-pericias-classe { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 2px 2px 4px; overscroll-behavior: contain; }
+html body #infoPericiasClasseOP { color: #cfc4d6 !important; }
+html body #infoPericiasClasseOP b { color: #f6ece8 !important; }
+html body .pericia-selecao-item { position: relative; display: flex !important; align-items: center; gap: 9px; min-height: 40px; margin: 0; padding: 8px 10px; box-sizing: border-box; background: rgba(255,255,255,.04) !important; border: 1px solid rgba(255,255,255,.14) !important; border-radius: 11px !important; box-shadow: none !important; color: #f6ece8 !important; font-size: 13px; cursor: pointer; }
+html body .pericia-selecao-item input { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
+html body .pericia-selecao-check { position: relative; flex: 0 0 18px; width: 18px; height: 18px; box-sizing: border-box; border: 1.5px solid rgba(255,255,255,.5) !important; border-radius: 50% !important; background: transparent !important; box-shadow: none !important; }
+html body .pericia-selecao-item input:checked + .pericia-selecao-check { background: #a52a43 !important; border-color: #fbf3f6 !important; }
+html body .pericia-selecao-item input:checked + .pericia-selecao-check::after { content: "" !important; position: absolute; left: 5px; top: 2px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); background: none; }
+html body .pericia-selecao-item:has(input:checked) { background: rgba(143,95,199,.18) !important; border-color: rgba(201,166,238,.65) !important; }
+html body .pericia-selecao-nome { color: #f6ece8 !important; }
+html body .btn-confirmar-pericias { flex: none; width: 100%; height: 44px; margin: 10px 0 0 !important; padding: 0 14px; background: #a52a43 !important; border: 1px solid rgba(255,255,255,.28) !important; border-radius: 12px !important; color: #fbf3f6 !important; font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: .3px; text-transform: none; box-shadow: none !important; cursor: pointer; }
+
+/* janela geral (#popup) */
+html body #popup:not(.vp-aberto) .popup-content { background: linear-gradient(180deg, #211a2a, #161119) !important; border: 1px solid rgba(255,255,255,.17) !important; border-radius: 20px !important; color: #f3eaf1; }
+html body #popup:not(.vp-aberto) h3#popup-titulo { text-align: center; font-family: "Cinzel", serif; font-weight: 600; letter-spacing: .5px; color: #f6ece8 !important; text-shadow: none !important; }
+html body #popup .popup-bloco { background: rgba(255,255,255,.04) !important; border-color: rgba(255,255,255,.13) !important; }
+html body #popup .popup-salvar-btn { background: #a52a43 !important; border: 1px solid rgba(255,255,255,.28) !important; border-radius: 12px !important; color: #fbf3f6 !important; box-shadow: none !important; }
+html body #popup .fechar { color: #f3eaf1 !important; background: rgba(255,255,255,.07) !important; border: 1px solid rgba(255,255,255,.22) !important; border-radius: 50% !important; }
+
+/* ---- escolha de perícias: resumo e sinalzinho de recomendadas ---- */
+html body #infoPericiasClasseOP { grid-column: 1 / -1; width: 100%; box-sizing: border-box; margin: 0 0 4px; padding: 10px 11px; background: rgba(255,255,255,.035) !important; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; }
+html body .pcl-topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; font-size: 10.5px; letter-spacing: 1.3px; text-transform: uppercase; color: #a899b2; }
+html body .pcl-cont { padding: 2px 9px; border-radius: 99px; border: 1px solid rgba(255,255,255,.22); font-size: 12px; letter-spacing: .3px; text-transform: none; font-weight: 600; color: #f3eaf1; background: rgba(255,255,255,.06); }
+html body .pcl-cont.pcl-completo { border-color: rgba(143,209,143,.55); color: #a9e2a9; }
+html body .pcl-cont.pcl-excede { border-color: rgba(224,122,106,.7); color: #f0a094; }
+html body .pcl-regras { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+html body .pcl-regras li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; line-height: 1.35; color: #cfc4d6; }
+html body .pcl-regras li > span { flex: 1; min-width: 0; }
+html body .pcl-regras b { color: #f6ece8; font-weight: 600; }
+html body .pcl-regras small { color: #8f829a; font-size: 11px; }
+html body .pcl-ico { flex: none; width: 9px; height: 9px; border-radius: 50%; box-sizing: border-box; }
+html body .pcl-rec { background: #c9a6ee; box-shadow: 0 0 0 3px rgba(201,166,238,.18); }
+html body .pcl-fixa { background: #a52a43; box-shadow: 0 0 0 3px rgba(165,42,67,.25); }
+html body .pcl-livre { border: 1.5px solid rgba(255,255,255,.5); }
+html body .pcl-regras em { flex: none; font-style: normal; font-size: 11.5px; color: #8f829a; }
+html body .pcl-regras .pcl-ok { opacity: 0; color: #a9e2a9; font-size: 13px; }
+html body .pcl-regras li.feito .pcl-ok { opacity: 1; }
+html body .pcl-regras li.feito .pcl-rec { background: transparent; box-shadow: none; border: 1.5px solid rgba(255,255,255,.3); }
+html body .pcl-regras li.feito .pcl-n { color: #a9e2a9; }
+html body .pcl-regras li.excede .pcl-n { color: #f0a094; }
+html body .pericia-selecao-item { padding-right: 8px; }
+html body .pericia-selecao-nome { flex: 1; min-width: 0; }
+html body .pericia-tag { flex: none; margin-left: auto; }
+html body .pericia-tag-rec { width: 8px; height: 8px; border-radius: 50%; background: #c9a6ee; box-shadow: 0 0 0 3px rgba(201,166,238,.18); transition: opacity .15s, transform .15s; }
+html body .pericia-selecao-item.rec-off .pericia-tag-rec { opacity: 0; transform: scale(.4); }
+html body .pericia-tag-fixa { font-size: 9.5px; letter-spacing: .8px; text-transform: uppercase; color: #e9a3b2; border: 1px solid rgba(165,42,67,.6); border-radius: 99px; padding: 1px 6px; }
+
+/* ---- origem nas perícias ---- */
+html body .pcl-orig { background: #7fb3c9; box-shadow: 0 0 0 3px rgba(127,179,201,.18); }
+html body .pericia-selecao-item.da-origem { opacity: .6; cursor: default; background: rgba(255,255,255,.025) !important; }
+html body .pericia-selecao-item.da-origem .pericia-selecao-check { border-style: dashed !important; }
+html body .pericia-tag-origem { font-size: 9.5px; letter-spacing: .8px; text-transform: uppercase; color: #9cc6d8; border: 1px solid rgba(127,179,201,.55); border-radius: 99px; padding: 1px 6px; }
+html body #ficha #pericias .pericia-fonte { display: block; width: max-content; margin: 1px 0 0; padding: 0; font-size: 8.5px; line-height: 1.1; letter-spacing: .9px; text-transform: uppercase; font-weight: 600; border: 0; background: none; }
+html body #ficha #pericias .pf-origem { color: #8fbfd3; }
+html body #ficha #pericias .pf-classe { color: #c9a6ee; }
+html body .modal-pericias-classe, html body .modal-pericias-classe-overlay { display: none; }
+
+/* ---- rituais no catálogo: custo e execução separados do texto ---- */
+html body #eqSeletorCorpo .eq-pk-meta { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 2px; }
+html body #eqSeletorCorpo .eq-pk-meta span { padding: 3px 9px; font-size: 11px; line-height: 1.3; border-radius: 8px; color: #d7cbdb; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.13); }
+html body #eqSeletorCorpo .eq-pk-meta .circ { color: #e0cdf3; border-color: rgba(201,166,238,.45); background: rgba(201,166,238,.1); }
+html body #eqSeletorCorpo .eq-pk-meta .pe { color: #fbf3f6; font-weight: 600; border-color: rgba(165,42,67,.7); background: rgba(165,42,67,.28); }
+html body #eqSeletorCorpo .eq-pk-meta + .eq-pk-resumo { margin-top: 8px; }
+
+/* ---- legenda de modificações: três linhas alinhadas ---- */
+html body .eq-legenda { display: grid !important; grid-template-columns: 1fr; gap: 5px !important; margin: 4px 0 8px; padding: 9px 11px; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; background: rgba(255,255,255,.025); font-size: 12px; }
+html body .eq-legenda span { display: grid; grid-template-columns: 8px 88px 1fr; align-items: center; column-gap: 9px; min-width: 0; }
+html body .eq-legenda span::before { margin: 0 !important; width: 8px; height: 8px; }
+html body .eq-legenda b { font-weight: 600; }
+html body .eq-legenda i { font-style: normal; opacity: .9; min-width: 0; }
+
+/* popups de item: descrição, maldições e textos no mesmo cartão das modificações */
+html body .iv-pop-corpo .iv-bloco > p { margin: 6px 0 0; padding: 9px 11px; box-sizing: border-box; font-size: 12.5px; line-height: 1.5; color: #d7cbdb; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; }
+html body .iv-pop-corpo .iv-bloco > p + p { margin-top: 5px; }
+html body .iv-pop-corpo .iv-bloco > p b { color: #f6ece8; }
+html body .iv-pop-corpo .iv-mod { background: rgba(255,255,255,.035) !important; border-color: rgba(255,255,255,.1) !important; padding: 9px 11px; }
+html body .iv-pop-corpo .iv-mod p { color: #d7cbdb; }
+html body .iv-pop-corpo .iv-mod-n b { color: #f6ece8; }
+
+/* ---- reordenar segurando no ícone ---- */
+html body #ivListaItensOP .iv-seal, html body #listaArmas .iv-seal, html body #listaArmaduras .iv-seal { cursor: grab; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+html body.iv-sem-selecao { -webkit-user-select: none; user-select: none; }
+html body .iv-reordenando > * { content-visibility: visible; }
+html body .iv-reordenando > *:not(.iv-arrastando) { transition: none; }
+html body .iv-arrastando { position: relative; z-index: 30; opacity: .97; transition: none !important; cursor: grabbing; border-color: rgba(201,166,238,.7) !important; box-shadow: 0 14px 30px rgba(0,0,0,.6), 0 0 0 1px rgba(201,166,238,.35) !important; background: #241c2d !important; will-change: transform; }
+html body .iv-arrastando .iv-seal { border-color: rgba(201,166,238,.7); }
+
+/* formulários dentro das folhas: sempre visíveis, mesmo se a seção antiga estava salva como fechada */
+html body .iv-sheet-body .conteudo-toggle, html body .iv-sheet-body .conteudo-toggle.fechado { max-height: none !important; height: auto !important; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; overflow: visible !important; margin: 0 !important; padding-top: revert; padding-bottom: revert; transition: none; }
+
+/* aprimoramentos do veículo listados em cartões (como as modificações das armas) */
+html body .vp .popup-secao-extra { margin: 14px 0 4px; padding: 0; border: 0; }
+html body .vp .popup-secao-titulo { margin: 0 0 7px; font-size: 10.5px; font-weight: 500; letter-spacing: 1.4px; text-transform: uppercase; color: #a899b2; font-family: inherit; }
+html body .vp .popup-mod { margin: 0 0 6px; padding: 9px 11px; box-sizing: border-box; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.1); border-left: 3px solid #a52a43; border-radius: 10px; }
+html body .vp .popup-mod-nome { font-size: 13px; font-weight: 600; color: #f6ece8; }
+html body .vp .popup-mod-desc { margin-top: 3px; font-size: 12.5px; line-height: 1.45; color: #cfc4d6; }
+html body .vp .popup-secao-extra .popup-mod-cat { color: #c9a6ee; }
+
+/* ---- requisitos ao aprender ritual ---- */
+html body #confirmBonitoTexto { white-space: pre-line; text-align: left; }
+html body .rit-req { margin: 8px 0 2px; padding: 8px 10px; border-radius: 10px; font-size: 12px; line-height: 1.4; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.1); color: #cfc4d6; }
+html body .rit-req-ok { color: #a9e2a9; }
+html body .rit-req-t { display: block; margin-bottom: 3px; font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; color: #f0a094; }
+html body .rit-req:has(.rit-req-t) { border-color: rgba(224,122,106,.45); background: rgba(224,122,106,.07); }
+html body .rit-req ul { margin: 0; padding-left: 16px; }
+html body .rit-req li { margin: 2px 0; }
+
+/* ---- folha do veículo: aprimoramentos no padrão das modificações ---- */
+html body #ivBody_vei .item-extra-secao > summary { display: flex; align-items: center; gap: 9px; }
+html body #ivBody_vei .item-extra-secao:nth-of-type(1) > summary::before, html body #ivBody_vei #veiculoExtrasBox .item-extra-secao:nth-of-type(2) > summary::before { content: ""; flex: none; width: 15px; height: 15px; background: #c9a6ee; -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat; }
+html body #ivBody_vei #veiculoExtrasBox .item-extra-secao:nth-of-type(1) { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Cpath d='M12 8v4l3 2'/%3E%3C/svg%3E"); }
+html body #ivBody_vei #veiculoExtrasBox .item-extra-secao:nth-of-type(2) { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 6a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3z'/%3E%3C/svg%3E"); }
+html body #ivBody_vei .mod-linha { margin: 8px 0 0; padding: 9px; background: rgba(255,255,255,.03) !important; border: 1px solid rgba(255,255,255,.1) !important; border-left: 3px solid #a52a43 !important; border-radius: 10px !important; }
+html body #ivBody_vei .mod-linha .mod-nome, html body #ivBody_vei .mod-linha .mod-desc { box-sizing: border-box; }
+html body #ivBody_vei .mod-lista { padding: 0 10px; }
+html body #ivBody_vei .item-extra-secao .mod-add { display: block; width: calc(100% - 20px); margin: 10px auto 12px !important; min-height: 40px; }
+html body .mod-add:focus, html body .mod-add:focus-visible, html body .mod-add:active { outline: none !important; box-shadow: none !important; border-color: rgba(201,166,238,.55) !important; background: rgba(201,166,238,.07) !important; color: #e0cdf3 !important; }
+
+/* ---- grimório de rituais: mais compacto ---- */
+html body #popup:has(.rit-popup) h3#popup-titulo { font-size: 19px; margin: 2px 40px 8px 0; text-align: left; line-height: 1.2; }
+html body .rit-popup { display: flex; flex-direction: column; gap: 8px; }
+html body .rit-popup .cat-contador { margin: 0; font-size: 12px; line-height: 1.35; color: #cfc4d6; }
+html body .rit-regra { margin: 0; padding: 0; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; background: rgba(255,255,255,.03); }
+html body .rit-regra > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; list-style: none; cursor: pointer; padding: 8px 11px; font-size: 12px; color: #a899b2; }
+html body .rit-regra > summary::-webkit-details-marker { display: none; }
+html body .rit-regra > summary b { color: #f6ece8; font-weight: 600; text-align: right; }
+html body .rit-regra[open] > summary { border-bottom: 1px solid rgba(255,255,255,.09); }
+html body .rit-regra select { display: block; width: calc(100% - 20px); margin: 8px 10px 4px; }
+html body .rit-regra small { display: block; margin: 4px 11px 9px; }
+html body .rit-popup .rit-busca { margin: 0; height: 38px; box-sizing: border-box; }
+html body .rit-popup .rit-chips { display: flex; flex-wrap: nowrap; gap: 6px; margin: 0 -2px; padding: 1px 2px 3px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+html body .rit-popup .rit-chips::-webkit-scrollbar { display: none; }
+html body .rit-popup .rit-chip { flex: none; padding: 5px 11px; font-size: 12px; white-space: nowrap; }
+html body .rit-popup .cat-lista { display: flex; flex-direction: column; gap: 8px; }
+html body .rit-item { margin: 0; padding: 10px 11px; }
+html body .rit-item .cat-topo { display: block; }
+html body .rit-item .cat-topo strong { display: block; font-size: 14.5px; margin-bottom: 4px; }
+html body .rit-item .cat-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start; }
+html body .rit-item .cat-tag { padding: 1px 7px; font-size: 10.5px; }
+html body .rit-item .cat-resumo { margin: 6px 0 0; font-size: 12.5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+html body .rit-item .rit-detalhes { margin-top: 4px; font-size: 12px; }
+html body .rit-item .rit-req { margin: 6px 0 0; padding: 0; background: none; border: 0; font-size: 12px; }
+html body .rit-item .rit-req:has(.rit-req-d) { border: 0; background: none; }
+html body .rit-req-d > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; font-size: 11px; color: #f0a094; border: 1px solid rgba(224,122,106,.45); border-radius: 99px; background: rgba(224,122,106,.07); }
+html body .rit-req-d > summary::-webkit-details-marker { display: none; }
+html body .rit-req-d ul { margin: 6px 0 0; padding-left: 16px; color: #cfc4d6; }
+html body .rit-item .rit-acoes { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+html body .rit-item .rit-acoes select { flex: 1 1 0; min-width: 0; height: 38px; margin: 0; padding: 0 8px; font-size: 12.5px; }
+html body .rit-item .rit-acoes .cat-add { flex: none; width: auto; height: 38px; margin: 0; padding: 0 16px; }
+html body .pj-sel-btn.bloq { opacity: .6; }
+
+/* ---- grimório mais simples de entender ---- */
+html body .rit-cont { display: flex; gap: 8px; }
+html body .rit-cx { flex: 1; display: flex; flex-direction: column; gap: 1px; padding: 7px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.035); }
+html body .rit-cx b { font-size: 15px; font-weight: 600; color: #f6ece8; }
+html body .rit-cx small { font-size: 10.5px; letter-spacing: .6px; color: #a899b2; }
+html body .rit-cx.cheio b { color: #f0a094; }
+html body .rit-item .rit-req-ok { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11.5px; color: #a9e2a9; border: 1px solid rgba(143,209,143,.4); background: rgba(143,209,143,.07); }
+html body .rit-req-d > summary { display: block; line-height: 1.35; border-radius: 10px; padding: 6px 10px; }
+html body .rit-req-d > summary b { color: #f0a094; font-weight: 600; }
+html body .rit-req-d > summary em { font-style: normal; color: #cfc4d6; opacity: .8; margin-left: 4px; }
+html body .rit-item .rit-acoes { flex-wrap: wrap; }
+html body .rit-item .rit-acoes .rit-como { flex: 1 1 100%; order: 3; height: 34px; font-size: 12px; color: #a899b2; background: transparent !important; border: 1px dashed rgba(255,255,255,.18) !important; }
+
+/* listas suspensas (select) legíveis no tema escuro */
+html body select { color-scheme: dark; }
+html body select option, html body select optgroup { background-color: #1a1420; color: #f3eaf1; }
+html body select option:disabled { color: #8f829a; }
+html body select option:checked { background-color: #5a2a4a; color: #fff; }
