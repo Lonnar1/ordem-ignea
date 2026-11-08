@@ -565,7 +565,7 @@ function abrirSeletorOP(selId) {
     ${fl.painel}`;
   el.style.display = "flex";
   filtrarPickerOP();
-  setTimeout(() => document.querySelector("#eqSeletorCorpo .eq-picker-busca")?.focus({ preventScroll: true }), 50);
+  if (window.matchMedia && matchMedia("(hover: hover) and (pointer: fine)").matches) setTimeout(() => document.querySelector("#eqSeletorCorpo .eq-picker-busca")?.focus({ preventScroll: true }), 50); // no celular o teclado não abre sozinho
 }
 
 function fecharSeletorOP() {
@@ -1305,15 +1305,17 @@ function melhorarFormulariosEquipOP() {
 
 (function () {
   let agendado = false;
-  const agendar = () => {
+  const traz = (n) => n.nodeType === 1 && (n.tagName === "INPUT" || (n.querySelector && n.querySelector("input")));
+  const agendar = (muts) => {
     if (agendado) return;
+    if (muts && !muts.some((m) => m.addedNodes && Array.prototype.some.call(m.addedNodes, traz))) return; // só importa quando entra campo novo
     agendado = true;
-    requestAnimationFrame(() => { agendado = false; melhorarFormulariosEquipOP(); });
+    setTimeout(() => { agendado = false; melhorarFormulariosEquipOP(); }, 180);
   };
   const iniciar = () => {
     new MutationObserver(agendar).observe(document.body, { childList: true, subtree: true });
     melhorarFormulariosEquipOP();
-    setInterval(() => document.querySelectorAll("input[data-chips-op]").forEach(_sincronizarChipsCatOP), 600);
+    setInterval(() => { if (!document.hidden) document.querySelectorAll("input[data-chips-op]").forEach(_sincronizarChipsCatOP); }, 1500);
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(iniciar, 80));
   else setTimeout(iniciar, 80);
@@ -1327,8 +1329,6 @@ function melhorarFormulariosEquipOP() {
    Reaproveita os formulários e as funções que já existiam.
    ===================================================================== */
 let _invPaneOP = "itens";
-let _invBuscaOP = "";
-let _invCatFiltroOP = "todos";
 
 const _IV_ICO = {
   plus: '<path d="M12 5v14M5 12h14"/>',
@@ -1377,19 +1377,22 @@ function montarInventarioOP() {
     </div>
     <div class="iv-tabs" id="ivTabsOP">
       <button type="button" class="on" data-pane="itens" onclick="trocarPaneInvOP('itens')">Itens<em id="invCntItensOP">0</em></button>
-      <button type="button" data-pane="rec" onclick="trocarPaneInvOP('rec')">Recipientes<em id="invCntRecOP">0</em></button>
       <button type="button" data-pane="mapas" onclick="trocarPaneInvOP('mapas')">Mapas<em id="invCntMapasOP">0</em></button>
       <button type="button" data-pane="docs" onclick="trocarPaneInvOP('docs')">Docs<em id="invCntDocsOP">0</em></button>
     </div>
     <div class="iv-pane" data-pane="itens">
-      <div class="iv-busca">
-        <label class="iv-busca-campo">${_ivI("search")}<input id="ivBuscaOP" type="search" placeholder="Buscar item" autocomplete="off" oninput="_ivBuscarOP(this.value)" /></label>
-        <button type="button" class="iv-novo" onclick="abrirFolhaOP('item')">${_ivI("plus")}Novo</button>
-      </div>
-      <div class="iv-fil" id="ivFilOP"></div>
+      <button type="button" class="iv-addc iv-novo-largo" onclick="abrirFolhaOP('item')">${_ivI("plus")}Novo item</button>
       <div id="ivListaItensOP"></div>
+      <section class="iv-bolsas" id="ivBolsasOP">
+        <button type="button" class="iv-bolsas-cab" id="ivBolsasCabOP" aria-expanded="true" onclick="alternarBolsasOP()">
+          <span class="iv-bolsas-ico">${_ivI("bag")}</span><b>Bolsas</b><em id="invCntRecOP">0</em><span class="iv-bolsas-chev">${_ivI("chev")}</span>
+        </button>
+        <div class="iv-bolsas-corpo" id="ivBolsasCorpoOP">
+          <div id="ivSlotRecOP"></div>
+          <button type="button" class="iv-addc" onclick="abrirFolhaOP('rec')">${_ivI("plus")}Nova bolsa</button>
+        </div>
+      </section>
     </div>
-    <div class="iv-pane" data-pane="rec" hidden><div id="ivSlotRecOP"></div><button type="button" class="iv-addc" onclick="abrirFolhaOP('rec')">${_ivI("plus")}Novo recipiente</button></div>
     <div class="iv-pane" data-pane="mapas" hidden><div id="ivSlotMapasOP"></div><button type="button" class="iv-addc" onclick="abrirFolhaOP('mapa')">${_ivI("plus")}Novo mapa</button></div>
     <div class="iv-pane" data-pane="docs" hidden><div id="ivSlotDocsOP"></div><button type="button" class="iv-addc" onclick="abrirFolhaOP('doc')">${_ivI("plus")}Novo documento</button></div>
     <div class="iv-veic" id="ivVeicOP">
@@ -1426,10 +1429,21 @@ function montarInventarioOP() {
   _ivMontarFolhaSimplesOP("vei", "Novo veículo", fVei, "Adicionar veículo", "addVeiculo", () => veiculos.length);
 
   donos.forEach((d) => { d.style.display = "none"; });
+  try { _ivMontarDiarioOP(); } catch (e) { /* o diário antigo continua funcionando */ }
   return true;
 }
 
+function alternarBolsasOP() {
+  const corpo = document.getElementById("ivBolsasCorpoOP");
+  const cab = document.getElementById("ivBolsasCabOP");
+  if (!corpo || !cab) return;
+  corpo.hidden = !corpo.hidden;
+  cab.setAttribute("aria-expanded", String(!corpo.hidden));
+  document.getElementById("ivBolsasOP")?.classList.toggle("fechada", corpo.hidden);
+}
+
 function trocarPaneInvOP(p) {
+  if (p === "rec") p = "itens"; // as bolsas ficam embaixo dos itens
   _invPaneOP = p;
   document.querySelectorAll("#ivTabsOP button").forEach((b) => b.classList.toggle("on", b.dataset.pane === p));
   document.querySelectorAll("#invOP .iv-pane").forEach((x) => { x.hidden = x.dataset.pane !== p; });
@@ -1661,35 +1675,28 @@ function atualizarContagensInvOP() {
   set("invCntDocsOP", (typeof documentos !== "undefined" ? documentos : []).length);
 }
 
-/* ---------- lista de itens ---------- */
-function _ivBuscarOP(v) { _invBuscaOP = v; _renderListaItensOP(); }
-function _ivFiltrarCatOP(c) { _invCatFiltroOP = c; _renderListaItensOP(); }
+/* ---------- lista de itens (a categoria aparece no próprio cartão) ---------- */
+function _ivBuscarOP() { _renderListaItensOP(); }
+function _ivFiltrarCatOP() { _renderListaItensOP(); }
 
 function _ivCatItemOP(item) { return categoriaDoItemOP(item).texto || "0"; }
 
 function _renderListaItensOP() {
   const box = document.getElementById("ivListaItensOP");
   if (!box) return;
-  const fil = document.getElementById("ivFilOP");
-  if (fil) {
-    fil.innerHTML = ["todos", "0", "I", "II", "III", "IV"].map((c) =>
-      `<button type="button" class="${_invCatFiltroOP === c ? "on" : ""}" onclick="_ivFiltrarCatOP('${c}')">${c === "todos" ? "Todos" : c}</button>`).join("");
-  }
   if (!inventario.length) {
-    box.innerHTML = '<p class="iv-vazio">Nenhum item ainda. Toque em Novo para adicionar.</p>';
+    box.innerHTML = "";
     return;
   }
-  const b = _ivNorm(_invBuscaOP.trim());
-  const lista = inventario.map((it, i) => [it, i]).filter(([it]) =>
-    (!b || _ivNorm(it.nome).includes(b)) && (_invCatFiltroOP === "todos" || _ivCatItemOP(it) === _invCatFiltroOP));
-  if (!lista.length) { box.innerHTML = '<p class="iv-vazio">Nenhum item com esse filtro.</p>'; return; }
-  box.innerHTML = lista.map(([it, i]) => {
+  box.innerHTML = inventario.map((it, i) => {
     const qtd = Math.max(1, parseInt(it.qtd) || 1);
     const mods = _modsDoItem(it).map((m) => m.nome).filter(Boolean);
-    const meta = [`×${qtd}`, `${_ivN(it.espacos || 0)} esp cada`].concat(mods.length ? [`mod. ${esc(mods[0])}${mods.length > 1 ? " +" + (mods.length - 1) : ""}`] : []).join(" · ");
+    const cat = _ivCatItemOP(it);
+    const meta = [`<span class="iv-cat">Cat. ${esc(cat)}</span>`, `×${qtd}`, `${_ivN(it.espacos || 0)} esp cada`]
+      .concat(mods.length ? [`mod. ${esc(mods[0])}${mods.length > 1 ? " +" + (mods.length - 1) : ""}`] : []).join('<i class="iv-pt"></i>');
     const ponto = it.requerSintonia ? `<i class="iv-ponto${it.sintonizado ? " on" : ""}" title="${it.sintonizado ? "Sintonizado" : "Requer sintonia"}"></i>` : "";
     return `<div class="iv-item" onclick="abrirItemInvOP(${i})" role="button" tabindex="0">
-      <div class="iv-seal">${esc(_ivCatItemOP(it))}</div>
+      <div class="iv-seal">${esc(cat)}</div>
       <div class="iv-info"><div class="iv-nome">${esc(it.nome || "Sem nome")}${ponto}</div><div class="iv-meta">${meta}</div></div>
       <div class="iv-dir"><b>${_ivN(calcularEspacosItem(it))}</b><small>esp</small></div>
     </div>`;
@@ -2406,7 +2413,7 @@ function _pjAtualizarSeletorOP(sel) {
   sel._pjBtn.classList.toggle("vazio", vazio);
 }
 /* alterações feitas por código (carregar ficha, trocar classe…) não geram evento: confere de vez em quando */
-setInterval(() => _pjSelsOP.forEach(_pjAtualizarSeletorOP), 400);
+setInterval(() => { if (!document.hidden) _pjSelsOP.forEach(_pjAtualizarSeletorOP); }, 1200);
 
 function _pjAbrirListaOP(sel, titulo) {
   let ov = document.getElementById("pjSelOP");
@@ -2533,4 +2540,269 @@ function confirmarRitualOP() {
   const antes = poderes.length;
   salvarRitualPersonalizadoOP();
   if (poderes.length > antes) fecharFolhaOP("rit");
+}
+
+
+/* =====================================================================
+   VEÍCULO: popup do veículo, transferir e retirar (visual novo)
+   - usa as mesmas funções de antes (alterar vida/gasolina, editar, remover item…)
+   - transferir/retirar: lista compacta em duas colunas, título centralizado
+   ===================================================================== */
+Object.assign(_IV_ICO, {
+  heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  fuel: '<path d="M5 20V5.5A1.5 1.5 0 0 1 6.5 4h6A1.5 1.5 0 0 1 14 5.5V20M4 20h11M14 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V9l-3-3"/><path d="M7.5 8h4"/>',
+  users: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5.2a3 3 0 0 1 0 5.6M18 14.5A6 6 0 0 1 21 20"/>',
+  bag: '<path d="M6 8h12l1 12H5zM9 8a3 3 0 0 1 6 0"/>',
+  minus: '<path d="M5 12h14"/>',
+  entra: '<path d="M4 12h11M11 8l4 4-4 4M20 5v14"/>',
+  sai: '<path d="M20 12H9M13 8l-4 4 4 4M4 5v14"/>',
+  check2: '<path d="m5 12 5 5 9-10"/>',
+});
+
+/* "Categoria 3 / Tamanho médio / Defesa 17…" no começo da descrição viram etiquetas; o resto vira texto corrido */
+function _vpSpecOP(desc) {
+  const linhas = String(desc || "").replace(/\r/g, "").split("\n");
+  const chips = [];
+  let i = 0;
+  while (i < linhas.length) {
+    const t = linhas[i].trim();
+    if (!t || t.length > 28 || /[.:;,]$/.test(t)) break;
+    chips.push(t);
+    i++;
+  }
+  const resto = linhas.slice(i).join("\n").trim();
+  const paragrafos = resto ? resto.split(/\n\s*\n/).map((p) => p.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean) : [];
+  const html = chips.map((t) => {
+    const m = t.match(/^(.*\S)\s+(\S*\d\S*)$/);
+    return m ? `<span class="vp-chip"><i>${esc(m[1])}</i><b>${esc(m[2])}</b></span>` : `<span class="vp-chip"><b>${esc(t)}</b></span>`;
+  });
+  return { chips: html, paragrafos };
+}
+
+function _vpMedidorOP(tipo, rotulo, icone, atual, max, index) {
+  const Tipo = tipo === "vida" ? "Vida" : "Gasolina";
+  const pct = max > 0 ? Math.max(0, Math.min(100, (atual / max) * 100)) : 0;
+  return `
+    <div class="vp-med vp-med-${tipo}">
+      <div class="vp-med-t">${_ivI(icone)}<span>${rotulo}</span><strong id="veiculo${Tipo}Texto">${_ivN(atual)} / ${_ivN(max)}</strong></div>
+      <div class="vp-med-c">
+        <button type="button" class="vp-passo" aria-label="Diminuir ${rotulo}" onclick="vpPassoOP('${tipo}', ${index}, -1)">${_ivI("minus")}</button>
+        <input id="vpR_${tipo}" class="vp-range" type="range" min="0" max="${Math.max(1, max)}" step="1" value="${atual}" ${max <= 0 ? "disabled" : ""}
+          style="--p:${pct}%" oninput="vpSlideOP('${tipo}', ${index}, this, false)" onchange="vpSlideOP('${tipo}', ${index}, this, true)">
+        <button type="button" class="vp-passo" aria-label="Aumentar ${rotulo}" onclick="vpPassoOP('${tipo}', ${index}, 1)">${_ivI("plus")}</button>
+      </div>
+    </div>`;
+}
+
+function vpSlideOP(tipo, index, el, salvar) {
+  const max = Math.max(1, parseInt(el.max) || 1);
+  el.style.setProperty("--p", Math.max(0, Math.min(100, (el.value / max) * 100)) + "%");
+  if (tipo === "vida") alterarVidaVeiculo(index, el.value, salvar);
+  else alterarGasolinaVeiculo(index, el.value, salvar);
+}
+
+function vpPassoOP(tipo, index, d) {
+  const el = document.getElementById("vpR_" + tipo);
+  if (!el || el.disabled) return;
+  el.value = String(Math.max(0, Math.min(parseInt(el.max) || 0, (parseInt(el.value) || 0) + d)));
+  vpSlideOP(tipo, index, el, true);
+}
+
+verVeiculo = function (index) {
+  const v = veiculos[index];
+  if (!v) return;
+  if (!Array.isArray(v.itens)) v.itens = [];
+
+  const vidaMax = numeroInventario(v.vidaMax);
+  v.vidaAtual = Math.min(vidaMax, numeroInventario(v.vidaAtual ?? vidaMax));
+  const gasMax = numeroInventario(v.gasolinaMax);
+  v.gasolinaAtual = Math.min(gasMax, numeroInventario(v.gasolinaAtual ?? gasMax));
+
+  const carga = calcularEspacosVeiculo(v);
+  const cargaMax = numeroInventario(v.espacosMax);
+  const cargaPct = cargaMax > 0 ? Math.min(100, (carga / cargaMax) * 100) : 0;
+  const spec = _vpSpecOP(v.desc);
+  const cats = String(v.categoriasPermitidas || "").split(/[,;\s]+/).map((c) => c.trim()).filter(Boolean);
+
+  const itens = v.itens.length
+    ? v.itens.map((item, k) => {
+        const total = calcularEspacosItem(item);
+        return `
+        <div class="vp-item" onclick="verItemVeiculo(${index}, ${k})" role="button" tabindex="0">
+          <div class="vp-item-info">
+            <b>${esc(item.nome || "Item")}</b>
+            <div class="vp-item-meta">
+              <span>×${item.qtd || 1}</span>
+              <span>${_ivI("bag")}${_ivN(total)}</span>
+              ${item.categoria ? `<span class="cat">Cat. ${esc(item.categoria)}</span>` : ""}
+            </div>
+          </div>
+          <div class="vp-item-acoes">
+            <button type="button" aria-label="Editar item" onclick="event.stopPropagation(); editarItemVeiculo(${index}, ${k})">${_ivI("edit")}</button>
+            <button type="button" class="perigo" aria-label="Tirar item" onclick="event.stopPropagation(); removerItemVeiculo(${index}, ${k})">${_ivI("x")}</button>
+          </div>
+        </div>`;
+      }).join("")
+    : `<p class="vp-vazio">Nenhum item guardado.</p>`;
+
+  const extras = typeof extrasPopupHTML === "function" ? extrasPopupHTML(v, "veiculo") : "";
+  const textoLongo = spec.paragrafos.join(" ").length > 240;
+
+  const html = `
+    <div class="vp">
+      ${spec.chips.length ? `<div class="vp-chips">${spec.chips.join("")}</div>` : ""}
+      ${spec.paragrafos.length ? `<details class="vp-det"${textoLongo ? "" : " open"}><summary>Descrição</summary><div class="vp-texto">${spec.paragrafos.map((p) => `<p>${esc(p)}</p>`).join("")}</div></details>` : ""}
+      ${extras}
+      <div class="vp-medidores">
+        ${_vpMedidorOP("vida", "Vida", "heart", v.vidaAtual, vidaMax, index)}
+        ${_vpMedidorOP("gas", "Gasolina", "fuel", v.gasolinaAtual, gasMax, index)}
+      </div>
+      <div class="vp-grade">
+        <div class="vp-dado">${_ivI("users")}<span>Lugares</span><b>${v.passageirosMax || 0}</b></div>
+        <div class="vp-dado">${_ivI("bag")}<span>Carga</span><b>${_ivN(carga)} <small>/ ${_ivN(cargaMax)}</small></b><div class="vp-mini"><i class="${cargaMax > 0 && carga > cargaMax ? "exc" : ""}" style="width:${cargaPct}%"></i></div></div>
+      </div>
+      <div class="vp-cats"><span>Categorias permitidas</span>${cats.length ? cats.map((c) => `<em>${esc(c)}</em>`).join("") : `<em class="vazio">Não definidas</em>`}</div>
+      <div class="vp-sec"><i></i><b>Itens no veículo</b><em>${v.itens.length}</em><i></i></div>
+      <div class="vp-acoes">
+        <button type="button" onclick="abrirGuardarNoVeiculo(${index})">${_ivI("entra")}Transferir</button>
+        ${v.itens.length ? `<button type="button" onclick="abrirRetirarVariosVeiculo(${index})">${_ivI("sai")}Retirar</button>` : ""}
+        <button type="button" onclick="abrirAdicionarItemVeiculo(${index})">${_ivI("plus")}Novo item</button>
+      </div>
+      <div class="vp-itens">${itens}</div>
+    </div>`;
+
+  abrirPopup(`${v.icone || ""} ${v.nome || "Veículo"}`.trim(), html, true, () => editarVeiculo(index));
+  document.getElementById("popup")?.classList.add("vp-aberto");
+};
+
+/* o quadro do veículo só vale enquanto ele está aberto */
+(function () {
+  if (typeof abrirPopup !== "function") return;
+  const original = abrirPopup;
+  abrirPopup = function () {
+    document.getElementById("popup")?.classList.remove("vp-aberto");
+    return original.apply(this, arguments);
+  };
+})();
+
+/* ---------- seleção múltipla (transferir / retirar / guardar) ---------- */
+abrirMultiSelecao = function ({ titulo, grupos, confirmar, aoConfirmar }) {
+  _multiCtx = { aoConfirmar, confirmar };
+
+  const tile = (it) => {
+    const q = Math.max(1, parseInt(it.qtd) || 1);
+    const info = String(it.info || "").replace(/🎒/g, "").trim();
+    const sub = [q > 1 ? `×${q}` : "", info ? `${_ivI("bag")}${esc(info)}` : ""].filter(Boolean).join('<i class="ms-pt"></i>');
+    return `
+      <div class="ms-tile">
+        <label class="ms-lab">
+          <input type="checkbox" class="multi-chk" data-chave="${esc(it.chave)}" onchange="multiAtualizar()" />
+          <span class="ms-txt"><span class="ms-nome">${esc(it.nome || "Sem nome")}</span>${sub ? `<small class="ms-info">${sub}</small>` : ""}</span>
+        </label>
+        ${q > 1 ? `<span class="multi-qtd"><span>Quantos?</span><input type="number" class="multi-qtd-input" data-chave="${esc(it.chave)}" min="1" max="${q}" value="${q}" inputmode="numeric" /><small>de ${q}</small></span>` : ""}
+      </div>`;
+  };
+
+  const comItens = grupos.filter((g) => g.itens.length);
+  const corpo = comItens.length
+    ? comItens.map((g) => `
+        <section class="ms-grupo">
+          <h4 class="ms-gt"><i></i><span>${esc(g.titulo)}</span><small>${g.itens.length}</small><i></i></h4>
+          <div class="ms-grade">${g.itens.map(tile).join("")}</div>
+        </section>`).join("")
+    : `<p class="ms-vazio">Nada para escolher aqui.</p>`;
+
+  const html = `
+    <div class="multi-sel ms2">
+      <div class="ms-topo">
+        <button type="button" class="multi-todos" onclick="multiSelecionarTodos()">Selecionar todos</button>
+        <span class="ms-cont" id="msContOP">nenhum selecionado</span>
+      </div>
+      ${corpo}
+      <div class="ms-rodape"><button type="button" class="multi-confirmar" id="multiConfirmar" onclick="multiConfirmar()" disabled>${esc(confirmar)}</button></div>
+    </div>`;
+
+  abrirSubPopupVeiculo(titulo, html);
+};
+
+multiAtualizar = function () {
+  const n = document.querySelectorAll(".multi-sel .multi-chk:checked").length;
+  const btn = document.getElementById("multiConfirmar");
+  if (btn && _multiCtx) {
+    btn.disabled = n === 0;
+    btn.textContent = n ? `${_multiCtx.confirmar} (${n})` : _multiCtx.confirmar;
+  }
+  const c = document.getElementById("msContOP");
+  if (c) c.textContent = n === 0 ? "nenhum selecionado" : n === 1 ? "1 selecionado" : `${n} selecionados`;
+};
+
+/* =====================================================================
+   DIÁRIO: botão pequeno no título do Inventário; abre de baixo para cima
+   As sessões continuam separadas (Geral + uma página por sessão) e tudo é salvo sozinho.
+   ===================================================================== */
+Object.assign(_IV_ICO, { diario: '<path d="M12 6.5C10 5 7 4.5 4 4.5v13c3 0 6 .5 8 2 2-1.5 5-2 8-2v-13c-3 0-6 .5-8 2zM12 6.5v13"/>' });
+
+function _ivSalvoOP() {
+  const el = document.getElementById("ivSalvoOP");
+  if (!el) return;
+  el.textContent = "Salvo";
+  el.classList.add("ok");
+  clearTimeout(_ivSalvoOP._t);
+  _ivSalvoOP._t = setTimeout(() => { el.textContent = "Salvo automaticamente"; el.classList.remove("ok"); }, 1600);
+}
+
+function _ivMontarDiarioOP() {
+  const q = (id) => document.getElementById(id);
+  const aba = q("inventario");
+  const box = q("diario-box");
+  if (!aba || !box || q("ivOv_diario")) return;
+
+  const corpo = _ivCriarFolhaOP("diario", "Diário", "", "fecharFolhaOP('diario')");
+  const ov = _ivFolhasOP.diario;
+  ov.classList.add("iv-ov-diario");
+  ov.querySelector(".iv-sheet-foot")?.remove();
+  ov.querySelector(".iv-sheet-top b")?.insertAdjacentHTML("afterend", `<small class="iv-salvo" id="ivSalvoOP">Salvo automaticamente</small>`);
+
+  box.style.removeProperty("display"); // quem manda é o CSS da folha (o estado antigo "fechada" não esconde mais)
+  corpo.appendChild(box);
+  aba.querySelector(".btn-diario")?.style.setProperty("display", "none", "important");
+
+  const h2 = aba.querySelector("h2.titulo-secao");
+  if (h2 && !h2.querySelector(".iv-diario-btn")) {
+    h2.insertAdjacentHTML("beforeend", `<button type="button" class="iv-diario-btn" aria-label="Abrir o diário" onclick="abrirDiarioOP()">${_ivI("diario")}</button>`);
+  }
+
+  ["digitarDiarioOP", "mudarTituloDiarioOP", "novaSessaoDiarioOP", "excluirSessaoDiarioOP", "abrirAbaDiarioOP"].forEach((nome) => {
+    const f = window[nome];
+    if (typeof f !== "function" || f._salvo) return;
+    const g = function () { const r = f.apply(this, arguments); _ivSalvoOP(); return r; };
+    g._salvo = true;
+    window[nome] = g;
+  });
+}
+
+function abrirDiarioOP() {
+  _ivMontarDiarioOP();
+  document.getElementById("diario-box")?.style.removeProperty("display");
+  if (typeof renderDiarioOP === "function") renderDiarioOP();
+  /* se o diario-op.js estiver faltando ou antigo, mostra ao menos o texto geral para escrever */
+  const raiz = document.getElementById("diarioOP");
+  const geral = document.getElementById("diario");
+  if (geral) {
+    const semSessoes = !raiz || !raiz.children.length;
+    geral.style.display = semSessoes ? "block" : "none";
+    geral.classList.toggle("diario-editor", semSessoes);
+  }
+  abrirFolhaOP("diario");
+  /* com o teclado aberto no celular a folha sobe junto, sem ficar escondida atrás dele */
+  const ov = _ivFolhasOP.diario;
+  const vv = window.visualViewport;
+  if (ov && vv && !ov._vv) {
+    ov._vv = () => {
+      ov.style.paddingBottom = Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + "px";
+      const s = ov.querySelector(".iv-sheet");
+      if (s) s.style.maxHeight = Math.round(vv.height * 0.96) + "px";
+    };
+    vv.addEventListener("resize", ov._vv);
+  }
 }
