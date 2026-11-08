@@ -642,7 +642,7 @@ function atualizarSeletorTrilhaOP() {
   const lista = trilhasDaClasseOP(classe);
 
   sel.innerHTML =
-    `<option value="">${lista.length ? (classe === "sobrevivente" ? "Sem trilha (escolha no estágio 2)" : "Sem trilha (escolha no NEX 10%)") : "Sem trilhas cadastradas"}</option>` +
+    `<option value="">${!classe ? "Escolha a classe primeiro" : lista.length ? (classe === "sobrevivente" ? "Sem trilha (escolha no estágio 2)" : "Sem trilha (escolha no NEX 10%)") : "Sem trilhas cadastradas"}</option>` +
     lista
       .map((t) => `<option value="${esc(t.id)}" ${t.id === trilhaOP ? "selected" : ""}>${esc(t.nome)}${(FONTES_ROTULO_OP[t.fonte] || ["", ""])[1] ? ` (${FONTES_ROTULO_OP[t.fonte][1]})` : ""}</option>`)
       .join("");
