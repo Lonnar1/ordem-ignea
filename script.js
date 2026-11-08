@@ -3293,7 +3293,7 @@ function criarPersonagem() {
     ca: "",
     deslocamento: 9,
 
-    forca: 10,
+    forca: 1,
     destreza: 10,
     constituicao: 10,
     inteligencia: 10,
@@ -3987,7 +3987,7 @@ function carregarPersonagem(index) {
 const nexEl = document.getElementById("nex");
 
 if (classeOPEl) {
-  classeOPEl.value = p.classeOP || "combatente";
+  classeOPEl.value = p.classeOP || ""; // personagem novo começa em "Selecionar classe"
 }
 
 if (nexEl) {
@@ -4163,7 +4163,7 @@ function salvarTudo() {
 
   p.nome = document.getElementById("nome").value;
   p.classe = document.getElementById("classe").value;
-  p.classeOP = document.getElementById("classeOP")?.value || "combatente";
+  p.classeOP = document.getElementById("classeOP")?.value || "";
   p.peMaxOP = document.getElementById("peMaxOP")?.value || 0;
 p.sanMaxOP = document.getElementById("sanMaxOP")?.value || 0;
 p.peAtual = peAtual;
@@ -5251,7 +5251,9 @@ function atualizarResumoInventario() {
   );
 
   const usado = calcularEspacosInventario();
-  const maximo = numeroInventario(inputMax?.value);
+  const maximo = typeof capacidadeCargaOP === "function"
+    ? capacidadeCargaOP()
+    : numeroInventario(inputMax?.value);
 
   if (texto) {
     texto.textContent =
@@ -9882,7 +9884,7 @@ function listaPericiasFiltrada() {
       lista.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
       break;
     case "marcadas":
-      lista = lista.filter((p) => periciasSelecionadasOP.includes(p.nome));
+      lista = lista.filter((p) => periciasSelecionadasOP.includes(p.nome) || _periciasOrigemOP().includes(p.nome));
       break;
     case "treinadas":
       lista = lista.filter((p) => (profs[p.nome] || 0) >= 1);
@@ -10383,8 +10385,9 @@ function atualizarTudo() {
   const bonus =
     (BONUS_TREINO[grau] || 0) + extra;
 
-  const selecionada =
-    periciasSelecionadasOP.includes(pericia.nome);
+  const daClasseOP = periciasSelecionadasOP.includes(pericia.nome);
+  const daOrigemOP = _periciasOrigemOP().includes(pericia.nome);
+  const selecionada = daClasseOP || daOrigemOP;
 
 
   const div = document.createElement("div");
@@ -10416,6 +10419,8 @@ function atualizarTudo() {
             pericia.carga
               ? '<span class="pericia-marca" title="Penalidade de carga: o peso do equipamento atrapalha o teste">+</span>'
               : ""
+          }${
+            daOrigemOP ? '<span class="pericia-fonte pf-origem" title="Treinada pela sua origem">origem</span>' : daClasseOP ? '<span class="pericia-fonte pf-classe" title="Treinada pela sua classe">classe</span>' : ""
           }
         </span>
 
@@ -10535,6 +10540,13 @@ function aoSelecionarClasseOP() {
   abrirPopupPericiasClasse();
 }
 
+function _periciasOrigemOP() {
+  try {
+    if (typeof origemOP !== "undefined" && origemOP && Array.isArray(origemOP.treinos)) return origemOP.treinos.map((t) => t.pericia);
+  } catch (e) {}
+  return [];
+}
+
 function abrirPopupPericiasClasse() {
   const modal = document.getElementById("modalPericiasClasse");
   const overlay = document.getElementById("modalPericiasClasseOverlay");
@@ -10549,25 +10561,33 @@ function abrirPopupPericiasClasse() {
   if (info) {
     const aviso = document.createElement("div");
     aviso.id = "infoPericiasClasseOP";
-    aviso.style.cssText = "grid-column:1/-1;width:100%;font-size:12px;line-height:1.45;color:#d5cbd8;padding:4px 2px 10px;";
-    aviso.innerHTML = `<b style="color:#efe7ef">Perícias treinadas da classe: ${info.total}</b><br>${info.texto}.<br><span id="contPericiasClasseOP"></span>`;
+    const linhas = [];
+    if (info.fixas.length) linhas.push(`<li data-r="fixas"><i class="pcl-ico pcl-fixa"></i><span>Já inclusas: <b>${info.fixas.join("</b> e <b>")}</b></span></li>`);
+    info.escolhas.forEach((par, k) => linhas.push(`<li data-r="par${k}"><i class="pcl-ico pcl-rec"></i><span>Escolha <b>uma</b>: <b>${par.join("</b> ou <b>")}</b></span><em class="pcl-ok">✓</em></li>`));
+    const deOrigem = _periciasOrigemOP();
+    if (deOrigem.length) linhas.push(`<li data-r="origem"><i class="pcl-ico pcl-orig"></i><span>Da origem <small>(já treinadas, não contam aqui)</small>: <b>${deOrigem.join("</b>, <b>")}</b></span></li>`);
+    linhas.push(`<li data-r="livres"><i class="pcl-ico pcl-livre"></i><span><b>${info.extraTotal}</b> à sua escolha <small>(${info.extra} + Intelecto)</small></span><em id="pclLivresOP" class="pcl-n"></em></li>`);
+    aviso.innerHTML = `<div class="pcl-topo"><span>Treinadas pela classe</span><span id="contPericiasClasseOP" class="pcl-cont"></span></div><ul class="pcl-regras">${linhas.join("")}</ul>`;
     lista.appendChild(aviso);
   }
 
+  const periciasOrigem = _periciasOrigemOP();
   pericias.forEach((pericia) => {
-    const selecionada =
+    const daOrigem = periciasOrigem.includes(pericia.nome);
+    const selecionada = !daOrigem && (
       periciasSelecionadasOP.includes(pericia.nome) ||
-      (info && info.fixas.includes(pericia.nome));
+      (info && info.fixas.includes(pericia.nome)));
 
     const item = document.createElement("label");
 
-    item.className = "pericia-selecao-item";
+    item.className = "pericia-selecao-item" + (daOrigem ? " da-origem" : "");
 
     item.innerHTML = `
       <input
         type="checkbox"
         data-pericia="${pericia.nome}"
         ${selecionada ? "checked" : ""}
+        ${daOrigem ? "disabled" : ""}
       >
 
       <span class="pericia-selecao-check"></span>
@@ -10575,6 +10595,9 @@ function abrirPopupPericiasClasse() {
       <span class="pericia-selecao-nome">
         ${pericia.nome}
       </span>
+      ${daOrigem ? '<span class="pericia-tag pericia-tag-origem">origem</span>' : ""}
+      ${!daOrigem && info && info.fixas.includes(pericia.nome) ? '<span class="pericia-tag pericia-tag-fixa">fixa</span>' : ""}
+      ${!daOrigem && info && info.escolhas.some((par) => par.includes(pericia.nome)) ? '<span class="pericia-tag pericia-tag-rec" title="Recomendada pela classe: escolha uma das duas"></span>' : ""}
     `;
 
     lista.appendChild(item);
@@ -10596,9 +10619,29 @@ function atualizarContPericiasClasseOP() {
   if (!el) return;
   const info = infoPericiasClasseOP(document.getElementById("classeOP")?.value || "");
   if (!info) return;
+  const marcou = (n) => !!document.querySelector('#listaPericiasClasse input[data-pericia="' + n + '"]:checked');
   const marcadas = document.querySelectorAll('#listaPericiasClasse input[type="checkbox"]:checked').length;
-  el.textContent = `Marcadas: ${marcadas} de ${info.total}`;
-  el.style.color = marcadas > info.total ? "#e07a6a" : marcadas === info.total ? "#8fd18f" : "#b9abbc";
+  el.textContent = `${marcadas} de ${info.total}`;
+  el.className = "pcl-cont" + (marcadas > info.total ? " pcl-excede" : marcadas === info.total ? " pcl-completo" : "");
+
+  // pares "uma ou outra": ao escolher uma, o sinalzinho das duas some
+  let usadasPares = 0;
+  info.escolhas.forEach((par, k) => {
+    const feito = par.some(marcou);
+    if (feito) usadasPares += par.filter(marcou).length ? 1 : 0;
+    par.forEach((n) => {
+      const inp = document.querySelector('#listaPericiasClasse input[data-pericia="' + n + '"]');
+      inp?.closest(".pericia-selecao-item")?.classList.toggle("rec-off", feito);
+    });
+    document.querySelector('#infoPericiasClasseOP li[data-r="par' + k + '"]')?.classList.toggle("feito", feito);
+  });
+  const fixasMarcadas = info.fixas.filter(marcou).length;
+  document.querySelector('#infoPericiasClasseOP li[data-r="fixas"]')?.classList.toggle("feito", fixasMarcadas === info.fixas.length);
+  const livresUsadas = Math.max(0, marcadas - fixasMarcadas - usadasPares);
+  const liv = document.getElementById("pclLivresOP");
+  if (liv) liv.textContent = `${livresUsadas}/${info.extraTotal}`;
+  document.querySelector('#infoPericiasClasseOP li[data-r="livres"]')?.classList.toggle("feito", livresUsadas === info.extraTotal);
+  document.querySelector('#infoPericiasClasseOP li[data-r="livres"]')?.classList.toggle("excede", livresUsadas > info.extraTotal);
 }
 
 function fecharPopupPericiasClasse() {
