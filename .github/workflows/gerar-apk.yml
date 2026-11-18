@@ -1,1 +1,73 @@
+name: Gerar APK
 
+# Roda só quando você manda: aba Actions > Gerar APK > Run workflow
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Copiar o site para a pasta www
+        run: |
+          mkdir -p www
+          rsync -a \
+            --exclude='.git' --exclude='.github' --exclude='node_modules' \
+            --exclude='android' --exclude='www' --exclude='apk' \
+            --exclude='package.json' --exclude='package-lock.json' \
+            --exclude='capacitor.config.json' --exclude='worker-imagens.js' \
+            --exclude='README*' --exclude='LICENSE*' \
+            ./ www/
+          ls www
+
+      - name: Instalar o Capacitor
+        run: npm install --no-audit --no-fund
+
+      - name: Criar o projeto Android
+        run: npx cap add android
+
+      - name: Ícones, tela de abertura e permissões
+        run: |
+          pip install pillow
+          python3 apk/preparar_android.py
+
+      - name: Versão e chave de assinatura fixa
+        run: |
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
+          mkdir -p ~/.android
+          base64 -d apk/debug.keystore.b64 > ~/.android/debug.keystore
+
+      - name: Sincronizar
+        run: npx cap sync android
+
+      - name: Compilar o APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Publicar para baixar
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk OrdemIgnea.apk
+          gh release delete apk-atual --yes --cleanup-tag || true
+          gh release create apk-atual OrdemIgnea.apk \
+            --title "Ordem Ígnea (APK)" \
+            --notes "APK gerado automaticamente. Versão ${{ github.run_number }}." \
+            --latest=false
