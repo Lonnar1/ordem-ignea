@@ -3385,3 +3385,5 @@ html body .header-rpg::before {
 .apk-dica { margin: 8px 4px 0; font-size: 11.5px; line-height: 1.45; text-align: center; color: #8d7e97; }
 .apk-modo { display: flex; justify-content: center; margin-top: 18px; padding: 0 18px; }
 .apk-modo .apk-baixar { max-width: 280px; margin-top: 0; }
+.apk-social { flex: none; margin-top: 10px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08); }
+.apk-social .apk-baixar { margin-top: 0; }
