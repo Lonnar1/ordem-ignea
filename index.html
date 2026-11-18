@@ -65,6 +65,7 @@
 </div>
 
 <!-- ================= NICKNAME ================= -->
+<div id="modalNicknameOverlay" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.72);"></div>
 <div id="modalNickname" class="container login-box" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6001;width:min(90vw,380px);">
   <h2 class="titulo-secao">Escolha seu nome</h2>
   <p style="text-align:center;color:#d5cbd8;font-size:13px;margin-bottom:14px;">
@@ -3594,7 +3595,7 @@ window.confirmarNickname = async () => {
       );
     });
 
-    document.getElementById("modalNicknameOverlay").style.display = "none";
+    const _ovN = document.getElementById("modalNicknameOverlay"); if (_ovN) _ovN.style.display = "none";
     document.getElementById("modalNickname").style.display = "none";
 
     abrirTelaModo();
@@ -3617,7 +3618,7 @@ async function verificarNicknameEContinuar() {
   if (dados.nickname && dados.tag) {
     abrirTelaModo();
   } else {
-    document.getElementById("modalNicknameOverlay").style.display = "block";
+    const _ovN = document.getElementById("modalNicknameOverlay"); if (_ovN) _ovN.style.display = "block";
     document.getElementById("modalNickname").style.display = "block";
   }
 }
