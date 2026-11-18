@@ -10917,7 +10917,7 @@ const bossesPadrao = [
     lore: "Um antigo senhor da guerra que fez um pacto com forças das trevas para escapar da morte. Governa um exército de mortos-vivos nas catacumbas sob a cidade esquecida.",
     habilidades: "Drenar Vida: ao acertar um golpe, recupera 10 HP. Aura de Terror: criaturas a até 10m fazem teste de sabedoria ou ficam amedrontadas.",
     fraquezas: "Luz sagrada causa dano dobrado. Fica enfraquecido ao amanhecer.",
-    imagem: "img/Boss/Senhor-das-sombras.jpg",
+    imagem: "",
     ataques: "Espada das Sombras: +8 para acertar, alcance 1,5m, 2d8+5 cortante. | Drenar Vida (ação bônus): +6 para acertar, 2d6 necrótico — recupera o mesmo em HP.",
     reacoes: "Escudo das Trevas: quando acertado, reduz 1d8 de dano.",
     resistencias: "Resistente a necrótico e veneno. Imune a medo e charme."
@@ -10932,7 +10932,7 @@ const bossesPadrao = [
     lore: "Uma entidade antiga que tece o destino dos mortais como fios. Habita o coração de uma floresta corrompida, manipulando os habitantes locais há séculos.",
     habilidades: "Fios do Destino: pode reescrever o resultado de um dado uma vez por rodada. Marionetes: controla até 3 humanoides simultaneamente.",
     fraquezas: "Seus fios podem ser cortados com lâminas abençoadas. Perde poderes longe da floresta.",
-    imagem: "img/Boss/A-Tecela.jpg",
+    imagem: "",
     ataques: "Fios Cortantes: +7 para acertar, alcance 3m, 2d6+4 cortante. | Lançar Marionete: CD 15 Sab ou força alvo a atacar um aliado.",
     reacoes: "Reescrever o Fado: cancela um acerto crítico sofrido uma vez por rodada.",
     resistencias: "Resistente a dano psíquico. Imune a encantamento."
@@ -10947,7 +10947,7 @@ const bossesPadrao = [
     lore: "Um gigante de pedra exilado de seu clã por ser considerado cruel demais até para os seus. Constrói uma fortaleza nas montanhas usando trabalho forçado de aldeões capturados.",
     habilidades: "Golpe Devastador: causa 4d10 de dano e joga o alvo 6m para trás. Arremesso de Rocha: ataque à distância de 30m causando 3d8.",
     fraquezas: "Lento e previsível. Ataques em seus joelhos reduzem sua velocidade pela metade.",
-    imagem: "img/Boss/Kargoth-o-Devastador.jpg",
+    imagem: "",
     ataques: "Golpe Devastador: +10 para acertar, 4d10+7 contundente — empurra 6m. | Arremesso de Rocha: +8 para acertar, alcance 30m, 3d8+7 contundente.",
     reacoes: "Bloquear com o Corpo: reduz 2d10 de um ataque físico.",
     resistencias: "Resistente a dano físico não mágico. Vulnerável a raio."
@@ -10962,7 +10962,7 @@ const bossesPadrao = [
     lore: "Uma ex-conselheira real que foi banida por praticar magia proibida. Passou décadas aperfeiçoando feitiços de controle mental e busca vingança contra a coroa.",
     habilidades: "Dominação: controla um inimigo por 1 minuto. Contramagia: pode cancelar qualquer feitiço uma vez por rodada.",
     fraquezas: "Fisicamente fraca. Tem dificuldade em combate próximo e depende de seus lacaios.",
-    imagem: "img/Boss/Vespera.jpg",
+    imagem: "",
     ataques: "Cajado Arcano: +6 para acertar, 1d6+2 contundente. | Bola de Fogo: área 6m, CD 16 Des ou 8d6 fogo. | Raio Controlador: +8 para acertar, 4d6 raio — alvo atordoado.",
     reacoes: "Contramagia: cancela feitiço de 5º círculo ou menos.",
     resistencias: "Resistente a raio e força. Imune a medo."
@@ -10977,7 +10977,7 @@ const bossesPadrao = [
     lore: "Um golem colossal criado por uma civilização desaparecida para proteger seus segredos eternamente. Não tem vontade própria — apenas cumpre sua programação sem parar.",
     habilidades: "Imune a charme e medo. Regenera 15 HP por rodada a menos que tome dano de raio.",
     fraquezas: "Raio danifica seus mecanismos internos. Tem um símbolo de controle gravado nas costas.",
-    imagem: "img/Boss/O-Guardião-Sem-Nome.jpg",
+    imagem: "",
     ataques: "Punho de Pedra: +9 para acertar, 3d8+6 contundente. | Soco em Área: todos a 3m, CD 17 Des ou 2d10+6 contundente.",
     reacoes: "Estrutura Implacável: quando reduzido a 0 HP, teste CD 15 Con — se passar fica com 1 HP.",
     resistencias: "Imune a veneno, doença, charme e medo. Resistente a dano não mágico."
@@ -10999,7 +10999,7 @@ const compendioPadrao = [
   habilidades: "Fuga ágil: pode escapar ou se esconder rapidamente.",
   dialogos: ["Peguem tudo que brilha!", "Corre! Corre!", "Você caiu na nossa armadilha!"],
   encontros: "Cavernas, acampamentos saqueadores e estradas abandonadas.",
-  imagem: "img/monstros/Goblin.jpg"
+  imagem: ""
 },
   {
     id: "padrao-kobold",
@@ -11015,7 +11015,7 @@ const compendioPadrao = [
     habilidades: "Táticas de grupo: perigoso quando luta ao lado de aliados.",
     dialogos: ["O mestre dragão vai saber disso!", "Armadilha! Armadilha!", "Pequeno, mas mortal!"],
     encontros: "Minas abandonadas, túneis estreitos e covis subterrâneos.",
-    imagem: "img/monstros/Kobold.jpg",
+    imagem: "",
     ataques: "Cimitarra: +4 para acertar, 1d6+2 cortante. | Arco Curto: +4 para acertar, alcance 18/72m, 1d6+2 perfurante.",
     reacoes: "Fuga Ágil: usa Esconder ou Correr como ação bônus.",
     resistencias: "Sem resistências especiais."
@@ -11034,7 +11034,7 @@ const compendioPadrao = [
     habilidades: "Ataque coordenado quando está em grupo.",
     dialogos: ["Passe a bolsa e ninguém se machuca.", "Isso aqui é nosso território.", "Peguem eles!"],
     encontros: "Estradas perigosas, tavernas suspeitas e acampamentos de saqueadores.",
-    imagem: "img/monstros/Bandido.jpg",
+    imagem: "",
     ataques: "Espada Curta: +3 para acertar, 1d6+1 perfurante. | Besta Leve: +3 para acertar, alcance 24/96m, 1d8+1 perfurante.",
     reacoes: "Sem reações especiais.",
     resistencias: "Sem resistências especiais."
@@ -11053,7 +11053,7 @@ const compendioPadrao = [
     habilidades: "Não sente medo, dor ou cansaço.",
     dialogos: ["...", "Clac... clac...", "A morte... permanece..."],
     encontros: "Tumbas antigas, catacumbas e templos abandonados.",
-    imagem: "img/monstros/Esqueleto.jpg",
+    imagem: "",
     ataques: "Espada Curta: +4 para acertar, 1d6+2 perfurante. | Arco Curto: +4 para acertar, alcance 24/96m, 1d6+2 perfurante.",
     reacoes: "Sem reações especiais.",
     resistencias: "Vulnerável a dano contundente. Imune a veneno e doença."
@@ -11072,7 +11072,7 @@ const compendioPadrao = [
     habilidades: "Resistência morta-viva: pode continuar de pé mesmo após golpes fatais.",
     dialogos: ["Uuurgh...", "Carne...", "Aaah..."],
     encontros: "Cemitérios profanados, vilas amaldiçoadas e campos de batalha antigos.",
-    imagem: "img/monstros/Zumbi.jpg",
+    imagem: "",
     ataques: "Soco: +3 para acertar, 1d6+1 contundente.",
     reacoes: "Resistência Morta-viva: quando reduzido a 0 HP, teste CD 5 + dano recebido Con — se passar fica com 1 HP.",
     resistencias: "Imune a veneno e doença. Resistente a dano necrótico."
@@ -11091,7 +11091,7 @@ const compendioPadrao = [
     habilidades: "Tática de matilha: luta melhor ao lado de outros lobos.",
     dialogos: ["Grrrr...", "Auuuu!", "Rosna mostrando os dentes."],
     encontros: "Florestas escuras, trilhas nevadas e montanhas isoladas.",
-    imagem: "img/monstros/Lobo.jpg",
+    imagem: "",
     ataques: "Mordida: +4 para acertar, 2d4+2 perfurante — alvo CD 11 For ou fica derrubado.",
     reacoes: "Sem reações especiais.",
     resistencias: "Sem resistências especiais."
@@ -11110,7 +11110,7 @@ const compendioPadrao = [
     habilidades: "Mordida infecciosa e movimentação rápida em locais apertados.",
     dialogos: ["Squeak!", "Chiado agressivo.", "Fareja comida ou sangue."],
     encontros: "Esgotos, depósitos abandonados e masmorras úmidas.",
-    imagem: "img/monstros/Rato-Gigante.jpg",
+    imagem: "",
     ataques: "Mordida: +4 para acertar, 1d4+2 perfurante — CD 10 Con ou fica envenenado por 1 hora.",
     reacoes: "Sem reações especiais.",
     resistencias: "Sem resistências especiais."
@@ -11129,7 +11129,7 @@ const compendioPadrao = [
     habilidades: "Avanço agressivo: aproxima-se rapidamente do inimigo.",
     dialogos: ["Vou quebrar seus ossos!", "Fraco!", "Pelo clã!"],
     encontros: "Fortalezas tribais, campos de batalha e acampamentos de guerra.",
-    imagem: "img/monstros/Orc.jpg",
+    imagem: "",
     ataques: "Machadão: +5 para acertar, 1d12+3 cortante. | Lança: +5 para acertar, 1d6+3 perfurante.",
     reacoes: "Sem reações especiais.",
     resistencias: "Sem resistências especiais."
@@ -11148,7 +11148,7 @@ const compendioPadrao = [
     habilidades: "Frenesi: fica mais perigoso quando derruba uma presa.",
     dialogos: ["Hahaha! Carne fresca!", "Rasgar! Morder!", "A caça começou!"],
     encontros: "Campos de batalha, vilas saqueadas e regiões selvagens.",
-    imagem: "img/monstros/Gnoll.jpg",
+    imagem: "",
     ataques: "Lança: +4 para acertar, 1d6+2 perfurante. | Mordida: +4 para acertar, 1d4+2 perfurante.",
     reacoes: "Frenesi Sanguinário: ao derrubar um inimigo, faz um ataque extra como ação bônus.",
     resistencias: "Sem resistências especiais."
@@ -11167,7 +11167,7 @@ const compendioPadrao = [
     habilidades: "Ataque surpresa: causa grande dano quando pega o alvo desprevenido.",
     dialogos: ["Silêncio... agora morra.", "Você não me viu chegando.", "Pequenos ossos quebram fácil."],
     encontros: "Cavernas escuras, ruínas tomadas por goblins e fortalezas escondidas.",
-    imagem: "img/monstros/Bugbear.jpg",
+    imagem: "",
     ataques: "Maça: +4 para acertar, 2d8+2 contundente. | Ataque Surpresa: +2d6 de dano extra no primeiro ataque.",
     reacoes: "Sem reações especiais.",
     resistencias: "Sem resistências especiais."
@@ -11186,7 +11186,7 @@ const compendioPadrao = [
     habilidades: "Vantagem marcial: aproveita aliados próximos para atacar melhor.",
     dialogos: ["Formação!", "Sem recuar!", "Pelo comandante!"],
     encontros: "Postos militares, fortalezas e patrulhas organizadas.",
-    imagem: "img/monstros/Hobgoblin.jpg",
+    imagem: "",
     ataques: "Espada Longa: +3 para acertar, 1d8+1 cortante. | Arco Longo: +3 para acertar, alcance 45/180m, 1d8+1 perfurante.",
     reacoes: "Sem reações especiais.",
     resistencias: "Sem resistências especiais."
@@ -11205,7 +11205,7 @@ const compendioPadrao = [
     habilidades: "Teia e veneno: pode imobilizar e envenenar suas presas.",
     dialogos: ["Som de patas nas paredes.", "A criatura observa em silêncio.", "Teias se movem ao redor."],
     encontros: "Cavernas, ruínas tomadas por teias e florestas antigas.",
-    imagem: "img/monstros/Aranha-Gigante.jpg",
+    imagem: "",
     ataques: "Mordida: +5 para acertar, 1d8+3 perfurante — CD 11 Con ou 2d8 veneno. | Teia (recarga 5-6): alcance 9/18m, CD 12 Des ou fica imobilizado.",
     reacoes: "Sem reações especiais.",
     resistencias: "Imune a veneno."
@@ -11225,7 +11225,7 @@ const compendioPadrao = [
     habilidades: "Onda de vitamina, Suquinho natural de banana",
     dialogos: ["Som de liquidificador", "A criatura observa em silêncio.", "Cascas de banana se movem ao redor."],
     encontros: "florestas antigas.",
-    imagem: "img/monstros/Bananao.png",
+    imagem: "",
     ataques: "Rasteira de Casca: +8 para acertar, alcance 3m, 3d8+5 — alvo cai derrubado. | Esguicho de Vitamina C: cone 6m, CD 16 Des ou 4d6 ácido.",
     reacoes: "Casca Escorregadia: atacante corpo a corpo CD 12 Des ou cai.",
     resistencias: "Imune a dano ácido. Resistente a dano contundente."
@@ -11245,7 +11245,7 @@ const compendioPadrao = [
     habilidades: "Golpes pesados capazes de derrubar aventureiros despreparados.",
     dialogos: ["Eu esmagar!", "Pequeno demais!", "Comida?"],
     encontros: "Cavernas grandes, pontes abandonadas e fortalezas destruídas.",
-    imagem: "img/monstros/Ogro.jpg",
+    imagem: "",
     ataques: "Clava: +6 para acertar, 2d8+4 contundente. | Arremesso: +6 para acertar, alcance 9/18m, 2d8+4 contundente.",
     reacoes: "Sem reações especiais.",
     resistencias: "Sem resistências especiais."
@@ -11264,7 +11264,7 @@ const compendioPadrao = [
     habilidades: "Regeneração: recupera vida rapidamente, exceto contra fogo ou ácido.",
     dialogos: ["Arrancar braços!", "Fome! Fome!", "Você queima... eu odeio fogo!"],
     encontros: "Pontes antigas, pântanos, cavernas úmidas e florestas amaldiçoadas.",
-    imagem: "img/monstros/Troll.jpg",
+    imagem: "",
     ataques: "Mordida: +7 para acertar, 1d6+4 perfurante. | Garra (2 ataques): +7 para acertar, 2d6+4 cortante cada.",
     reacoes: "Sem reações especiais.",
     resistencias: "Regenera 10 HP por rodada — exceto contra fogo ou ácido. Vulnerável a fogo e ácido."
