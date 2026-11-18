@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Migrar fichas — Ordem Ígnea</title>
+<style>
+  * { box-sizing: border-box; font-family: Arial, sans-serif; }
+  body { margin: 0; background: #160f19; color: #efe7ef; padding: 18px; }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 4px 0 4px; letter-spacing: .06em; }
+  p.sub { color: #b9aebd; font-size: 13px; margin: 0 0 16px; line-height: 1.45; }
+  .box { background: #21172a; border: 1px solid #3a2a45; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+  .box h2 { font-size: 14px; margin: 0 0 10px; color: #d9c2e6; letter-spacing: .04em; }
+  .box.ok { border-color: #5b8a5f; }
+  input[type=email], input[type=password] {
+    width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 8px;
+    border: 1px solid #4a3556; background: #160f19; color: #efe7ef; font-size: 14px;
+  }
+  button {
+    padding: 10px 14px; border-radius: 8px; border: 0; cursor: pointer; font-size: 14px;
+    background: linear-gradient(90deg, #8c4aa8, #b02a4a); color: #fff; width: 100%;
+  }
+  button.sec { background: #34243f; margin-top: 6px; }
+  button:disabled { opacity: .45; cursor: default; }
+  .linha { display: flex; gap: 10px; align-items: flex-start; padding: 8px 4px; border-top: 1px solid #33243d; }
+  .linha:first-child { border-top: 0; }
+  .linha input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
+  .linha b { display: block; font-size: 14px; }
+  .linha small { color: #a99bb0; font-size: 12px; }
+  label.op { display: flex; gap: 8px; align-items: center; font-size: 13px; margin: 8px 0; }
+  #log { font-size: 13px; line-height: 1.5; white-space: pre-wrap; color: #cfc3d4; }
+  .erro { color: #ff9a9a; }
+  .bom { color: #9fe0a4; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MIGRAR FICHAS</h1>
+  <p class="sub">Copia fichas da conta antiga (projeto <b>ficha-ignea</b>) para a conta nova (projeto <b>ordem-ignea</b>).
+  Nada é apagado na conta antiga. Depois de terminar, apague este arquivo do repositório.</p>
+
+  <div class="box" id="boxAntiga">
+    <h2>1. CONTA ANTIGA</h2>
+    <input id="emailAntigo" type="email" placeholder="E-mail da conta antiga" autocomplete="username">
+    <input id="senhaAntiga" type="password" placeholder="Senha da conta antiga" autocomplete="current-password">
+    <button id="btnAntiga">Entrar na conta antiga</button>
+  </div>
+
+  <div class="box" id="boxNova">
+    <h2>2. CONTA NOVA</h2>
+    <input id="emailNovo" type="email" placeholder="E-mail da conta nova" autocomplete="username">
+    <input id="senhaNova" type="password" placeholder="Senha da conta nova" autocomplete="current-password">
+    <button id="btnNova">Entrar na conta nova</button>
+  </div>
+
+  <div class="box" id="boxLista" style="display:none">
+    <h2>3. ESCOLHA O QUE COPIAR</h2>
+    <div id="lista"></div>
+    <button class="sec" id="btnTodas" type="button">Marcar / desmarcar todas</button>
+    <label class="op"><input type="checkbox" id="opMonstros"> Copiar também os monstros do modo Mestre</label>
+    <label class="op"><input type="checkbox" id="opMestre"> Copiar também os dados do modo Mestre (campanhas)</label>
+    <button id="btnCopiar" disabled>Copiar para a conta nova</button>
+  </div>
+
+  <div class="box"><div id="log"></div></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, getDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const cfgAntigo = {
+  apiKey: "AIzaSyCRbpNWige23ErKLRzt5BYNF3ltCYaRw24",
+  authDomain: "ficha-ignea.firebaseapp.com",
+  projectId: "ficha-ignea",
+  storageBucket: "ficha-ignea.firebasestorage.app",
+  messagingSenderId: "810805802203",
+  appId: "1:810805802203:web:5968e477ae99fee33348fe"
+};
+const cfgNovo = {
+  apiKey: "AIzaSyBawiCA1KwVrSVnVoc0CWuMw5KJ1cJtTKU",
+  authDomain: "ordem-ignea.firebaseapp.com",
+  projectId: "ordem-ignea",
+  storageBucket: "ordem-ignea.firebasestorage.app",
+  messagingSenderId: "661391254261",
+  appId: "1:661391254261:web:e96de07a7fced6723d5bbc"
+};
+
+const appAntigo = initializeApp(cfgAntigo, "antigo");
+const appNovo = initializeApp(cfgNovo, "novo");
+const authAntigo = getAuth(appAntigo), dbAntigo = getFirestore(appAntigo);
+const authNovo = getAuth(appNovo), dbNovo = getFirestore(appNovo);
+
+const $ = (id) => document.getElementById(id);
+const logEl = $("log");
+let fichasAntigas = [];
+let uidAntigo = "", uidNovo = "";
+
+function log(msg, cls) {
+  const s = document.createElement("div");
+  if (cls) s.className = cls;
+  s.textContent = msg;
+  logEl.appendChild(s);
+}
+function esc(t) { return String(t == null ? "" : t); }
+
+function atualizarBotao() {
+  $("btnCopiar").disabled = !(uidAntigo && uidNovo && fichasAntigas.length);
+}
+
+$("btnAntiga").onclick = async () => {
+  $("btnAntiga").disabled = true;
+  try {
+    const r = await signInWithEmailAndPassword(authAntigo, $("emailAntigo").value.trim(), $("senhaAntiga").value);
+    uidAntigo = r.user.uid;
+    const snap = await getDocs(collection(dbAntigo, "usuarios", uidAntigo, "fichas"));
+    fichasAntigas = snap.docs.map((d) => ({ id: d.id, data: d.data() }));
+    fichasAntigas.sort((a, b) => String(a.data.nome || "").localeCompare(String(b.data.nome || "")));
+    $("boxAntiga").classList.add("ok");
+    log("Conta antiga: " + fichasAntigas.length + " ficha(s) encontrada(s).", "bom");
+    montarLista();
+  } catch (e) {
+    $("btnAntiga").disabled = false;
+    log("Conta antiga: " + (e.code || e.message), "erro");
+  }
+};
+
+$("btnNova").onclick = async () => {
+  $("btnNova").disabled = true;
+  try {
+    const r = await signInWithEmailAndPassword(authNovo, $("emailNovo").value.trim(), $("senhaNova").value);
+    uidNovo = r.user.uid;
+    $("boxNova").classList.add("ok");
+    log("Conta nova: login feito.", "bom");
+    atualizarBotao();
+  } catch (e) {
+    $("btnNova").disabled = false;
+    log("Conta nova: " + (e.code || e.message), "erro");
+  }
+};
+
+function montarLista() {
+  $("boxLista").style.display = "block";
+  const el = $("lista");
+  el.innerHTML = "";
+  if (!fichasAntigas.length) { el.textContent = "Nenhuma ficha nessa conta."; return; }
+  fichasAntigas.forEach((f, i) => {
+    const d = f.data;
+    const ehOP = d.nex !== undefined || d.origem !== undefined;
+    const linha = document.createElement("label");
+    linha.className = "linha";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.dataset.i = i; cb.checked = ehOP;
+    const bloco = document.createElement("div");
+    const nome = document.createElement("b");
+    nome.textContent = esc(d.nome) || "(sem nome)";
+    const info = document.createElement("small");
+    const partes = [];
+    if (d.classe) partes.push(esc(d.classe));
+    if (d.origem) partes.push(esc(d.origem));
+    if (d.nex !== undefined) partes.push("NEX " + esc(d.nex) + "%");
+    partes.push(ehOP ? "parece Ordem Paranormal" : "pode ser de outro sistema");
+    info.textContent = partes.join(" · ");
+    bloco.append(nome, info);
+    linha.append(cb, bloco);
+    el.appendChild(linha);
+  });
+  atualizarBotao();
+}
+
+$("btnTodas").onclick = () => {
+  const cbs = [...document.querySelectorAll("#lista input[type=checkbox]")];
+  const marcar = cbs.some((c) => !c.checked);
+  cbs.forEach((c) => (c.checked = marcar));
+};
+
+$("btnCopiar").onclick = async () => {
+  const marcadas = [...document.querySelectorAll("#lista input[type=checkbox]:checked")]
+    .map((c) => fichasAntigas[Number(c.dataset.i)]);
+  if (!marcadas.length && !$("opMonstros").checked && !$("opMestre").checked) {
+    log("Marque pelo menos uma coisa para copiar.", "erro");
+    return;
+  }
+  $("btnCopiar").disabled = true;
+  let ok = 0, falhas = 0;
+
+  for (const f of marcadas) {
+    try {
+      const dados = { ...f.data, grupoAtivo: "" }; // grupos antigos não existem no projeto novo
+      await setDoc(doc(dbNovo, "usuarios", uidNovo, "fichas", f.id), dados);
+      ok++;
+      log("✔ " + (esc(f.data.nome) || f.id));
+    } catch (e) {
+      falhas++;
+      log("✖ " + (esc(f.data.nome) || f.id) + ": " + (e.code || e.message), "erro");
+    }
+  }
+
+  if ($("opMonstros").checked) {
+    try {
+      const snap = await getDocs(collection(dbAntigo, "usuarios", uidAntigo, "monstros"));
+      let n = 0;
+      for (const d of snap.docs) {
+        await setDoc(doc(dbNovo, "usuarios", uidNovo, "monstros", d.id), d.data());
+        n++;
+      }
+      log("✔ " + n + " monstro(s) copiado(s).");
+    } catch (e) {
+      falhas++;
+      log("✖ monstros: " + (e.code || e.message), "erro");
+    }
+  }
+
+  if ($("opMestre").checked) {
+    try {
+      const s = await getDoc(doc(dbAntigo, "mestres", uidAntigo));
+      if (s.exists()) {
+        await setDoc(doc(dbNovo, "mestres", uidNovo), s.data());
+        log("✔ dados do modo Mestre copiados.");
+      } else {
+        log("Não havia dados do modo Mestre na conta antiga.");
+      }
+    } catch (e) {
+      falhas++;
+      log("✖ modo Mestre: " + (e.code || e.message), "erro");
+    }
+  }
+
+  log("Pronto: " + ok + " ficha(s) copiada(s)" + (falhas ? ", " + falhas + " erro(s)." : "."), falhas ? "erro" : "bom");
+  log("Agora entre no Ordem Ígnea com a conta nova. Depois apague o migrar.html do repositório.");
+  $("btnCopiar").disabled = false;
+};
+</script>
+</body>
+</html>
