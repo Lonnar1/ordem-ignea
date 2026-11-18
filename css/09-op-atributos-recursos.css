@@ -3387,3 +3387,33 @@ html body .header-rpg::before {
 .apk-modo .apk-baixar { max-width: 280px; margin-top: 0; }
 .apk-social { flex: none; margin-top: 10px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08); }
 .apk-social .apk-baixar { margin-top: 0; }
+
+/* ===================== Migrar fichas (painel Social) ===================== */
+.mig-social { flex: none; margin-top: 10px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08); }
+.mig-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;
+  width: 100%; height: 44px; margin: 0; padding: 0 14px; border-radius: 12px;
+  background: transparent !important; border: 1px solid rgba(201,166,238,.35) !important; color: #d9c2ee !important;
+  font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent; transition: border-color .15s, background .15s;
+}
+.mig-btn i { font-size: 18px; color: #c994db; }
+.mig-btn:hover, .mig-btn:active { background: rgba(143,95,199,.14) !important; border-color: rgba(201,166,238,.6) !important; }
+.mig-sheet { max-width: 440px; }
+.mig-ov { z-index: 99500; }
+.mig-corpo { padding-top: 2px; }
+.mig-txt { margin: 0 0 12px; font-size: 13.5px; line-height: 1.5; color: #cfc3d4; }
+.mig-corpo input[type="email"], .mig-corpo input[type="password"] {
+  display: block; width: 100%; box-sizing: border-box; height: 42px; margin: 0 0 8px !important; padding: 0 12px;
+  background: #1a161c; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; color: #efe7ef; font-size: 14px;
+}
+.mig-msg { min-height: 18px; margin: 6px 0 0; font-size: 12.5px; line-height: 1.45; color: #b9aebd; }
+.mig-msg.mig-erro { color: #ff9a9a; }
+.mig-lista { margin: 0 0 8px; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; background: #1a161c; }
+.mig-linha { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-top: 1px solid rgba(255,255,255,.06); cursor: pointer; }
+.mig-linha:first-child { border-top: 0; }
+.mig-linha input { flex: none; width: 18px; height: 18px; margin: 2px 0 0 !important; accent-color: #9b314a; }
+.mig-linha b { display: block; font-size: 14px; color: #efe7ef; font-weight: 600; }
+.mig-linha small { display: block; margin-top: 2px; font-size: 12px; color: #a99bb0; }
+.mig-op { display: flex; gap: 8px; align-items: center; margin: 10px 2px 0; font-size: 13px; color: #cfc3d4; cursor: pointer; }
+.mig-op input { flex: none; width: 17px; height: 17px; margin: 0 !important; accent-color: #9b314a; }
