@@ -1,1 +1,12 @@
-
+{
+  "appId": "com.ordemignea.app",
+  "appName": "Ordem Ígnea",
+  "webDir": "www",
+  "backgroundColor": "#160f19",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
