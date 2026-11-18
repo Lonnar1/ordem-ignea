@@ -13,7 +13,7 @@
     
 
 
-    <title>Ficha Ígnea</title>
+    <title>Ordem Ígnea</title>
     <link rel="stylesheet" href="css/00-base.css" />
     <link rel="stylesheet" href="css/01-player-ficha.css" />
     <link rel="stylesheet" href="css/02-login.css" />
@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="css/10-tema-sombrio.css" />
 <link rel="stylesheet" href="css/09-op-atributos-recursos.css" />
    <link
-  href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cinzel+Decorative:wght@700&family=MedievalSharp&display=swap"
+  href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Cinzel+Decorative:wght@700&family=MedievalSharp&display=swap"
   rel="stylesheet"
 />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -37,10 +37,10 @@
   <body>
     <div class="folhas-bg"></div>
     <div class="header-rpg">
-      <h1 class="titulo-rpg">
-        <img src="logo-ficha-ignea.png" class="espada-titulo" />
-        <img src="logo-ficha-ignea.png" class="espada-titulo espada-roxa" alt="" aria-hidden="true" />
-        <span>FICHA ÍGNEA</span>
+      <h1 class="logo-oi" aria-label="Ordem Ígnea">
+        <span class="logo-oi-ordem">ORDEM</span>
+        <span class="logo-oi-ignea">ÍGNEA</span>
+        <span class="logo-oi-sep" aria-hidden="true"><i></i><svg class="oi-selo oi-selo-sep" viewBox="-40 -40 80 80" aria-hidden="true"><circle r="36" fill="none" stroke="currentColor" stroke-width="1.6" class="oi-anel"/><path d="M0 -34 L14.8 30.6 L-26.6 -21.2 L33.1 7.6 L-33.1 7.6 L26.6 -21.2 L-14.8 30.6Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg><i></i></span>
       </h1>
     </div>
 
@@ -315,13 +315,13 @@
 
   <div class="tm-wrap">
     <div class="tm-head">
-      <div class="tm-kicker"><i></i><span>Ficha Ígnea</span><i></i></div>
+      <div class="tm-kicker"><i></i><span>Ordem Ígnea</span><i></i></div>
     </div>
 
     <div class="tm-palco" id="tmPalco">
       <div class="tm-card front" id="tmCardJornada" onclick="tmCardClick('jornada')">
         <span class="tm-c a"></span><span class="tm-c b"></span><span class="tm-c c"></span><span class="tm-c d"></span>
-        <div class="tm-arte"><img src="logo-ficha-ignea.png" class="tm-img j"></div>
+        <div class="tm-arte"><svg class="tm-img j tm-selo" viewBox="-40 -40 80 80" aria-hidden="true"><circle r="36" fill="none" stroke="currentColor" stroke-width="1.6" class="oi-anel"/><path d="M0 -34 L14.8 30.6 L-26.6 -21.2 L33.1 7.6 L-33.1 7.6 L26.6 -21.2 L-14.8 30.6Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg></div>
         <div class="tm-rotulo"><b>Jornada</b><small>Jogador</small></div>
       </div>
       <div class="tm-card back" id="tmCardGrimorio" onclick="tmCardClick('grimorio')">
@@ -2937,7 +2937,7 @@
     <button class="planos-voltar" onclick="fecharTelaPlanos()">← Voltar</button>
 
     <div class="planos-header">
-      <div class="planos-brand">⚔ Ficha Ígnea</div>
+      <div class="planos-brand">Ordem Ígnea</div>
       <h1 class="planos-titulo">Escolha seu Plano</h1>
       <p class="planos-subtitulo">Desbloqueie todo o poder da mesa.</p>
       <div class="planos-divisor">
@@ -3055,9 +3055,13 @@
     <script src="sobrevivente-op.js"></script>
     <script src="equipamentos-op.js"></script>
     <script src="itens-op.js"></script>
+    <script src="documentos-op.js"></script>
     <script src="extras-op.js"></script>
     <script src="diario-op.js"></script>
     <script src="social-op.js"></script>
+    <script src="guia-dados-op.js"></script>
+    <script src="guia-op.js"></script>
+    <script src="apk-op.js"></script>
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
@@ -3143,6 +3147,7 @@ import {
   window.where = where;
   window.collection = collection;
   window.getDocs = getDocs;
+  window.runTransaction = runTransaction;
 
   await setPersistence(auth, browserLocalPersistence);
 
