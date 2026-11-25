@@ -106,7 +106,7 @@ const EXTRAS_OP_IDS = { poderes: [], trilhas: [] };
   E("as5.saudosista", "Saudosista Hi-Tech", "as5", 55, "passiva",
     "Você recebe +5 em testes de Tecnologia para lidar com aparelhos eletrônicos anteriores aos anos 2000. Além disso, recebe +5 em testes para consertar itens tecnológicos. Finalmente, você consegue usar essas velharias junto de tecnologias atuais para receber uma ação extra na primeira rodada de uma cena de hacking (AS 4, p. 72).");
   E("as5.treinadotelas", "Treinado nas Telas", "as5", 55, "livre",
-    "O tempo gasto à frente dos videogames te proporcionou olhos treinados e uma melhor significativa no seu tempo de reação. Quando faz um teste de Iniciativa ou de Reflexos, pode gastar 1 PE para somar Intelecto nesse teste.",
+    "O tempo gasto à frente dos videogames te proporcionou olhos treinados e uma melhora significativa no seu tempo de reação. Quando faz um teste de Iniciativa ou de Reflexos, pode gastar 1 PE para somar Intelecto nesse teste.",
     { custo: "1 PE" });
   E("as6.doutoremergencias", "Doutor em Emergências", "as6", 68, "passiva",
     "Sua eficiência como socorrista é ainda melhor. Qualquer cicatrizante ou medicamento que recupere pontos de vida, ou forneça pontos de vida temporários, aplicados por você recebe 1d8 PV adicionais em seu efeito (um cicatrizante recupera 3d8+2 PV, enquanto um anti-inflamatório fornece 2d8+2 PV temporários). Além disso, você recebe +5 em testes de Medicina para aplicar tratamento (OPRPG, p. 46) e, se passar no teste, o paciente recebe +10 em seu próximo teste de Fortitude contra a doença ou veneno, em vez de +5.",
@@ -116,10 +116,10 @@ const EXTRAS_OP_IDS = { poderes: [], trilhas: [] };
     { custo: "2 PE + 2 PE por categoria", limite: "1 vez por cena de interlúdio", requisitos: { periciasAll: ["Medicina", "Profissão"] }, reqTexto: "Profissão (químico ou similar)" });
   E("as6.medicosalvacao", "Médico da Salvação", "as6", 68, "passiva",
     "Você se especializou em salvar vidas. Os dados da sua habilidade de médico de campo Paramédico aumentam de d10 para d12. Além disso, quando usa a habilidade Paramédico, você pode gastar 3 PE, uma vez por rodada, para usá-la como uma ação de movimento, em vez de ação padrão.",
-    { custo: "3 PE (opcional)", requisitos: { poderes: ["esp.medico.10"] } });
+    { custo: "3 PE (opcional)", limite: "1 vez por rodada", requisitos: { poderes: ["esp.medico.10"] } });
   E("as6.resgatarmorte", "Resgatar da Morte", "as6", 68, "livre",
     "Não haverá baixas no seu turno. Quando faz um teste de primeiros socorros (OPRPG, p. 46), você pode gastar 2 PE para obter sucesso automático nesse teste. Você só pode usar essa habilidade no mesmo ser uma vez por cena.",
-    { custo: "2 PE", requisitos: { periciasVet: ["Medicina"] } });
+    { custo: "2 PE", limite: "1 vez por cena no mesmo ser", requisitos: { periciasVet: ["Medicina"] } });
   E("as6.veteranotrauma", "Veterano da Equipe de Trauma", "as6", 68, "passiva",
     "Você é o melhor entre os melhores. Quando usa a habilidade de médico de campo Equipe de Trauma, você remove até três condições negativas (exceto morrendo), em vez de apenas uma.",
     { requisitos: { poderes: ["esp.medico.10", "esp.medico.40"] } });
@@ -190,7 +190,7 @@ const EXTRAS_OP_IDS = { poderes: [], trilhas: [] };
     "Se estiver empunhando duas armas (e pelo menos uma delas for leve) e fizer a ação agredir, você pode fazer dois ataques, um com cada arma. Se fizer isso, sofre −1 dado em todos os testes de ataque até o seu próximo turno. Se tiver Combater com Duas Armas, em vez disso você não sofre penalidade para usá-lo e pode empunhar duas armas de uma mão.",
     { requisitos: { periciasAll: ["Luta"] }, reqTexto: "For 2 ou Agi 2" });
   G("as3.entradatriunfal", "Entrada Triunfal", "as3", 109, "especial",
-    "Você sabe como chegar chegando. Ao entrar em um ambiente, uma vez por sessão, você pode anunciar sua chegada em voz alta para todos os presentes escutem. Ao fazer isso, você recebe +2d20 no primeiro teste que fizer no ambiente, exceto em um teste de Furtividade. Se preferir, você pode, como reação, transferir o bônus para o primeiro teste de um aliado em alcance longo no mesmo ambiente.",
+    "Você sabe como chegar chegando. Ao entrar em um ambiente, uma vez por sessão, você pode anunciar sua chegada em voz alta para que todos os presentes escutem. Ao fazer isso, você recebe +2d20 no primeiro teste que fizer no ambiente, exceto em um teste de Furtividade. Se preferir, você pode, como reação, transferir o bônus para o primeiro teste de um aliado em alcance longo no mesmo ambiente.",
     { limite: "1 vez por sessão", requisitos: at({ presenca: 2 }) });
   G("as3.papinhosedutor", "Papinho Sedutor", "as3", 109, "livre",
     "Você sabe usar as palavras para seduzir. Quando faz um teste de perícia baseado em Presença para seduzir alguém, você pode gastar 1 PE para receber +5 nesse teste. Se passar, o alvo fica apaixonado por você. Entretanto, enquanto ele estiver apaixonado, ele pode se tornar um problema na sua vida, a critério do mestre (como ficar obcecado por você ou sempre aparecer em momentos inoportunos).",
@@ -199,7 +199,7 @@ const EXTRAS_OP_IDS = { poderes: [], trilhas: [] };
     "Sopa de cereal com bebida energética? Seu paladar é um tanto quanto peculiar. Em uma cena de interlúdio, você pode alimentar-se uma vez sem gastar uma ação e sem precisar de fato ter acesso à refeição (você improvisa com os restos que encontra).");
   G("as4.ruidobranco", "Ruído Branco", "as4", 66, "passiva",
     "O barulho de um ambiente caótico se torna ruído para sua concentração. Enquanto estiver em um ambiente movimentado ou um local com muitas conversas paralelas, você recebe +1d6 em testes de Investigação e Percepção. Além disso, à critério do mestre, pode gastar 1 PE, uma vez por cena, para ouvir entre as vozes uma conversa que forneça uma informação útil para a missão.",
-    { custo: "1 PE (opcional)", requisitos: at({ intelecto: 3 }) });
+    { custo: "1 PE (opcional)", limite: "1 vez por cena", requisitos: at({ intelecto: 3 }) });
   G("as4.ultimaolhada", "Uma Última Olhada", "as4", 67, "livre",
     "É melhor prevenir do que remediar. Na última rodada de uma cena de investigação, você pode gastar 2 PE, uma vez por cena, para cobrar mais esforço de todos, aproveitando o pouco tempo que tem para analisar tudo rapidamente com seu grupo. Em termos de regras, o número de rodadas disponíveis aumenta em +1.",
     { custo: "2 PE", limite: "1 vez por cena" });
@@ -239,7 +239,7 @@ const EXTRAS_OP_IDS = { poderes: [], trilhas: [] };
     "Sua conexão com o Sangue permite que você resista a dor apenas para que consiga sentir ela por mais tempo. Enquanto estiver machucado, você recebe resistência a dano 5.",
     "Enquanto estiver machucado, você também recebe +20 PV temporários, mas apenas uma vez por cena.",
     { requisitos: { elementos: { Sangue: 1 } } });
-  PAR("as3.direcaocognitiva", "Conhecimento", "Conhecimento de Direção Cognitiva", "as3", 109, "passiva",
+  PAR("as3.direcaocognitiva", "Conhecimento", "Conhecimento de Direção Precognitiva", "as3", 109, "passiva",
     "Você possui um \"sexto sentido\" que aponta para onde você tem que ir, mesmo que você nem saiba onde fica. Você recebe +5 em testes de Percepção ou Sobrevivência para se localizar ou se orientar até um local, mesmo nunca tendo visto ele ou sequer saber sua localização.",
     "O bônus aumenta para +10.");
   PAR("as3.instrumentoeletrico", "Energia", "Instrumento Elétrico de Combate", "as3", 109, "especial",
@@ -275,6 +275,32 @@ const EXTRAS_OP_IDS = { poderes: [], trilhas: [] };
     "Através da sua conexão com a Energia, você consegue \"copiar seus dados\" na realidade por um breve momento. Você pode gastar uma ação completa e 2 PE para marcar um símbolo em seu próprio corpo. Esse símbolo dura por 1 dia ou até ser consumido, o que acontecer primeiro. Você não pode ter dois símbolos marcados simultaneamente. A qualquer momento, você pode gastar 3 PE como uma reação para consumir a marca e retornar o seu estado físico e mental para o momento em que fez o símbolo em si mesmo (PV, PE, condições, efeitos, estatísticas da ficha, tudo retorna para o estado em que estava quando você fez a marca). Entretanto, você perde a memória de tudo o que vivenciou desde que se marcou. Além da interpretação, a perda de memória se reflete em regras, deixando você alquebrado e frustrado até o fim da cena e pasmo por 1d4+1 rodadas.",
     "A duração do símbolo muda para 1 ano ou até ser consumido, o que acontecer primeiro.",
     { custo: "2 PE (marcar) + 3 PE (consumir)", requisitos: { elementos: { Energia: 2 } } });
+
+  /* ---- SaH: novos poderes paranormais (pp. 46-48) ---- */
+  PAR("sah.espreitarbesta", "Sangue", "Espreitar da Besta", "sah", 46, "passiva",
+    "Você recebe +5 em Furtividade. Em cenas de perseguição, se for o caçador, pode usar Furtividade em vez de Atletismo. Em cenas de furtividade, seus movimentos são calculados pelos instintos, o que permite fazer ações discretas sem sofrer -1 dado de penalidade.",
+    "O bônus em Furtividade aumenta para +10.", { efeitos: [man("+5 em Furtividade (+10 com afinidade)")] });
+  PAR("sah.instintossanguinarios", "Sangue", "Instintos Sanguinários", "sah", 46, "passiva",
+    "Você recebe visão no escuro e faro.",
+    "Você não pode mais ser flanqueado, não fica desprevenido e recebe +5 em testes de resistência contra armadilhas da realidade ou paranormais.");
+  PAR("sah.antecipar", "Morte", "Antecipar Vitalidade", "sah", 46, "passiva",
+    "Quando faz um teste, você pode acumular uma carga de antecipação para adicionar +1 dado a esse teste. Pode acumular um máximo de cargas igual ao seu Vigor. Enquanto tiver uma carga, em sua próxima ação de interlúdio dormir, em vez de recuperar pontos de vida você perde uma dessas cargas.",
+    "O limite de cargas de antecipação aumenta em +2 e você passa a perder 2 cargas por ação dormir.");
+  PAR("sah.aurapavor", "Morte", "Aura de Pavor", "sah", 46, "movimento",
+    "Você pode gastar 2 PE e uma ação de movimento para deixar uma pessoa ou animal em alcance médio apavorado (Vontade DT Pre reduz para abalado). O alvo não precisa ser capaz de ver você. A condição termina ao fim da cena, se o alvo se afastar além de alcance médio ou se você usar este efeito em outro alvo. Uma mesma pessoa ou animal só sofre o efeito uma vez por dia.",
+    "A DT para resistir aumenta em +5 e o número de alvos muda para quaisquer pessoas ou animais escolhidos no alcance.", { custo: "2 PE" });
+  PAR("sah.absorverconhecimento", "Conhecimento", "Absorver Conhecimento", "sah", 46, "completa",
+    "Se estiver empunhando uma fonte de conhecimento escrito (livro, texto aberto em um celular, pedra de runas), você pode gastar 1 PE e uma ação completa para fazer uma pergunta a esta fonte. Se a resposta estiver armazenada nela, você a obtém automaticamente. Usado em conjunto com a ação de interlúdio ler, aumenta o dado de bônus dessa ação em um passo (de d6 para 1d8, por exemplo).",
+    "Quando usa um ritual de Conhecimento que tenha como alvo 1 pessoa (exceto você), se puder tocar o alvo o custo do ritual é reduzido em -1 PE.", { custo: "1 PE" });
+  PAR("sah.apatiaherege", "Conhecimento", "Apatia Herege", "sah", "46-47", "reacao",
+    "Quando faz um teste contra uma condição de medo, você pode gastar 2 PE para rolar o teste novamente. Você deve aceitar o resultado da segunda rolagem, mesmo que seja menor que a primeira.",
+    "Você pode usar esse poder depois de saber se passou no teste, além de poder escolher a melhor rolagem entre as duas.", { custo: "2 PE", requisitos: { elementos: { Conhecimento: 1 } } });
+  PAR("sah.conexaoempatica", "Energia", "Conexão Empática", "sah", 47, "completa",
+    "Você pode gastar uma ação completa e 2 PE para tocar um objeto elétrico ligado (celular, batedeira, máquina de lavar). Até o fim da cena, ou até deixar de tocá-lo, pode conversar com o objeto como se fosse um ser senciente e escutar respostas. O objeto tem percepção limitada e suas memórias são definidas apenas pelos arquivos que contém; atitude inicial indiferente, mas pode ser persuadido com Diplomacia (normalmente Vontade 1; objetos sofisticados ou protegidos podem ter 2 ou 3). Apenas você \"ouve\" o objeto e precisa falar em voz alta. Ao fim do efeito o item emite um lamento; se você tentar falar de novo, sua atitude será hostil.",
+    "Você recebe +5 em testes de perícias baseadas em Intelecto ou Presença com o item.", { custo: "2 PE", requisitos: { elementos: { Energia: 1 } } });
+  PAR("sah.valersecaos", "Energia", "Valer-se do Caos", "sah", 47, "livre",
+    "Quando faz um teste, você pode escolher tentar controlar o caos. Se fizer isso, recebe +1 dado nesse teste. Entretanto, se o teste for uma falha, ou se o resultado desse d20 adicional (use um dado de cor diferente) for igual ou menor que 5, você perde 1d4 pontos de Sanidade.",
+    "Você perde Sanidade se o teste for uma falha ou se o resultado do dado extra for 1 ou 2.");
 
   /* =================================================================
      TRILHAS
