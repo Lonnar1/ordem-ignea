@@ -2884,13 +2884,14 @@ function _pjDetTrilhaOP(id) {
     { sel: "#ivListaItensOP", item: ".iv-item", dados: () => inventario, render: () => _renderListaItensOP() },
     { sel: "#listaArmas", item: "li", dados: () => armas, render: () => { _cbAbertoOP.arma = null; renderArmas(); } },
     { sel: "#listaArmaduras", item: "li", dados: () => armaduras, render: () => { _cbAbertoOP.armadura = null; renderArmaduras(); } },
+    { sel: "#listaDocumentos", item: "li", dados: () => documentos, render: () => renderDocumentos() },
   ];
   const ESPERA = 350, TOLERANCIA = 8;
   let st = null; // estado do gesto
   let bloquearClique = 0;
 
   function achar(alvo) {
-    const seal = alvo.closest && alvo.closest(".iv-seal");
+    const seal = alvo.closest && alvo.closest(".iv-seal, .doc-card-thumb");
     if (!seal) return null;
     for (const cfg of LISTAS) {
       const caixa = seal.closest(cfg.sel);
@@ -3005,7 +3006,7 @@ function _pjDetTrilhaOP(id) {
 
   /* enquanto arrasta, a tela não rola; o menu de segurar do celular não aparece */
   document.addEventListener("touchmove", (e) => { if (st && st.ativo) e.preventDefault(); }, { capture: true, passive: false });
-  document.addEventListener("contextmenu", (e) => { if (e.target.closest && e.target.closest(".iv-seal") && achar(e.target)) e.preventDefault(); }, true);
+  document.addEventListener("contextmenu", (e) => { if (e.target.closest && e.target.closest(".iv-seal, .doc-card-thumb") && achar(e.target)) e.preventDefault(); }, true);
   document.addEventListener("click", (e) => {
     if (bloquearClique > Date.now()) { e.stopPropagation(); e.preventDefault(); }
   }, true);
@@ -3083,3 +3084,266 @@ function arrumarFolhaVeiculoOP() {
   const alvo = corpo && corpo.querySelector(".veiculo-add");
   if (extras && alvo && alvo.lastElementChild !== extras) alvo.appendChild(extras);
 }
+
+/* =====================================================================
+   CARGA: detalhe por origem (itens, armas, vestimentas, bolsas),
+   título da capacidade enxuto e limites por categoria com botão Salvar.
+   ===================================================================== */
+function _capDetalheOP() {
+  const soma = (arr, f) => arr.reduce((t, x) => t + numeroInventario(f(x)), 0);
+  const it = typeof inventario !== "undefined" ? inventario : [];
+  const ar = typeof armas !== "undefined" ? armas : [];
+  const ad = typeof armaduras !== "undefined" ? armaduras : [];
+  const rc = typeof recipientes !== "undefined" ? recipientes : [];
+  return [
+    { nome: "Itens", n: it.length, esp: it.reduce((t, i) => t + calcularEspacosItem(i), 0) },
+    { nome: "Armas", n: ar.length, esp: soma(ar, (a) => a && a.espacos) },
+    { nome: "Vestimentas", n: ad.length, esp: soma(ad, (a) => a && a.espacos) },
+    { nome: "Bolsas", n: rc.length, esp: rc.reduce((t, r) => t + calcularEspacosRecipiente(r), 0) }
+  ].filter((g) => g.n > 0);
+}
+
+function atualizarCargaOP() {
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  if (!document.getElementById("ivCargaUsoOP")) return;
+  const uso = calcularEspacosInventario();
+  const max = capacidadeCargaOP();
+  set("ivCargaUsoOP", _ivN(uso));
+  set("ivCargaMaxOP", _ivN(max));
+  const barra = document.getElementById("ivCargaBarOP");
+  if (barra) {
+    barra.style.width = (max > 0 ? Math.min(100, (uso / max) * 100) : 0) + "%";
+    barra.classList.toggle("exc", max > 0 && uso > max);
+  }
+  let det = document.getElementById("ivDetalheOP");
+  if (!det) {
+    const b = barra && barra.closest(".iv-barra");
+    if (b) { det = document.createElement("div"); det.id = "ivDetalheOP"; det.className = "iv-detalhe"; b.insertAdjacentElement("afterend", det); }
+  }
+  if (det) {
+    det.innerHTML = _capDetalheOP().map((g) => `<span><b>${g.nome}</b> ${_ivN(g.esp)} esp.</span>`).join("");
+    det.hidden = !det.innerHTML;
+  }
+  const slots = document.getElementById("ivSlotsOP");
+  if (slots) {
+    const { lim } = limitesDaFichaOP();
+    const cont = contarItensPorCategoriaOP();
+    slots.innerHTML = CATS_LIM_OP.map((c) => {
+      const exc = cont[c] > lim[c];
+      const pct = lim[c] > 0 ? Math.min(100, (cont[c] / lim[c]) * 100) : cont[c] > 0 ? 100 : 0;
+      return `<div class="iv-slot${exc ? " exc" : ""}"><b>${c}</b><small>${cont[c]}/${lim[c]}</small><div class="iv-barra"><i style="width:${pct}%"></i></div></div>`;
+    }).join("");
+  }
+}
+
+function _capAtualizarTudoOP() {
+  const campo = document.getElementById("inventarioEspacosMax");
+  const auto = capacidadeAutoOP();
+  if (campo) campo.placeholder = "auto: " + auto;
+  const rot = document.querySelector('label[for="inventarioEspacosMax"]');
+  if (rot && rot.textContent.trim() !== "Capacidade máxima") rot.textContent = "Capacidade máxima";
+  const topo = document.querySelector(".inventario-capacidade-box .inventario-capacidade-topo");
+  if (topo) {
+    let dica = document.getElementById("capDicaOP");
+    if (!dica) { dica = document.createElement("small"); dica.id = "capDicaOP"; dica.className = "cap-dica"; topo.appendChild(dica); }
+    const manual = numeroInventario(campo && campo.value) > 0;
+    dica.textContent = manual
+      ? `Valor fixo. Apague ou use 0 para voltar ao automático (5 × Força = ${auto}).`
+      : `Automática: 5 × Força = ${auto} espaços. Digite um número para fixar.`;
+  }
+  try { atualizarResumoInventario(); } catch (e) {}
+  try { atualizarCargaOP(); } catch (e) {}
+}
+
+/* ---------- limites por categoria: edita e salva ---------- */
+let _limRascOP = null;       // rascunho {pp, lim}; null = nada pendente
+let _limRascBaseOP = null;   // objeto salvo ao qual o rascunho pertence
+
+function limitesDaFichaOP(estado) {
+  const e = estado || limiteItensOP;
+  const pat = patenteDosPP_OP(e.pp);
+  const lim = {};
+  CATS_LIM_OP.forEach((c) => {
+    const v = e.lim ? e.lim[c] : null;
+    lim[c] = v === null || v === undefined || v === "" ? pat.lim[c] : Math.max(0, parseInt(v) || 0);
+  });
+  return { pat, lim };
+}
+
+function _limGarantirRascOP() {
+  if (_limRascOP && _limRascBaseOP !== limiteItensOP) _limRascOP = null;
+  if (!_limRascOP) {
+    _limRascOP = { pp: Number(limiteItensOP.pp) || 0, lim: { ...(limiteItensOP.lim || {}) } };
+    _limRascBaseOP = limiteItensOP;
+  }
+  return _limRascOP;
+}
+
+function _limBotaoOP() {
+  const b = document.getElementById("limiteSalvarOP");
+  if (!b) return;
+  const sujo = !!_limRascOP;
+  b.disabled = !sujo;
+  b.classList.toggle("sujo", sujo);
+  b.textContent = sujo ? "Salvar categorias" : "Categorias salvas";
+}
+
+function montarLimiteItensOP(forcar) {
+  const ancora = document.querySelector(".inventario-capacidade-box");
+  if (!ancora) return;
+  let box = document.getElementById("limiteItensOP");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "limiteItensOP";
+    box.className = "limite-itens-op";
+    ancora.insertAdjacentElement("afterend", box);
+    forcar = true;
+  }
+  if (forcar) {
+    const aberto = box.querySelector("details")?.open ? " open" : "";
+    box.innerHTML = `
+      <details${aberto}>
+        <summary>
+          <span class="limite-titulo">Itens por categoria</span>
+          <span class="limite-resumo" id="limiteResumoOP"></span>
+        </summary>
+        <div class="limite-corpo">
+          <div class="limite-pp">
+            <label for="limitePPOP">Pontos de prestígio</label>
+            <input id="limitePPOP" type="number" min="0" step="1" value="${Number(limiteItensOP.pp) || 0}" oninput="mudarPPLimiteOP(this.value)" />
+            <span class="limite-patente" id="limitePatenteOP"></span>
+          </div>
+          <div class="limite-grade">
+            ${CATS_LIM_OP.map((c) => `
+              <div class="limite-cel" data-cat="${c}">
+                <span class="limite-cat">${c}</span>
+                <span class="limite-uso" id="limiteUso${c}"></span>
+                <span class="limite-leg">limite</span>
+                <input type="number" min="0" step="1" id="limiteIn${c}" aria-label="Limite da categoria ${c}" oninput="editarLimiteOP('${c}', this.value)" />
+              </div>`).join("")}
+          </div>
+          <small id="limiteAvisoOP"></small>
+          <div class="limite-acoes">
+            <button type="button" class="eq-link" onclick="restaurarLimitesOP()">Voltar aos limites da patente</button>
+            <button type="button" class="limite-salvar" id="limiteSalvarOP" onclick="salvarLimitesOP()" disabled>Categorias salvas</button>
+          </div>
+        </div>
+      </details>`;
+  }
+  atualizarLimiteItensOP();
+}
+
+function atualizarLimiteItensOP() {
+  const box = document.getElementById("limiteItensOP");
+  if (!box) return;
+  if (_limRascOP && _limRascBaseOP !== limiteItensOP) _limRascOP = null;
+  const est = _limRascOP || limiteItensOP;
+  const { pat, lim } = limitesDaFichaOP(est);
+  const salvo = limitesDaFichaOP();
+  const cont = contarItensPorCategoriaOP();
+  const editado = [];
+  const pt = document.getElementById("limitePatenteOP");
+  if (pt) pt.textContent = `${pat.nome} · crédito ${pat.credito}`;
+  const ppIn = document.getElementById("limitePPOP");
+  if (ppIn && document.activeElement !== ppIn) ppIn.value = Number(est.pp) || 0;
+  const rs = document.getElementById("limiteResumoOP");
+  if (rs) {
+    rs.innerHTML = CATS_LIM_OP.filter((c) => salvo.lim[c] > 0 || cont[c] > 0)
+      .map((c) => `<span class="${cont[c] > salvo.lim[c] ? "excedido" : ""}">${c} ${cont[c]}/${salvo.lim[c]}</span>`).join("") || "<span>—</span>";
+  }
+  CATS_LIM_OP.forEach((c) => {
+    const uso = document.getElementById("limiteUso" + c);
+    const inp = document.getElementById("limiteIn" + c);
+    const cel = box.querySelector(`.limite-cel[data-cat="${c}"]`);
+    if (uso) uso.textContent = `${cont[c]} / ${lim[c]}`;
+    if (inp && document.activeElement !== inp) inp.value = lim[c];
+    if (cel) {
+      cel.classList.toggle("excedido", cont[c] > lim[c]);
+      cel.classList.toggle("editado", lim[c] !== pat.lim[c]);
+    }
+    if (lim[c] !== pat.lim[c]) editado.push(c);
+  });
+  const av = document.getElementById("limiteAvisoOP");
+  if (av) {
+    const partes = [];
+    if (editado.length) partes.push(`Limite editado em: ${editado.join(", ")}.`);
+    if (cont.acima) partes.push(`${cont.acima} item(ns) acima da categoria IV.`);
+    partes.push("Categoria 0 é ilimitada (só conta a capacidade de carga).");
+    if (_limRascOP) partes.push("Toque em Salvar categorias para aplicar.");
+    av.textContent = partes.join(" ");
+  }
+  _limBotaoOP();
+}
+
+function mudarPPLimiteOP(v) {
+  const r = _limGarantirRascOP();
+  r.pp = Math.max(0, parseInt(v) || 0);
+  atualizarLimiteItensOP();
+}
+
+function editarLimiteOP(cat, v) {
+  const r = _limGarantirRascOP();
+  r.lim = r.lim || {};
+  r.lim[cat] = v === "" ? null : Math.max(0, parseInt(v) || 0);
+  atualizarLimiteItensOP();
+}
+
+function restaurarLimitesOP() {
+  const r = _limGarantirRascOP();
+  r.lim = {};
+  CATS_LIM_OP.forEach((c) => { const i = document.getElementById("limiteIn" + c); if (i) i.blur(); });
+  atualizarLimiteItensOP();
+}
+
+function salvarLimitesOP() {
+  if (!_limRascOP) return;
+  limiteItensOP.pp = _limRascOP.pp;
+  limiteItensOP.lim = _limRascOP.lim;
+  _limRascOP = null;
+  atualizarLimiteItensOP();
+  try { atualizarCargaOP(); } catch (e) {}
+  if (typeof salvarTudo === "function") salvarTudo();
+  const b = document.getElementById("limiteSalvarOP");
+  if (b) { b.textContent = "Salvo"; b.classList.add("ok"); setTimeout(() => { b.classList.remove("ok"); _limBotaoOP(); }, 1400); }
+}
+
+/* =====================================================================
+   MODELOS PRONTOS DE VEÍCULO (preenchem o formulário; edite à vontade)
+   Para incluir outro, é só acrescentar um objeto na lista.
+   ===================================================================== */
+const VEICULOS_MODELOS_OP = [
+  {
+    nome: "Bote de Madeira", icone: "🚤", vida: 50, passageiros: 4, espacos: 80,
+    desc: "Embarcação simples, mas suficiente para aguentar as ondas da praia. Tamanho Grande, deslocamento de natação 9m, Defesa 8 (+ Agi do condutor), 50 PV e pode carregar até 4 criaturas Médias ou 80 espaços. Conduzi-la exige testes de Pilotagem ou de uma Profissão adequada. Ficar em pé sobre ela durante ações intensas (fazer um ataque, conjurar um ritual, resistir ao impacto de uma onda etc.) exige um teste de Acrobacia (DT 15) por ação. Se falhar, o personagem perde a ação que tentou fazer e fica caído."
+  }
+];
+
+function usarModeloVeiculoOP(i) {
+  const m = VEICULOS_MODELOS_OP[i];
+  if (!m) return;
+  _setValOP("veiculoNome", m.nome);
+  _setValOP("veiculoIcone", m.icone);
+  _setValOP("veiculoDesc", m.desc);
+  _setValOP("veiculoVidaMax", m.vida);
+  _setValOP("veiculoGasolinaMax", "");
+  _setValOP("veiculoPassageirosMax", m.passageiros);
+  _setValOP("veiculoEspacosMax", m.espacos);
+  _setValOP("veiculoCategorias", "");
+  document.querySelectorAll("#vei-modelos-op button").forEach((b, k) => b.classList.toggle("on", k === i));
+}
+
+function montarModelosVeiculoOP() {
+  const nome = document.getElementById("veiculoNome");
+  if (!nome || document.getElementById("vei-modelos-op")) return !!document.getElementById("vei-modelos-op");
+  const campo = nome.closest(".inv-campo") || nome.parentElement;
+  const box = document.createElement("div");
+  box.id = "vei-modelos-op";
+  box.className = "vei-modelos";
+  box.innerHTML = `<span class="vei-modelos-rot">Modelos prontos</span><div class="vei-modelos-lista">${VEICULOS_MODELOS_OP.map((m, i) => `<button type="button" onclick="usarModeloVeiculoOP(${i})">${m.nome}</button>`).join("")}</div>`;
+  campo.insertAdjacentElement("beforebegin", box);
+  return true;
+}
+(function () {
+  let n = 0;
+  const t = setInterval(() => { if (montarModelosVeiculoOP() || ++n > 20) clearInterval(t); }, 500);
+})();
