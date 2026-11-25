@@ -283,6 +283,16 @@
   W("soqueira", "Armas simples · Corpo a corpo, uma mão", "Soqueira", "0", "+1 no dano desarmado", 20, 2, "Corpo a corpo", "Impacto", 1, "Luta", "Força", "Peça de metal entre os dedos: +1 no dano desarmado e torna o ataque letal. Pode receber modificações e maldições de armas corpo a corpo.", LIV, 66);
 
   /* =================================================================
+     ARMAS E ITENS DA MESA (pesca e mar)
+     ================================================================= */
+  const MESA = "Material da mesa";
+  W("arpao", "Armas simples · Corpo a corpo, uma mão", "Arpão", "0", "1d8", 20, 3, "Corpo a corpo ou curto (arremesso)", "Perfuração", 1, "Luta", "", "Causa 1d8 pontos de dano de perfuração e tem crítico 20/x3. Arma simples de corpo a corpo e de uma mão, que pode ser arremessada em alcance curto.", MESA, "");
+  W("arbalete", "Armas simples · Disparo, duas mãos", "Arbalete", "I", "2d8", 20, 3, "", "Perfuração", 1, "Pontaria", "", "Usado principalmente em pescas submarinas, usa um arpão como munição. O personagem pode prender o arpão à corda do arbalete, permitindo usar uma ação de movimento para puxar o arpão disparado de volta. Um arpão disparado pelo arbalete tem seu dano aumentado em +1 dado do mesmo tipo (2d8). Um ser atingido por um arpão preso a um arbalete fica enredado e deve fazer um teste de Atletismo ou Luta (DT Agi do atirador) como ação completa para se soltar. Arma simples de disparo e de duas mãos.", MESA, "");
+  W("redepesca", "Armas simples · Arremesso", "Rede de Pesca", "I", "", "", "", "Curto", "", 1, "Pontaria", "", "Feita de material resistente, possui uma corda em uma das suas extremidades, usada para puxá-la de volta. Se você acertar um ataque com a rede, não causa dano. Em vez disso, o alvo fica enredado (se for Grande ou menor). Enquanto você estiver segurando a corda, sempre que a vítima se mover você pode fazer um teste de Atletismo oposto contra ela como uma reação. Se você vencer, a vítima só pode se mover até o limite da corda (alcance curto). O alvo pode se soltar com uma ação completa e um teste de Atletismo ou Acrobacia (DT Agi). A rede tem 5 PV e, se rasgar, qualquer ser enredado se solta automaticamente. Arma simples de arremesso em alcance curto.", MESA, "");
+  I("querosene", OP, "Galão de Querosene", "0", 2, "Você pode gastar uma ação padrão para espalhar o querosene em uma arma corpo a corpo e incendiá-la. Se fizer isso, a arma causa +1d6 pontos de dano de fogo até o fim da cena. Item operacional.", MESA, "");
+  I("tampao", OP, "Tampão", "0", 1, "Personagens usando o tampão recebem +2d20 em testes de resistência contra a habilidade Canção do Mar, mas sofrem -1d20 em testes de Percepção.", MESA, "");
+
+  /* =================================================================
      RITUAIS QUE AFETAM ARMAS (lista própria, não alteram a categoria)
      ================================================================= */
   const RT = "Rituais que afetam armas";
