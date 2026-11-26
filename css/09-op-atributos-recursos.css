@@ -3543,7 +3543,7 @@ html body #ficha #inventario .iv-ajustes .limite-pp input {
 /* =====================================================================
    Habilidade de outra trilha (Versatilidade / Dominar Habilidade Ritualística)
    ===================================================================== */
-.te-ov { z-index: 99600; }
+.te-ov { z-index: 100100 !important; }
 .te-sheet { max-width: 520px; }
 .te-sheet .iv-sheet-top b { text-transform: none; letter-spacing: 1px; font-size: 16px; }
 .te-dica { margin: 0 0 12px; font-size: 12px; line-height: 1.5; color: #a595ae; }
