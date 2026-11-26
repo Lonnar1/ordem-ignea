@@ -3417,3 +3417,141 @@ html body .header-rpg::before {
 .mig-linha small { display: block; margin-top: 2px; font-size: 12px; color: #a99bb0; }
 .mig-op { display: flex; gap: 8px; align-items: center; margin: 10px 2px 0; font-size: 13px; color: #cfc3d4; cursor: pointer; }
 .mig-op input { flex: none; width: 17px; height: 17px; margin: 0 !important; accent-color: #9b314a; }
+
+
+/* ===================== Ajustes do inventário: capacidade e patente ===================== */
+html body #ficha #inventario .iv-ajustes .inventario-capacidade-box {
+  margin: 0 0 12px !important; padding: 12px 14px !important; background: #141414 !important;
+  border: 1px solid rgba(255,255,255,.09) !important; border-radius: 12px !important;
+}
+html body #ficha #inventario .iv-ajustes .inventario-capacidade-topo { display: block !important; }
+html body #ficha #inventario .iv-ajustes .inventario-capacidade-editar {
+  display: grid !important; grid-template-columns: minmax(0, 1fr) 92px !important; align-items: center !important;
+  column-gap: 12px !important; flex-direction: row !important; position: static !important;
+}
+html body #ficha #inventario .iv-ajustes .inventario-capacidade-editar label {
+  grid-column: 1 !important; position: static !important; margin: 0 !important; white-space: normal !important;
+  font-size: 11px !important; letter-spacing: 1.4px !important; text-transform: uppercase !important; color: #d5cbd8 !important;
+}
+html body #ficha #inventario .iv-ajustes .inventario-capacidade-editar input {
+  grid-column: 2 !important; position: static !important; float: none !important; width: 92px !important; min-width: 0 !important;
+  height: 36px !important; margin: 0 !important; padding: 0 8px !important; text-align: center !important; font-size: 15px !important;
+  box-sizing: border-box !important; background: #1a161c !important; border: 1px solid rgba(255,255,255,.14) !important; border-radius: 10px !important; color: #efe7ef !important;
+}
+html body #ficha #inventario .iv-ajustes .cap-dica { grid-column: 1 / -1; margin: 9px 0 0 !important; }
+
+html body #ficha #inventario .iv-ajustes .limite-corpo { display: flex; flex-direction: column; gap: 14px; }
+.limite-rot { display: block; margin: 0 0 7px; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: #d5cbd8; }
+.limite-rot small { margin-left: 4px; font-size: 11px; letter-spacing: 0; text-transform: none; color: #8d7f91; }
+.limite-rot-sec { margin: 2px 0 -6px; }
+.limite-sel { position: relative; }
+.limite-sel::after {
+  content: ""; position: absolute; right: 16px; top: 50%; width: 8px; height: 8px; pointer-events: none;
+  border-right: 2px solid #c994db; border-bottom: 2px solid #c994db; transform: translateY(-70%) rotate(45deg);
+}
+html body #ficha #inventario .iv-ajustes .limite-sel select {
+  display: block; width: 100%; height: 46px; margin: 0; padding: 0 42px 0 14px; box-sizing: border-box;
+  -webkit-appearance: none; appearance: none; background: #1a161c; color: #efe7ef; font-size: 14.5px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,.14); border-radius: 12px; cursor: pointer;
+}
+html body #ficha #inventario .iv-ajustes .limite-sel select:focus { outline: 0; border-color: rgba(201,148,219,.6); }
+.limite-sel select option { background: #1a161c; color: #efe7ef; }
+.limite-pat-res { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.limite-pat-res span {
+  padding: 3px 10px; border-radius: 999px; font-size: 12px; color: #efe7ef; font-variant-numeric: tabular-nums;
+  background: rgba(155,49,74,.16); border: 1px solid rgba(187,59,89,.38);
+}
+.limite-pat-res span b { margin-right: 5px; font-weight: 600; color: #d9b8e6; }
+.limite-pat-res span.cred { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.12); color: #cfc3d4; }
+html body #ficha #inventario .iv-ajustes .limite-pp { display: grid; grid-template-columns: minmax(0, 1fr) 92px; align-items: center; column-gap: 12px; padding: 0; }
+html body #ficha #inventario .iv-ajustes .limite-pp label { margin: 0; opacity: 1; white-space: normal; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: #d5cbd8; }
+html body #ficha #inventario .iv-ajustes .limite-pp input {
+  width: 92px !important; height: 36px !important; margin: 0 !important; padding: 0 8px !important; box-sizing: border-box;
+  text-align: center; font-size: 15px; background: #1a161c; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; color: #efe7ef;
+}
+.limite-patente { display: none !important; }
+.limite-cel .limite-pad { min-height: 12px; font-size: 10px; letter-spacing: .3px; color: #c994db; }
+
+/* =====================================================================
+   Condições (debuffs) na aba Combate
+   ===================================================================== */
+#condOP.cd-card { margin: 0 0 10px; padding: 0; background: rgba(255,255,255,.035); border: 1px solid rgba(233,224,236,0.14); border-radius: 12px; }
+#condOP.tem { border-color: rgba(187,59,89,.4); }
+#condOP .cd-top { display: flex; align-items: stretch; }
+#condOP .cd-cab { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; height: 40px; margin: 0; padding: 0 6px 0 14px; text-align: left; background: transparent !important; border: 0 !important; border-radius: 12px 0 0 12px !important; color: #efe7ef !important; cursor: pointer; box-shadow: none !important; }
+#condOP .cd-cab b { flex: none; font-family: "Cinzel", serif; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #efe7ef; }
+#condOP .cd-cab em { flex: none; font-style: normal; min-width: 16px; padding: 0 5px; text-align: center; font-size: 10.5px; line-height: 16px; color: #efe7ef; background: rgba(187,59,89,.22); border: 1px solid rgba(187,59,89,.5); border-radius: 20px; }
+#condOP .cd-resumo-fe { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; color: #e58a9d; }
+#condOP .cd-chev { flex: none; margin-left: auto; display: flex; color: #77637b; transition: transform .18s; }
+#condOP.aberto .cd-chev { transform: rotate(90deg); }
+#condOP .cd-mais { flex: none; width: 40px; height: 40px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: transparent !important; border: 0 !important; border-left: 1px solid rgba(255,255,255,.07) !important; border-radius: 0 12px 12px 0 !important; color: #c9a6ee !important; cursor: pointer; box-shadow: none !important; }
+#condOP .cd-mais:active { background: rgba(255,255,255,.05) !important; }
+#condOP .cd-vazio { margin: 0 12px 12px; padding: 10px; text-align: center; font-size: 11.5px; color: #a595ae; border: 1px dashed rgba(255,255,255,.12); border-radius: 9px; }
+
+#condOP .cd-lista { display: flex; flex-direction: column; gap: 5px; padding: 0 10px; }
+#condOP .cd-item { display: flex; align-items: center; gap: 9px; width: 100%; margin: 0; padding: 6px 9px; text-align: left; background: #191519 !important; border: 1px solid rgba(255,255,255,.07) !important; border-radius: 9px !important; color: #efe7ef !important; cursor: pointer; box-shadow: none !important; }
+#condOP .cd-item:active { background: #1f1822 !important; }
+.cd-selo { width: 28px !important; height: 28px !important; font-size: 12px !important; border-radius: 7px !important; flex: none; }
+.cd-t-medo { color: #e58a9d !important; border-color: rgba(187,59,89,.45) !important; }
+.cd-t-mental { color: #c9a6ee !important; border-color: rgba(143,95,199,.5) !important; }
+.cd-t-fadiga { color: #d8c28f !important; border-color: rgba(200,170,100,.4) !important; }
+.cd-t-paralisia { color: #9fc0d8 !important; border-color: rgba(120,160,190,.4) !important; }
+.cd-t-sentidos { color: #a9d0b4 !important; border-color: rgba(120,180,140,.4) !important; }
+#condOP .cd-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+#condOP .cd-info b { font-size: 13px; font-weight: 600; color: #efe7ef; }
+#condOP .cd-info small { font-size: 10.5px; line-height: 1.3; color: #a595ae; }
+#condOP .cd-nota-ic { flex: none; color: #77637b; display: flex; }
+#condOP .cd-seta { flex: none; color: #77637b; display: flex; }
+
+#condOP .cd-res { margin: 10px 12px 0; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.07); }
+#condOP .cd-res-t { display: block; margin: 0 0 4px; font-size: 9.5px; letter-spacing: 1.4px; text-transform: uppercase; color: #77637b; }
+#condOP .cd-lin { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 3px 0; }
+#condOP .cd-lin span { font-size: 12px; font-weight: 600; line-height: 1.35; }
+#condOP .cd-lin.neg span { color: #e58a8a; }
+#condOP .cd-lin.pos span { color: #a9d0b4; }
+#condOP .cd-lin.av span { font-weight: 400; font-size: 11.5px; color: #d5cbd8; }
+#condOP .cd-lin small { flex: none; max-width: 34%; text-align: right; font-size: 10px; color: #77637b; }
+#condOP .cd-regra { display: block; margin-top: 5px; font-size: 10px; line-height: 1.4; color: #77637b; }
+#condOP .cd-fim { display: flex; align-items: center; justify-content: center; gap: 6px; width: calc(100% - 20px); height: 30px; margin: 10px 10px 10px; padding: 0; background: transparent !important; border: 1px solid rgba(255,255,255,.1) !important; border-radius: 8px !important; color: #d5cbd8 !important; font-size: 11.5px; cursor: pointer; box-shadow: none !important; }
+#condOP.aberto .cd-lista:last-child { padding-bottom: 10px; }
+#condOP .cd-res:last-child { padding-bottom: 10px; }
+
+/* janelas */
+.cd-ov { z-index: 99500; }
+.cd-sheet { max-width: 520px; }
+.cd-sheet .iv-sheet-top b { text-transform: none; letter-spacing: 1px; font-size: 16px; }
+.cd-meta, .cd-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 12px; }
+.cd-chip { padding: 3px 10px; font-size: 11px; color: #d5cbd8; border: 1px solid rgba(255,255,255,.12); border-radius: 20px; }
+.cd-chip-i { border-radius: 10px; line-height: 1.35; }
+.cd-chip-i b { color: #efe7ef; font-weight: 600; }
+.cd-desc { margin: 0 0 14px; font-size: 13.5px; line-height: 1.55; color: #e5dce8; }
+.cd-sub { margin: 14px 0 6px; font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: #77637b; }
+.cd-sheet .cd-sub:first-child { margin-top: 0; }
+.cd-corpo textarea { width: 100%; box-sizing: border-box; margin: 0; padding: 10px 12px; resize: vertical; font-size: 13px; line-height: 1.45; }
+.cd-piora { display: flex; align-items: center; gap: 12px; width: 100%; margin: 4px 0 6px; padding: 11px 13px; text-align: left; background: rgba(187,59,89,.1) !important; border: 1px solid rgba(187,59,89,.45) !important; border-radius: 10px !important; color: #efe7ef !important; cursor: pointer; box-shadow: none !important; }
+.cd-piora span { display: flex; flex-direction: column; gap: 1px; font-size: 13px; font-weight: 600; }
+.cd-piora small { font-size: 11px; font-weight: 400; color: #d5cbd8; }
+.cd-rm { color: #e07a6a !important; }
+.cd-busca-w { position: relative; margin: 0 0 10px; }
+.cd-busca-w svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #77637b; pointer-events: none; }
+.cd-corpo .cd-busca { height: 38px; padding-left: 34px !important; }
+.cd-opc { cursor: pointer; }
+.cd-opc.on { border-color: rgba(187,59,89,.45); background: rgba(187,59,89,.07); }
+.cd-ck { flex: none; width: 18px; display: flex; justify-content: center; color: #e58a9d; }
+.cd-up { flex: none; width: 30px; height: 30px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: #1a161c !important; border: 1px solid rgba(255,255,255,.14) !important; border-radius: 8px !important; color: #efe7ef !important; cursor: pointer; box-shadow: none !important; }
+
+/* =====================================================================
+   Habilidade de outra trilha (Versatilidade / Dominar Habilidade Ritualística)
+   ===================================================================== */
+.te-ov { z-index: 99600; }
+.te-sheet { max-width: 520px; }
+.te-sheet .iv-sheet-top b { text-transform: none; letter-spacing: 1px; font-size: 16px; }
+.te-dica { margin: 0 0 12px; font-size: 12px; line-height: 1.5; color: #a595ae; }
+.te-corpo .te-op { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 100%; margin: 0 0 7px; padding: 10px 12px; text-align: left; background: #191519 !important; border: 1px solid rgba(255,255,255,.09) !important; border-radius: 10px !important; color: #efe7ef !important; cursor: pointer; box-shadow: none !important; }
+.te-corpo .te-op.on { border-color: rgba(187,59,89,.6) !important; background: rgba(187,59,89,.1) !important; }
+.te-corpo .te-op:disabled { opacity: .5; cursor: default; }
+.te-corpo .te-nome { font-family: "Cinzel", serif; font-size: 13px; font-weight: 600; letter-spacing: 1px; color: #efe7ef; }
+.te-corpo .te-hab { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px; color: #e5dce8; }
+.te-corpo .te-hab em { font-style: normal; font-size: 10.5px; color: #c9a6ee; }
+.te-corpo .te-op small { font-size: 11px; line-height: 1.4; color: #a595ae; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.te-corpo .te-op .te-bloq { color: #e58a8a; -webkit-line-clamp: unset; display: block; }
