@@ -4,7 +4,9 @@
   "webDir": "www",
   "backgroundColor": "#160f19",
   "server": {
-    "androidScheme": "https"
+    "url": "https://lonnar1.github.io/ordem-ignea/",
+    "androidScheme": "https",
+    "errorPath": "offline.html"
   },
   "android": {
     "allowMixedContent": false
