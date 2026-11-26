@@ -1,0 +1,17620 @@
+function esc(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;");
+}
+
+function habilitarArrastarReordenar(ulEl, arrayRef, aoSoltarCallback) {
+  if (!ulEl) return;
+
+  Array.from(ulEl.children).forEach((li) => {
+    const handle = li.querySelector(".drag-handle");
+    if (!handle || li.dataset.index === undefined) return;
+
+    handle.onpointerdown = (ev) => {
+      ev.preventDefault();
+
+      const liArrastado = li;
+      const rectOriginal = liArrastado.getBoundingClientRect();
+      const startY = ev.clientY;
+      const pointerId = ev.pointerId;
+
+      // cria um clone flutuante que segue o cursor/dedo de verdade
+      const fantasma = liArrastado.cloneNode(true);
+      fantasma.classList.add("card-fantasma");
+      fantasma.style.position = "fixed";
+      fantasma.style.left = rectOriginal.left + "px";
+      fantasma.style.top = rectOriginal.top + "px";
+      fantasma.style.width = rectOriginal.width + "px";
+      fantasma.style.margin = "0";
+      fantasma.style.pointerEvents = "none";
+      fantasma.style.zIndex = "9999";
+      document.body.appendChild(fantasma);
+
+      liArrastado.classList.add("arrastando");
+
+      function aoMover(e) {
+        if (e.pointerId !== pointerId) return;
+
+        const deltaY = e.clientY - startY;
+        fantasma.style.top = rectOriginal.top + deltaY + "px";
+
+        const fantasmaRect = fantasma.getBoundingClientRect();
+        const centroFantasma = fantasmaRect.top + fantasmaRect.height / 2;
+
+        const irmaos = Array.from(ulEl.children).filter(
+          (el) => el !== liArrastado,
+        );
+
+        let alvo = null;
+        for (const sib of irmaos) {
+          const box = sib.getBoundingClientRect();
+          if (centroFantasma < box.top + box.height / 2) {
+            alvo = sib;
+            break;
+          }
+        }
+
+        if (alvo) {
+          ulEl.insertBefore(liArrastado, alvo);
+        } else {
+          ulEl.appendChild(liArrastado);
+        }
+      }
+
+      function finalizar(e) {
+        if (e && e.pointerId !== undefined && e.pointerId !== pointerId) return;
+
+        document.removeEventListener("pointermove", aoMover);
+        document.removeEventListener("pointerup", finalizar);
+        document.removeEventListener("pointercancel", finalizar);
+
+        fantasma.remove();
+        liArrastado.classList.remove("arrastando");
+
+        const ordemVisual = Array.from(ulEl.children).map((el) =>
+          Number(el.dataset.index),
+        );
+
+        const objetosNaNovaOrdem = ordemVisual.map((i) => arrayRef[i]);
+        const slots = [...ordemVisual].sort((a, b) => a - b);
+
+        slots.forEach((slot, k) => {
+          arrayRef[slot] = objetosNaNovaOrdem[k];
+        });
+
+        salvarTudo();
+        if (aoSoltarCallback) aoSoltarCallback();
+      }
+
+      document.addEventListener("pointermove", aoMover);
+      document.addEventListener("pointerup", finalizar);
+      document.addEventListener("pointercancel", finalizar);
+    };
+  });
+}
+
+function limparTags(str) {
+  if (!str) return str;
+  return String(str).replace(/<[^>]*>/g, "");
+}
+
+function sanitizarPersonagem(p) {
+  if (!p) return p;
+  const textos = ["nome","classe","raca","idade","altura","antecedentes","idiomas","resistencias","diario","proficienciasExtras","nomeRacaCustom"];
+  textos.forEach(c => { if (p[c]) p[c] = limparTags(p[c]) || ""; });
+  if (Array.isArray(p.inventario)) {
+  p.inventario.forEach(i => {
+    i.nome = limparTags(i.nome) || "";
+    i.desc = limparTags(i.desc) || "";
+    i.categoria = limparTags(i.categoria) || "";
+    i.modificacoes = limparTags(i.modificacoes) || "";
+    i.maldicoes = limparTags(i.maldicoes) || "";
+  });
+}
+  if (Array.isArray(p.armaduras))  p.armaduras.forEach(a  => { a.nome = limparTags(a.nome) || "";  a.desc = limparTags(a.desc) || ""; a.ca = limparTags(a.ca) || ""; });
+  if (Array.isArray(p.armas))      p.armas.forEach(a      => { a.nome = limparTags(a.nome) || "";  a.desc = limparTags(a.desc) || ""; a.dano = limparTags(a.dano) || ""; });
+  if (Array.isArray(p.poderes))    p.poderes.forEach(p2   => { p2.nome = limparTags(p2.nome) || ""; p2.desc = limparTags(p2.desc) || ""; p2.dano = limparTags(p2.dano) || ""; });
+  if (Array.isArray(p.diarioSessoes)) p.diarioSessoes.forEach(d => { d.titulo = limparTags(d.titulo) || ""; d.texto = limparTags(d.texto) || ""; });
+  if (Array.isArray(p.documentos)) p.documentos.forEach(d => { d.nome = limparTags(d.nome) || ""; d.texto = limparTags(d.texto) || ""; d.tipo = limparTags(d.tipo) || ""; });
+  if (Array.isArray(p.mapas))      p.mapas.forEach(m      => { m.nome = limparTags(m.nome) || "";  m.desc = limparTags(m.desc) || ""; });
+  if (p.aliados && Array.isArray(p.aliados)) p.aliados.forEach(a => { a.nome = limparTags(a.nome) || ""; a.desc = limparTags(a.desc) || ""; a.local = limparTags(a.local) || ""; });
+  return p;
+}
+
+function sanitizarCampanha(c) {
+  if (!c) return c;
+  ["nome","sistema","descricao"].forEach(k => { if (c[k]) c[k] = limparTags(c[k]); });
+  if (Array.isArray(c.sessoes))   c.sessoes.forEach(s   => { s.nome = limparTags(s.nome); s.descricao = limparTags(s.descricao); });
+  if (Array.isArray(c.eventos))   c.eventos.forEach(e   => { e.nome = limparTags(e.nome); e.descricao = limparTags(e.descricao); });
+  if (Array.isArray(c.npcsMundo)) c.npcsMundo.forEach(n => { n.nome = limparTags(n.nome); n.classe = limparTags(n.classe); n.regiao = limparTags(n.regiao); });
+  if (Array.isArray(c.encontrosPlanejados)) c.encontrosPlanejados.forEach(e => { e.nome = limparTags(e.nome); e.regiao = limparTags(e.regiao); e.objetivo = limparTags(e.objetivo); });
+  return c;
+}
+
+// ===== SISTEMA DE PLANOS =====
+const EMAILS_VIP = [
+  "fichaignea@gmail.com",
+  "lonnar321@gmail.com",
+  "niviciusedney@gmail.com",
+  "nic.tresca@gmail.com",
+  "giovannyqueiroz@gmail.com", 
+  "luucasrenato@outlook.com", 
+  "dinizpqp123@gmail.com", 
+  "sparda.nb@gmail.com",
+  "araibruna@gmail.com",
+  "pedropian001@gmail.com",
+  "vitorlunardi92@gmail.com",
+  "xiuuososubliminals@gmail.com",
+  "nicolastresca@gmail.com",
+  "aelmoviee3@gmail.com"
+];
+
+function getPlanoUsuario() {
+  const email = window.usuarioAtual?.email?.toLowerCase();
+  if (!email) return "free";
+  if (EMAILS_VIP.includes(email)) return "completo";
+  return "free"; // futuramente lerá do Firestore
+}
+
+function podeCriarFicha() {
+  const plano = getPlanoUsuario();
+  if (plano === "completo" || plano === "player") return true;
+  return personagens.length < 1;
+}
+
+function podeCriarCampanha() {
+  const plano = getPlanoUsuario();
+  if (plano === "completo" || plano === "master") return true;
+  return campanhasMaster.length < 1;
+}
+
+function abrirPopupBloqueio(tipo) {
+  const titulo = tipo === "ficha" ? "Ficha Bloqueada" : "Campanha Bloqueada";
+  const planoNecessario = tipo === "ficha"
+    ? "<strong>Player</strong> ou <strong>Completo</strong>"
+    : "<strong>Master</strong> ou <strong>Completo</strong>";
+  const isMaster = tipo === "campanha";
+
+  abrirPopup(titulo, "", false, null);
+
+  setTimeout(() => {
+    const tituloEl = document.getElementById("popup-titulo");
+    if (tituloEl) {
+      tituloEl.style.textAlign = "center";
+      tituloEl.style.width = "100%";
+    }
+
+    const el = document.getElementById("popup-texto");
+    if (el) el.innerHTML = `
+      <div style="text-align:center;padding:4px 0;">
+        <div style="
+          background:${isMaster ? 'linear-gradient(180deg,rgba(123,30,40,0.18),rgba(80,15,20,0.25))' : 'linear-gradient(180deg,rgba(42,26,50,0.35),rgba(26,16,31,0.45))'};
+          border:1px solid ${isMaster ? 'rgba(180,55,42,0.3)' : 'rgba(174,55,83,0.2)'};
+          border-radius:12px;
+          padding:16px 14px;
+          margin-bottom:16px;
+        ">
+          <p style="font-size:15px;margin-bottom:10px;color:#efe7ef;">
+            ${tipo === "ficha" ? "Esta ficha está bloqueada" : "Esta campanha está bloqueada"} no plano gratuito.
+          </p>
+          <p style="font-size:13px;color:${isMaster ? '#c9736e' : '#b7a8ba'};line-height:1.5;">
+            Assine o plano ${planoNecessario} para ter acesso ilimitado.
+          </p>
+        </div>
+        <button class="popup-salvar-btn" style="${isMaster ? 'background:linear-gradient(180deg,#9e2f24,#4a0d0b);' : ''}" onclick="fecharPopup(); abrirTelaPlanos();">Ver planos</button>
+      </div>
+    `;
+  }, 10);
+}
+
+let morte = {
+  sucessos: [false, false, false],
+  falhas: [false, false, false],
+};
+
+let iniciativaOrdem = [];
+let iniciativaTurnoAtual = 0;
+let _etapasForm = [];
+let _filtroCompendio = "todos";
+let racasCustomSalvas =
+  JSON.parse(localStorage.getItem("racasCustomSalvas")) || [];
+let editandoRacaCustom = -1;
+let bonusRacaCustom = {
+  forca: 0,
+  destreza: 0,
+  constituicao: 0,
+  inteligencia: 0,
+  sabedoria: 0,
+  carisma: 0,
+};
+
+let campanhaImagemBase64 = "";
+let campanhasMaster =
+  JSON.parse(localStorage.getItem("campanhasMaster")) || [];
+
+let campanhaAtualMaster =
+  JSON.parse(localStorage.getItem("campanhaAtualMaster")) ?? null;
+  
+function salvarCampanhasMaster() {
+  localStorage.setItem("campanhaAtualMaster", JSON.stringify(campanhaAtualMaster));
+
+  // Remove base64 antes de salvar (agora as imagens sao links do ImgBB)
+  const campanhasSemBase64 = campanhasMaster.map(c => ({
+    ...c,
+    imagem: c.imagem?.startsWith("data:") ? "" : (c.imagem || ""),
+    bosses: (c.bosses || []).map(b => ({ ...b, imagem: b.imagem?.startsWith("data:") ? "" : (b.imagem || "") })),
+    itensMaster: (c.itensMaster || []).map(i => ({ ...i, imagem: i.imagem?.startsWith("data:") ? "" : (i.imagem || "") })),
+    npcs: (c.npcs || []).map(n => ({ ...n, imagem: n.imagem?.startsWith("data:") ? "" : (n.imagem || "") })),
+    monstrosMestre: (c.monstrosMestre || []).map(m => ({ ...m, imagem: m.imagem?.startsWith("data:") ? "" : (m.imagem || "") })),
+  }));
+
+  // Salva no Firestore com os links do ImgBB
+  if (window.usuarioAtual && window.db && window.setDoc) {
+    const uid = window.usuarioAtual.uid;
+    window.setDoc(
+      window.doc(window.db, "mestres", uid),
+      { campanhas: campanhasSemBase64, campanhaAtual: campanhaAtualMaster },
+      { merge: true }
+    ).catch(e => console.error("Erro ao salvar campanhas:", e));
+  }
+
+  // localStorage
+  try {
+    localStorage.setItem("campanhasMaster", JSON.stringify(campanhasSemBase64));
+  } catch(e) {
+    console.warn("localStorage cheio:", e);
+  }
+}
+
+async function carregarCampanhasMasterFirebase() {
+  if (!window.usuarioAtual || !window.db) return;
+  try {
+    const uid = window.usuarioAtual.uid;
+    const snap = await window.getDoc(window.doc(window.db, "mestres", uid));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.campanhas) {
+        campanhasMaster = data.campanhas;
+        campanhaAtualMaster = data.campanhaAtual ?? null;
+        renderCampanhasMaster();
+      }
+    }
+  } catch(e) {
+    console.error("Erro ao carregar campanhas:", e);
+  }
+}
+
+let gastosCirculos = {
+  0: [],
+  1: [],
+  2: [],
+  3: [],
+  4: [],
+  5: [],
+  6: [],
+  7: [],
+  8: [],
+  9: [],
+};
+
+for (let i = 0; i <= 9; i++) {
+  renderSlotsCirculo(i);
+}
+let nomeRacaCustom = "";
+let dominio = [false, false, false, false, false, false];
+let editandoItem = -1;
+let editandoArma = -1;
+let editandoPoder = -1;
+let filtroPoderesOrdem = "todos";
+let editandoAliado = -1;
+let vidaAtual = 50;
+let vidaTemp = 0;
+let vidaMaxPrev = 50;
+let peAtual = null;
+let sanAtual = null;
+let peMaxPrev = 0;
+let sanMaxPrev = 0;
+let inventario = [];
+let veiculos = [];
+let recipientes = [];
+let armas = [];
+let poderes = [];
+let profs = {};
+let periciasSelecionadasOP = [];
+let bonusPericiasOP = {}; // bônus personalizado por perícia (itens, poderes etc.)
+let saves = {};
+let imagemBase64 = "";
+let imagemOriginalBase64 = "";
+let imagemDeleteUrl = "";
+let mapas = [];
+let documentos = [];
+let docBase64Temp = "";
+let mapaAtual = null;
+let mapaZoom = 1;
+let mapaOffsetX = 0;
+let mapaOffsetY = 0;
+let mapaFerramentaAtiva = "pincel";
+let mapaCorAtiva = "#ef4444";
+let mapaPintando = false;
+let mapaUltimoX = 0;
+let mapaUltimoY = 0;
+let mapaAnotacoes = [];
+let mapaHistorico = [];
+let mapaImagemObj = null;
+let mapaTextoX = 0;
+let mapaTextoY = 0;
+let mapaPanUltimoX = 0;
+let mapaPanUltimoY = 0;
+let mapaBase64Temp = "";
+let itemImagemBase64Temp = "";
+let editItemImagemBase64Temp = "";
+let armaImagemBase64Temp = "";
+let editArmaImagemBase64Temp = "";
+let armaduraImagemBase64Temp = "";
+let editArmaduraImagemBase64Temp = "";
+let aliadoImagemBase64Temp = "";
+let exaustao = 0;
+let armaduras = [];
+let editandoArmadura = -1;
+let personagens = JSON.parse(localStorage.getItem("personagens")) || [];
+window.personagens = personagens;
+let personagemAtual = null;
+let modoExportacao = false;
+let imagemPosX = 50;
+let imagemPosY = 50;
+let imagensPersonagem = [];
+let indiceCarrossel = 0;
+let _ultimoSwipeCarrossel = 0;
+
+/* ================= DADOS FIXOS ================= */
+
+const pericias = [
+  { nome: "Acrobacia", attr: "agilidade", carga: true },
+  { nome: "Adestramento", attr: "presenca", soTreinada: true },
+  { nome: "Artes", attr: "presenca", soTreinada: true },
+  { nome: "Atletismo", attr: "forca" },
+  { nome: "Atualidades", attr: "intelecto" },
+  { nome: "Ciências", attr: "intelecto", soTreinada: true },
+  { nome: "Crime", attr: "agilidade", soTreinada: true, carga: true },
+  { nome: "Diplomacia", attr: "presenca" },
+  { nome: "Enganação", attr: "presenca" },
+  { nome: "Fortitude", attr: "vigor" },
+  { nome: "Furtividade", attr: "agilidade", carga: true },
+  { nome: "Iniciativa", attr: "agilidade" },
+  { nome: "Intimidação", attr: "presenca" },
+  { nome: "Intuição", attr: "presenca" },
+  { nome: "Investigação", attr: "intelecto" },
+  { nome: "Luta", attr: "forca" },
+  { nome: "Medicina", attr: "intelecto" },
+  { nome: "Ocultismo", attr: "intelecto", soTreinada: true },
+  { nome: "Percepção", attr: "presenca" },
+  { nome: "Pilotagem", attr: "agilidade", soTreinada: true },
+  { nome: "Pontaria", attr: "agilidade" },
+  { nome: "Profissão", attr: "intelecto", soTreinada: true },
+  { nome: "Reflexos", attr: "agilidade" },
+  { nome: "Religião", attr: "presenca", soTreinada: true },
+  { nome: "Sobrevivência", attr: "intelecto" },
+  { nome: "Tática", attr: "intelecto", soTreinada: true },
+  { nome: "Tecnologia", attr: "intelecto", soTreinada: true },
+  { nome: "Vontade", attr: "presenca" },
+];
+
+
+const efeitosExaustao = [
+  "Sem exaustão",
+  "Desvantagem em testes de atributo",
+  "Deslocamento reduzido pela metade ",
+  "Desvantagem em jogadas de ataque e salvaguardas",
+  "Pontos de vida maximos reduzidos pela metade",
+  "Deslocamento reduzido a 0",
+  "Morte",
+];
+
+/* ================= FUNÇÕES BASE ================= */
+
+function ativarModoExportacao() {
+  if (!personagens || personagens.length === 0) {
+    alertBonito("Você ainda não tem fichas para exportar.");
+    return;
+  }
+
+  modoExportacao = true;
+  mostrarAvisoExportacao();
+}
+
+function mostrarAvisoExportacao() {
+  const aviso = document.createElement("div");
+  aviso.innerText = "Clique na ficha para baixá-la";
+
+  aviso.style.position = "fixed";
+  aviso.style.bottom = "90px";
+  aviso.style.left = "50%";
+  aviso.style.transform = "translateX(-50%)";
+  aviso.style.background = "#251c2a";
+  aviso.style.color = "#f0e7f0";
+  aviso.style.padding = "10px 16px";
+  aviso.style.borderRadius = "10px";
+  aviso.style.zIndex = "9999";
+  aviso.style.fontSize = "14px";
+  aviso.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+
+  document.body.appendChild(aviso);
+
+  setTimeout(() => {
+    aviso.remove();
+  }, 2000);
+}
+
+function previewImagemCampanha() {
+  const input = document.getElementById("campanhaImagemInput");
+  const preview = document.getElementById("previewCampanha");
+
+  if (!input?.files?.[0]) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    campanhaImagemBase64 = e.target.result;
+
+    preview.src = campanhaImagemBase64;
+    preview.style.display = "block";
+  };
+
+  reader.readAsDataURL(input.files[0]);
+}
+
+function abrirTelaCampanhasMaster() {
+  document.getElementById("tela-modo").style.display = "none";
+  document.getElementById("masterIgnea").style.display = "none";
+
+  const tela = document.getElementById("telaCampanhasMaster");
+  if (tela) tela.style.display = "block";
+
+  renderCampanhasMaster();
+}
+
+function renderCampanhasMaster() {
+  const lista = document.getElementById("listaCampanhasMaster");
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  campanhasMaster.forEach((campanha, index) => {
+    const card = document.createElement("div");
+    card.className = "campanha-card";
+
+    card.innerHTML = `
+  <div
+    class="campanha-card-bg"
+    onclick="entrarCampanhaMaster(${index})"
+    style="${
+      campanha.imagem
+        ? `background-image: linear-gradient(rgba(8,5,5,0.45), rgba(8,5,5,0.88)), url('${campanha.imagem.replace(/'/g,"").replace(/"/g,"")}')`
+        : ""
+    }"
+  >
+    <div class="campanha-card-conteudo">
+      <h3>${esc(campanha.nome)}</h3>
+
+      <span>${esc(campanha.sistema) || "Sistema não definido"}</span>
+
+      <p>${esc(campanha.descricao) || "Sem descrição ainda."}</p>
+    </div>
+  </div>
+
+  <button
+    <button
+    class="monstro-delete campanha-delete"
+    style="right:44px !important;"
+    onclick="event.stopPropagation(); window.abrirEditarCampanha(${index})"
+  >
+    ✎
+  </button>
+
+  <button
+    class="monstro-delete campanha-delete"
+    onclick="event.stopPropagation(); deletarCampanhaMaster(${index})"
+  >
+    ×
+  </button>
+`;
+
+    lista.appendChild(card);
+  });
+
+  if (typeof window.carregarGruposParaCampanha === "function") {
+    window.carregarGruposParaCampanha();
+  }
+}
+
+function criarCampanhaMaster() {
+  if (!podeCriarCampanha()) {
+    abrirPopupBloqueio("campanha");
+    return;
+  }
+  const nome = document.getElementById("novaCampanhaNome").value.trim();
+  const sistema = document.getElementById("novaCampanhaSistema").value.trim();
+  const descricao = document.getElementById("novaCampanhaDescricao").value.trim();
+
+  if (!nome) {
+    alertBonito("Digite o nome da campanha.");
+    return;
+  }
+
+  const grupoVinculado = document.getElementById("novaCampanhaGrupo")?.value || "";
+
+  const novaCampanha = {
+  id: Date.now(),
+  nome,
+  sistema,
+  descricao,
+  imagem: campanhaImagemBase64 || "",
+  lore: "",
+  jogadores: [],
+  sessoes: [],
+  quests: [],
+  npcs: [],
+  combates: [],
+  grupoVinculado
+};
+
+  campanhasMaster.push(novaCampanha);
+  salvarCampanhasMaster();
+
+  document.getElementById("novaCampanhaNome").value = "";
+  document.getElementById("novaCampanhaSistema").value = "";
+  document.getElementById("novaCampanhaDescricao").value = "";
+
+  campanhaImagemBase64 = "";
+  const inputImagemCampanha = document.getElementById("campanhaImagemInput");
+  const previewCampanha = document.getElementById("previewCampanha");
+  if (inputImagemCampanha) inputImagemCampanha.value = "";
+  if (previewCampanha) {
+    previewCampanha.src = "";
+    previewCampanha.style.display = "none";
+  }
+
+  renderCampanhasMaster();
+}
+
+function entrarCampanhaMaster(index) {
+  const plano = getPlanoUsuario();
+  const limiteAtingido = (plano === "free") && (index >= 1);
+  if (limiteAtingido) {
+    abrirTelaPlanos();
+    return;
+  }
+  campanhaAtualMaster = index;
+  sanitizarCampanha(campanhasMaster[index]);
+  salvarCampanhasMaster();
+
+  document.getElementById("telaCampanhasMaster").style.display = "none";
+  document.getElementById("masterIgnea").style.display = "block";
+  document.querySelector(".header-rpg")?.style.setProperty("display", "none", "important"); // ← ADD
+  document.querySelector(".folhas-bg")?.style.setProperty("display", "none", "important");  // ← ADD
+
+  carregarDadosCampanhaAtual();
+}
+
+async function deletarCampanhaMaster(index) {
+  if (!(await confirmBonito("Deseja deletar esta campanha?"))) return;
+
+  campanhasMaster.splice(index, 1);
+
+  if (campanhaAtualMaster === index) {
+    campanhaAtualMaster = null;
+  }
+
+  salvarCampanhasMaster();
+  renderCampanhasMaster();
+}
+
+function voltarCampanhasMaster() {
+  document.getElementById("masterIgnea").style.display = "none";
+  document.getElementById("telaCampanhasMaster").style.display = "block";
+  renderCampanhasMaster();
+}
+
+function carregarDadosCampanhaAtual() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  const titulo = document.getElementById("tituloCampanhaAtual");
+  if (titulo) titulo.textContent = campanha.nome;
+
+  combatesMestre = campanha.combates || [];
+  window.combatesMestre = combatesMestre;
+  localStorage.setItem("combatesMestre", JSON.stringify(combatesMestre));
+
+  if (typeof renderCombatesMestre === "function") renderCombatesMestre();
+
+  setTimeout(() => {
+    inicializarAbaMundo();
+    renderMundoCampanha();
+    renderLoreCampanha();
+  }, 80);
+}
+
+
+const racas = {};
+
+function getAtributoFinal(attr) {
+  const base = get(attr);
+  const racaSelect = document.getElementById("racaSelect")?.value || "";
+
+  let bonusRaca = 0;
+
+  if (racaSelect.startsWith("custom_")) {
+    const index = parseInt(racaSelect.replace("custom_", ""));
+    bonusRaca = racasCustomSalvas[index]?.bonus?.[attr] || 0;
+  } else if (racaSelect !== "") {
+    bonusRaca = racas[racaSelect]?.[attr] || 0;
+  }
+
+  return base + bonusRaca;
+}
+
+function atualizarAtributosFinaisVisuais() {
+  [
+    "forca",
+    "destreza",
+    "constituicao",
+    "inteligencia",
+    "sabedoria",
+    "carisma",
+  ].forEach((attr) => {
+    const el = document.getElementById(`final_${attr}`);
+    if (!el) return;
+
+    el.textContent = getAtributoFinal(attr);
+  });
+}
+
+function aoMudarRaca() {
+  const select = document.getElementById("racaSelect");
+  const raca = select?.value || "";
+
+  if (raca === "custom") {
+    abrirPopupGerenciarRacasCustom();
+    select.value = "";
+    return;
+  }
+
+  atualizarTudo();
+  salvarTudo();
+}
+
+async function carregarRacasCustomFirebase() {
+  if (!window.usuarioAtual || !window.db || !window.getDoc || !window.doc) {
+    return;
+  }
+
+  try {
+    const uid = window.usuarioAtual.uid;
+
+    const snap = await window.getDoc(
+      window.doc(window.db, "mestres", uid)
+    );
+
+    if (snap.exists()) {
+      const data = snap.data();
+
+      if (Array.isArray(data.racasCustom)) {
+        racasCustomSalvas = data.racasCustom;
+
+        localStorage.setItem(
+          "racasCustomSalvas",
+          JSON.stringify(racasCustomSalvas)
+        );
+
+        atualizarDropdownRacas();
+        atualizarTudo();
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao carregar raças da nuvem:", e);
+  }
+}
+
+function salvarRacasCustomStorage() {
+  try {
+    localStorage.setItem(
+      "racasCustomSalvas",
+      JSON.stringify(racasCustomSalvas)
+    );
+  } catch (e) {
+    console.warn("Não foi possível salvar raças no localStorage:", e);
+  }
+
+  if (window.usuarioAtual && window.db && window.setDoc && window.doc) {
+    const uid = window.usuarioAtual.uid;
+
+    window.setDoc(
+      window.doc(window.db, "mestres", uid),
+      {
+        racasCustom: racasCustomSalvas
+      },
+      { merge: true }
+    ).catch((e) => {
+      console.error("Erro ao salvar raças na nuvem:", e);
+    });
+  }
+}
+
+async function carregarRacasCustomFirebase() {
+  if (!window.usuarioAtual || !window.db || !window.getDoc || !window.doc) {
+    return;
+  }
+
+  try {
+    const uid = window.usuarioAtual.uid;
+
+    const snap = await window.getDoc(
+      window.doc(window.db, "mestres", uid)
+    );
+
+    if (snap.exists()) {
+      const data = snap.data();
+
+      if (Array.isArray(data.racasCustom)) {
+        racasCustomSalvas = data.racasCustom;
+
+        localStorage.setItem(
+          "racasCustomSalvas",
+          JSON.stringify(racasCustomSalvas)
+        );
+
+        atualizarDropdownRacas();
+        atualizarTudo();
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao carregar raças da nuvem:", e);
+  }
+}
+
+function abrirPopupGerenciarRacasCustom() {
+  let lista = "";
+
+  racasCustomSalvas.forEach((raca, index) => {
+    lista += `
+      <div class="raca-custom-card">
+        <strong>${raca.nome}</strong>
+
+        <div class="raca-custom-acoes">
+          <button class="raca-btn raca-btn-editar" onclick="editarRacaCustom(${index})">
+  ✏️ Editar
+</button>
+
+<button class="raca-btn raca-btn-deletar" onclick="deletarRacaCustom(${index})">
+  🗑️
+</button>
+        </div>
+      </div>
+    `;
+  });
+
+  if (!lista) {
+    lista = `<p style="text-align:center; color:#d5cbd8;">Nenhuma raça custom criada.</p>`;
+  }
+
+  abrirPopup(
+    "Raças custom",
+    `
+    <div class="popup-form">
+      ${lista}
+
+      <button class="popup-salvar-btn" onclick="abrirPopupBonusCustom()">
+        + Nova raça custom
+      </button>
+    </div>
+  `,
+    true,
+    null,
+  );
+}
+
+function salvarBonusRacaCustom() {
+  const nome =
+    document.getElementById("nomeRacaCustom")?.value.trim() || "Raça custom";
+
+  const raca = {
+    nome,
+    bonus: {
+      forca: parseInt(document.getElementById("bonusCustomForca")?.value) || 0,
+      destreza:
+        parseInt(document.getElementById("bonusCustomDestreza")?.value) || 0,
+      constituicao:
+        parseInt(document.getElementById("bonusCustomConstituicao")?.value) ||
+        0,
+      inteligencia:
+        parseInt(document.getElementById("bonusCustomInteligencia")?.value) ||
+        0,
+      sabedoria:
+        parseInt(document.getElementById("bonusCustomSabedoria")?.value) || 0,
+      carisma:
+        parseInt(document.getElementById("bonusCustomCarisma")?.value) || 0,
+    },
+  };
+
+  if (editandoRacaCustom >= 0) {
+    racasCustomSalvas[editandoRacaCustom] = raca;
+  } else {
+    racasCustomSalvas.push(raca);
+  }
+
+  salvarRacasCustomStorage();
+  atualizarDropdownRacas();
+  atualizarTudo();
+  salvarTudo();
+  fecharPopup();
+}
+
+function editarRacaCustom(index) {
+  abrirPopupBonusCustom(index);
+}
+
+async function deletarRacaCustom(index) {
+  if (!(await confirmBonito("Deseja deletar essa raça custom?"))) return;
+
+  const select = document.getElementById("racaSelect");
+  const valorAtual = select?.value;
+
+  racasCustomSalvas.splice(index, 1);
+
+  salvarRacasCustomStorage();
+  atualizarDropdownRacas();
+
+  if (valorAtual === `custom_${index}` && select) {
+    select.value = "";
+  }
+
+  atualizarTudo();
+  salvarTudo();
+  abrirPopupGerenciarRacasCustom();
+}
+
+function abrirPopupBonusCustom() {
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">Nome da raça</label>
+      <input id="nomeRacaCustom" value="${nomeRacaCustom || ""}">
+
+      <label class="popup-label">Força</label>
+      <input id="bonusCustomForca" type="number" value="${bonusRacaCustom.forca || 0}">
+
+      <label class="popup-label">Destreza</label>
+      <input id="bonusCustomDestreza" type="number" value="${bonusRacaCustom.destreza || 0}">
+
+      <label class="popup-label">Constituição</label>
+      <input id="bonusCustomConstituicao" type="number" value="${bonusRacaCustom.constituicao || 0}">
+
+      <label class="popup-label">Inteligência</label>
+      <input id="bonusCustomInteligencia" type="number" value="${bonusRacaCustom.inteligencia || 0}">
+
+      <label class="popup-label">Sabedoria</label>
+      <input id="bonusCustomSabedoria" type="number" value="${bonusRacaCustom.sabedoria || 0}">
+
+      <label class="popup-label">Carisma</label>
+      <input id="bonusCustomCarisma" type="number" value="${bonusRacaCustom.carisma || 0}">
+
+      <button class="popup-salvar-btn" onclick="salvarBonusRacaCustom()">
+        Salvar
+      </button>
+    </div>
+  `;
+
+  abrirPopup("Raça Custom", html, true, null);
+}
+
+function atualizarModsMaster(tipo) {
+
+  const atributos = ["For", "Des", "Con", "Int", "Sab", "Car"];
+
+  atributos.forEach(attr => {
+
+    const input = document.getElementById(tipo + attr);
+
+    if (!input) return;
+
+    const valor = parseInt(input.value) || 10;
+
+    const mod =
+  valor <= 1 ? -5 :
+  valor <= 3 ? -4 :
+  valor <= 5 ? -3 :
+  valor <= 7 ? -2 :
+  valor <= 9 ? -1 :
+  valor <= 11 ? 0 :
+  valor <= 13 ? 1 :
+  valor <= 15 ? 2 :
+  valor <= 17 ? 3 :
+  valor <= 19 ? 4 :
+  valor <= 21 ? 5 :
+  valor <= 23 ? 6 :
+  valor <= 25 ? 7 :
+  valor <= 27 ? 8 :
+  valor <= 29 ? 9 : 10;
+
+    const span = document.getElementById(tipo + "Mod" + attr);
+
+    if (span) {
+      span.textContent =
+        mod >= 0 ? `+${mod}` : mod;
+    }
+
+  });
+
+}
+
+function getNomeRacaAtual() {
+  const raca = document.getElementById("racaSelect")?.value;
+
+  if (raca === "custom") {
+    return nomeRacaCustom || "Custom";
+  }
+
+  return raca || "Sem raça";
+}
+
+function mod(v) {
+  return Math.floor((v - 10) / 2);
+}
+
+function get(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  return parseInt(el.value) || 0;
+}
+
+function exportarFichaAtual() {
+  if (personagemAtual === null || personagemAtual === undefined) {
+    alertBonito("Selecione uma ficha primeiro.");
+    return;
+  }
+
+  exportarFicha(personagemAtual);
+}
+
+async function salvarPersonagens() {
+  try {
+    localStorage.setItem("personagens", JSON.stringify(personagens));
+  } catch (erro) {
+    console.warn("localStorage cheio. Salvando apenas na nuvem.", erro);
+  }
+
+  if (typeof window.salvarFichasNaNuvem === "function") {
+    try {
+      await window.salvarFichasNaNuvem();
+    } catch (erro) {
+      console.error("Falha ao salvar na nuvem:", erro);
+      if (typeof mostrarToastSalvarFlutuante === "function") {
+        mostrarToastSalvarFlutuante("Falha ao salvar na nuvem!");
+      }
+    }
+  }
+}
+
+function normalizarTipo(tipo) {
+  return (tipo || "")
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getIconeTipo(tipo) {
+  const t = normalizarTipo(tipo);
+
+  if (t.includes("fogo")) return "🔥";
+  if (t.includes("gelo")) return "❄️";
+  if (t.includes("agua")) return "💧";
+  if (t.includes("raio")) return "⚡";
+  if (t.includes("cura")) return "🩹";
+  if (t.includes("trovej")) return "🌩️";
+  if (t.includes("necrot")) return "💀";
+  if (t.includes("radiante")) return "✨";
+  if (t.includes("veneno")) return "☠️";
+  if (t.includes("psiqu")) return "🧠";
+  if (t.includes("corte")) return "🔪";
+  if (t.includes("perfur")) return "📌";
+  if (t.includes("concuss")) return "💥";
+  if (t.includes("fisico")) return "🗡️";
+  if (t.includes("magico")) return "☄️";
+  if (t.includes("trevas")) return "🌑";
+  if (t.includes("luz")) return "🌕";
+  if (t.includes("espirit")) return "🌓";
+  if (t.includes("vento")) return "🍃";
+  if (t.includes("madeira")) return "🌳";
+  if (t.includes("terra")) return "🌍";
+  if (t.includes("metal")) return "⚙️";
+
+  return "🔮";
+}
+
+function getClasseTipo(tipo) {
+  const t = normalizarTipo(tipo);
+
+  if (t.includes("fogo")) return "tipo-fogo";
+  if (t.includes("gelo")) return "tipo-gelo";
+  if (t.includes("raio")) return "tipo-raio";
+  if (t.includes("trovej")) return "tipo-trovejante";
+  if (t.includes("necrot")) return "tipo-necrotico";
+  if (t.includes("radiante")) return "tipo-radiante";
+  if (t.includes("veneno")) return "tipo-veneno";
+  if (t.includes("psiqu")) return "tipo-psiquico";
+  if (t.includes("corte")) return "tipo-corte";
+  if (t.includes("perfur")) return "tipo-perfurante";
+  if (t.includes("concuss")) return "tipo-concussao";
+  if (t.includes("agua")) return "tipo-agua";
+  if (t.includes("magico")) return "tipo-magico";
+  if (t.includes("fisico")) return "tipo-fisico";
+  if (t.includes("trevas")) return "tipo-trevas";
+  if (t.includes("luz")) return "tipo-luz";
+  if (t.includes("espirit")) return "tipo-espirito";
+  if (t.includes("vento")) return "tipo-vento";
+  if (t.includes("madeira")) return "tipo-madeira";
+  if (t.includes("terra")) return "tipo-terra";
+  if (t.includes("metal")) return "tipo-metal";
+
+  return "tipo-padrao";
+}
+
+function atualizarDropdownRacas() {
+  const select = document.getElementById("racaSelect");
+  if (!select) return;
+
+  // remove antigas custom (sem mexer nas fixas)
+  const antigas = document.querySelectorAll(".raca-custom");
+  antigas.forEach((el) => el.remove());
+
+  // adiciona custom salvas
+  racasCustomSalvas.forEach((raca, index) => {
+    const option = document.createElement("option");
+    option.value = "custom_" + index;
+    option.textContent = raca.nome;
+    option.classList.add("raca-custom");
+
+    select.insertBefore(option, select.children[2]);
+    // 🔥 coloca logo abaixo de "Custom"
+  });
+}
+
+function trocarSubAbaPoderes(tipo, btn) {
+  const subabas = document.querySelectorAll(".subaba-poderes");
+  subabas.forEach((el) => {
+    el.style.display = "none";
+    el.classList.remove("active");
+  });
+
+  document
+    .querySelectorAll(".subtab-poder")
+    .forEach((b) => b.classList.remove("active"));
+
+  if (tipo === "poderes-comuns") {
+    const alvo = document.getElementById("subaba-poderes-comuns");
+    if (alvo) {
+      alvo.style.display = "block";
+      alvo.classList.add("active");
+    }
+  }
+
+  if (tipo === "magias") {
+    const alvo = document.getElementById("subaba-magias");
+    if (alvo) {
+      alvo.style.display = "block";
+      alvo.classList.add("active");
+    }
+  }
+
+  if (tipo === "talentos") {
+    const alvo = document.getElementById("subaba-talentos");
+    if (alvo) {
+      alvo.style.display = "block";
+      alvo.classList.add("active");
+    }
+  }
+
+  if (tipo === "passivas") {
+    const alvo = document.getElementById("subaba-passivas");
+    if (alvo) {
+      alvo.style.display = "block";
+      alvo.classList.add("active");
+    }
+  }
+
+  if (btn) btn.classList.add("active");
+}
+
+function atualizarGastoCirculo(circulo, valor) {
+  let total = parseInt(valor) || 0;
+  if (total < 0) total = 0;
+
+  const atual = Array.isArray(gastosCirculos[circulo])
+    ? gastosCirculos[circulo]
+    : [];
+  const novoArray = [];
+
+  for (let i = 0; i < total; i++) {
+    novoArray.push(atual[i] || false);
+  }
+
+  gastosCirculos[circulo] = novoArray;
+  renderSlotsCirculo(circulo);
+  salvarTudo();
+}
+
+function trocarSubAbaCirculo(circulo, btn) {
+  const caixas = document.querySelectorAll(".circulo-box");
+  caixas.forEach((el) => {
+    el.style.display = "none";
+    el.classList.remove("active");
+  });
+
+  document
+    .querySelectorAll(".subtab-circulo")
+    .forEach((b) => b.classList.remove("active"));
+
+  const alvo = document.getElementById(`circulo-${circulo}`);
+  if (alvo) {
+    alvo.style.display = "block";
+    alvo.classList.add("active");
+  }
+
+  if (btn) btn.classList.add("active");
+}
+
+function salvarGastosCirculos() {
+  for (let i = 0; i <= 9; i++) {
+    const input = document.getElementById(`gastoCirculo${i}`);
+    gastosCirculos[i] = input ? parseInt(input.value) || 0 : 0;
+  }
+
+  salvarTudo();
+}
+
+/* ================= POPUP ================= */
+
+
+function limparEspacosPopup(container) {
+  if (!container) return;
+
+  container
+    .querySelectorAll(".popup-descricao, .veiculo-item-popup-texto")
+    .forEach((el) => {
+      const primeiro = el.firstChild;
+      const ultimo = el.lastChild;
+
+      if (primeiro && primeiro.nodeType === Node.TEXT_NODE) {
+        primeiro.textContent = primeiro.textContent.replace(/^\s+/, "");
+      }
+
+      if (ultimo && ultimo.nodeType === Node.TEXT_NODE) {
+        ultimo.textContent = ultimo.textContent.replace(/\s+$/, "");
+      }
+    });
+}
+
+function abrirPopup(titulo, conteudo, usarHTML = false, onEditar = null) {
+  const noGrimorio = document.getElementById("masterIgnea")?.style.display !== "none";
+  const popup = document.getElementById("popup");
+  const tituloEl = document.getElementById("popup-titulo");
+  const textoEl = document.getElementById("popup-texto");
+  const btnEditar = document.getElementById("popup-editar");
+
+  if (!popup || !tituloEl || !textoEl) return;
+
+  tituloEl.textContent = titulo || "";
+
+    if (usarHTML) {
+    textoEl.innerHTML = conteudo || "";
+    limparEspacosPopup(textoEl);
+  } else {
+    textoEl.textContent = conteudo || "";
+  }
+
+  if (btnEditar) {
+    if (onEditar) {
+      btnEditar.style.display = "inline-flex";
+      btnEditar.onclick = onEditar;
+    } else {
+      btnEditar.style.display = "none";
+      btnEditar.onclick = null;
+    }
+  }
+
+  popup.style.display = "flex";
+}
+
+async function editarQuantidadeSlotsCirculo(circulo) {
+  if (!gastosCirculos[circulo]) gastosCirculos[circulo] = [];
+
+  const atual = gastosCirculos[circulo].length;
+  const resposta = await promptBonito(`Quantas bolinhas no círculo ${circulo}?`, atual);
+
+  if (resposta === null) return;
+
+  let novoTotal = parseInt(resposta);
+  if (isNaN(novoTotal) || novoTotal < 0) novoTotal = 0;
+
+  const novoArray = [];
+  for (let i = 0; i < novoTotal; i++) {
+    novoArray.push(gastosCirculos[circulo][i] || false);
+  }
+
+  gastosCirculos[circulo] = novoArray;
+
+  renderSlotsCirculo(circulo);
+  salvarTudo();
+}
+
+function renderSlotsCirculo(circulo) {
+  const container = document.getElementById(`slotsCirculo${circulo}`);
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const slots = gastosCirculos[circulo] || [];
+
+  slots.forEach((usado, i) => {
+    const bolinha = document.createElement("div");
+    bolinha.className = "slot-bolinha" + (usado ? " usado" : "");
+
+    bolinha.onclick = () => {
+      gastosCirculos[circulo][i] = !gastosCirculos[circulo][i];
+      renderSlotsCirculo(circulo);
+      salvarTudo();
+    };
+
+    container.appendChild(bolinha);
+  });
+}
+
+function editarItem(index) {
+  const item = inventario[index];
+  if (!item) return;
+
+  editItemImagemBase64Temp = "";
+
+  const html = `
+    <div class="popup-form">
+
+      ${typeof htmlCatalogoItemOP === "function" ? htmlCatalogoItemOP("editItem") : ""}
+
+      <label class="popup-label">Nome</label>
+      <input
+        id="editItemNome"
+        value="${esc(item.nome || "")}"
+      >
+
+      <label class="popup-label">Descrição</label>
+      <textarea id="editItemDesc">${esc(item.desc || "")}</textarea>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+          <label class="popup-label">Quantidade</label>
+
+          <input
+            id="editItemQtd"
+            type="number"
+            min="1"
+            value="${item.qtd || 1}"
+          >
+        </div>
+
+        <div class="inv-campo">
+          <label class="popup-label">Espaços por unidade</label>
+
+          <input
+            id="editItemEspacos"
+            type="number"
+            min="0"
+            step="any"
+            value="${numeroInventario(item.espacos)}"
+          >
+        </div>
+
+      </div>
+
+      <label class="popup-label">Categoria</label>
+
+      <input
+        id="editItemCategoria"
+        placeholder="0, I, II, III ou IV"
+        value="${esc(item.categoria || "")}"
+      >
+
+      ${typeof htmlSeletorModsItemOP === "function" ? htmlSeletorModsItemOP("editItem") : ""}
+
+      <label class="popup-label">Modificações</label>
+
+      <textarea
+        id="editItemModificacoes"
+        placeholder="Modificações do item"
+      >${esc(item.modificacoes || "")}</textarea>
+
+      ${typeof htmlSeletorMaldicoesItemOP === "function" ? htmlSeletorMaldicoesItemOP("editItem") : ""}
+
+      <label class="popup-label">Maldições</label>
+
+      <textarea
+        id="editItemMaldicoes"
+        placeholder="Maldições do item"
+      >${esc(item.maldicoes || "")}</textarea>
+
+      <label class="popup-label">Imagem (opcional)</label>
+
+      <input
+        type="file"
+        id="editItemImagem"
+        accept="image/*"
+        onchange="previewEditItemImagem()"
+      />
+
+      <label for="editItemImagem" class="botao-upload">
+        Trocar imagem
+      </label>
+
+      <img
+        id="editItemImagemPreview"
+        src="${item.imagemUrl || ""}"
+        style="
+          display:${item.imagemUrl ? "block" : "none"};
+          max-width:100%;
+          border-radius:10px;
+          margin-top:8px;
+        "
+      />
+
+      <span
+        class="link-remover-imagem"
+        onclick="removerEditImagemItem()"
+      >
+        Remover imagem
+      </span>
+
+      <div class="toggle-cargas" style="margin-top:10px;">
+
+        <span class="toggle-cargas-texto">
+          Requer sintonia
+        </span>
+
+        <label class="switch-cargas">
+
+          <input
+            type="checkbox"
+            id="editItemRequerSintonia"
+            ${item.requerSintonia ? "checked" : ""}
+            onchange="toggleEditSintoniaItem()"
+          >
+
+          <span class="slider-cargas"></span>
+
+        </label>
+
+      </div>
+
+      <div
+        id="boxEditItemSintonizado"
+        style="display:${item.requerSintonia ? "block" : "none"};"
+      >
+
+        <div class="toggle-cargas" style="margin-top:10px;">
+
+          <span class="toggle-cargas-texto">
+            Está sintonizado
+          </span>
+
+          <label class="switch-cargas">
+
+            <input
+              type="checkbox"
+              id="editItemSintonizado"
+              ${item.sintonizado ? "checked" : ""}
+            >
+
+            <span class="slider-cargas"></span>
+
+          </label>
+
+        </div>
+
+      </div>
+
+      <button
+        class="popup-salvar-btn"
+        onclick="salvarEdicaoItem(${index})"
+      >
+        Salvar
+      </button>
+
+    </div>
+  `;
+
+  abrirPopup(
+    "Editar item",
+    html,
+    true,
+    null
+  );
+}
+
+async function salvarEdicaoItem(index) {
+  const nome =
+    document.getElementById("editItemNome")
+      ?.value.trim() || "";
+
+  const desc =
+    document.getElementById("editItemDesc")
+      ?.value.trim() || "";
+
+  const qtd =
+    parseInt(
+      document.getElementById("editItemQtd")?.value
+    ) || 1;
+
+  const espacos =
+    numeroInventario(
+      document.getElementById(
+        "editItemEspacos"
+      )?.value
+    );
+
+  const categoria =
+    document.getElementById(
+      "editItemCategoria"
+    )?.value.trim() || "";
+
+  const modificacoes =
+    document.getElementById(
+      "editItemModificacoes"
+    )?.value.trim() || "";
+
+  const maldicoes =
+    document.getElementById(
+      "editItemMaldicoes"
+    )?.value.trim() || "";
+
+  const requerSintonia =
+    !!document.getElementById(
+      "editItemRequerSintonia"
+    )?.checked;
+
+  const sintonizado =
+    requerSintonia &&
+    !!document.getElementById(
+      "editItemSintonizado"
+    )?.checked;
+
+  if (!nome) return;
+
+  let imagemUrl =
+    inventario[index]?.imagemUrl || "";
+
+  let imagemDeleteUrl =
+    inventario[index]?.imagemDeleteUrl || "";
+
+  if (editItemImagemBase64Temp === "REMOVIDA") {
+
+    imagemUrl = "";
+    imagemDeleteUrl = "";
+
+  } else if (editItemImagemBase64Temp) {
+
+    const resultado =
+      await uploadImagemFirebase(
+        editItemImagemBase64Temp,
+        "item"
+      );
+
+    if (resultado.erro || !resultado.url) {
+
+      alertBonito(
+        _mensagemErroUpload(
+          "A imagem anterior foi mantida."
+        )
+      );
+
+    } else {
+
+      imagemUrl = resultado.url;
+      imagemDeleteUrl = resultado.deleteUrl;
+    }
+  }
+
+  inventario[index] = {
+    ...inventario[index],
+
+    nome,
+    desc,
+    qtd,
+
+    espacos,
+    categoria,
+    modificacoes,
+    maldicoes,
+
+    requerSintonia,
+    sintonizado,
+
+    imagemUrl,
+    imagemDeleteUrl,
+  };
+
+  editItemImagemBase64Temp = "";
+
+  renderInv();
+  salvarTudo();
+  fecharPopup();
+}
+
+function moverItem(index, direcao) {
+  const lista = document.querySelectorAll(".item-card");
+
+  if (!lista[index]) return;
+
+  lista[index].classList.add("animando");
+
+  const novoIndex = index + direcao;
+
+  if (novoIndex < 0 || novoIndex >= inventario.length) {
+    lista[index].classList.remove("animando");
+    return;
+  }
+
+  setTimeout(() => {
+    [inventario[index], inventario[novoIndex]] = [
+      inventario[novoIndex],
+      inventario[index],
+    ];
+    renderInv();
+    salvarTudo();
+  }, 150);
+}
+
+function editarArma(index) {
+  const arma = armas[index];
+  if (!arma) return;
+
+  editArmaImagemBase64Temp = "";
+
+  const html = `
+    <div class="popup-form">
+      ${typeof htmlCatalogoEquipOP === "function" ? htmlCatalogoEquipOP("editArma", "arma") : ""}
+      <label class="popup-label">Nome</label>
+      <input id="editArmaNome" value="${arma.nome || ""}">
+
+      <label class="popup-label">
+  Dano
+</label>
+
+<input
+  id="editArmaDano"
+  value="${esc(arma.dano || "")}"
+>
+
+
+<label class="popup-label">
+  Espaços no inventário
+</label>
+
+<input
+  id="editArmaEspacos"
+  type="number"
+  min="0"
+  step="any"
+  value="${numeroInventario(arma.espacos)}"
+>
+
+<label class="popup-label">Categoria</label>
+
+<input
+  id="editArmaCategoria"
+  placeholder="0, I, II, III ou IV"
+  value="${esc(arma.categoria || "")}"
+>
+
+
+${htmlExtrasItem("editArma", "arma", arma)}
+
+<label class="popup-label">
+  Descrição
+</label>
+      <textarea id="editArmaDesc">${arma.desc || ""}</textarea>
+
+      <label class="popup-label">Imagem (opcional)</label>
+      <input type="file" id="editArmaImagem" accept="image/*" onchange="previewEditArmaImagem()" />
+      <label for="editArmaImagem" class="botao-upload">Trocar imagem</label>
+      <img
+        id="editArmaImagemPreview"
+        src="${arma.imagemUrl || ""}"
+        style="display:${arma.imagemUrl ? "block" : "none"}; max-width:100%; border-radius:10px; margin-top:8px;"
+      />
+      <span class="link-remover-imagem" onclick="removerEditImagemArma()">Remover imagem</span>
+
+      <div class="toggle-cargas" style="margin-top:10px;">
+        <span class="toggle-cargas-texto">Usa cargas</span>
+
+        <label class="switch-cargas">
+          <input
+            type="checkbox"
+            id="editArmaTemCargas"
+            ${arma.temCargas ? "checked" : ""}
+            onchange="toggleEditCampoCargas()"
+          >
+          <span class="slider-cargas"></span>
+        </label>
+      </div>
+
+      <div class="toggle-cargas">
+  <span class="toggle-cargas-texto">Requer sintonização</span>
+
+  <label class="switch-cargas">
+    <input
+      type="checkbox"
+      id="editArmaRequerSintonia"
+      ${arma.requerSintonia ? "checked" : ""}
+      onchange="toggleEditSintoniaArma()"
+    >
+    <span class="slider-cargas"></span>
+  </label>
+</div>
+
+<div
+  id="boxEditArmaSintonizado"
+  style="display:${arma.requerSintonia ? "block" : "none"};"
+>
+  <div class="toggle-cargas">
+    <span class="toggle-cargas-texto">Está sintonizado</span>
+
+    <label class="switch-cargas">
+      <input
+        type="checkbox"
+        id="editArmaSintonizado"
+        ${arma.sintonizado ? "checked" : ""}
+      >
+      <span class="slider-cargas"></span>
+    </label>
+  </div>
+</div>
+
+      <input
+        id="editArmaMaxCargas"
+        type="number"
+        min="1"
+        max="20"
+        placeholder="Qtd. de cargas"
+        value="${arma.maxCargas || ""}"
+        style="display:${arma.temCargas ? "block" : "none"};"
+      >
+
+      <button class="popup-salvar-btn" onclick="salvarEdicaoArma(${index})">
+        Salvar
+      </button>
+    </div>
+  `;
+
+  abrirPopup("Editar arma", html, true, null);
+}
+
+function toggleEditCampoCargas() {
+  const check = document.getElementById("editArmaTemCargas");
+  const input = document.getElementById("editArmaMaxCargas");
+
+  if (!check || !input) return;
+
+  if (check.checked) {
+    input.style.display = "block";
+  } else {
+    input.style.display = "none";
+    input.value = "";
+  }
+}
+
+function toggleEditCampoCargasPoder() {
+  const check = document.getElementById("editPoderTemCargas");
+  const input = document.getElementById("editPoderMaxCargas");
+
+  if (!check || !input) return;
+
+  if (check.checked) {
+    input.style.display = "block";
+  } else {
+    input.style.display = "none";
+    input.value = "";
+  }
+}
+
+function editarPoder(index) {
+  const poder = poderes[index];
+
+  if (!poder) return;
+
+  const categoria =
+    normalizarCategoriaPoder(poder);
+
+  const ativacao =
+    normalizarAtivacaoPoder(poder);
+
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">
+        Nome
+      </label>
+
+      <input
+        id="editPoderNome"
+        value="${esc(poder.nome || "")}"
+      >
+
+
+      <label class="popup-label">
+        Categoria
+      </label>
+
+      <select
+        id="editPoderCategoria"
+        class="input-personagem"
+      >
+
+        <option value="classe"
+          ${categoria === "classe" ? "selected" : ""}>
+          Classe
+        </option>
+
+        <option value="trilha"
+          ${categoria === "trilha" ? "selected" : ""}>
+          Trilha
+        </option>
+
+        <option value="paranormal"
+          ${categoria === "paranormal" ? "selected" : ""}>
+          Paranormal
+        </option>
+
+        <option value="origem"
+          ${categoria === "origem" ? "selected" : ""}>
+          Origem
+        </option>
+
+        <option value="outros"
+          ${categoria === "outros" ? "selected" : ""}>
+          Outros
+        </option>
+
+      </select>
+
+
+      <label class="popup-label">
+        Ativação
+      </label>
+
+      <select
+        id="editPoderAtivacao"
+        class="input-personagem"
+      >
+
+        <option value="">
+          Não definida
+        </option>
+
+        <option value="passiva"
+          ${ativacao === "passiva" ? "selected" : ""}>
+          Passiva
+        </option>
+
+        <option value="padrao"
+          ${ativacao === "padrao" ? "selected" : ""}>
+          Ação Padrão
+        </option>
+
+        <option value="movimento"
+          ${ativacao === "movimento" ? "selected" : ""}>
+          Ação de Movimento
+        </option>
+
+        <option value="completa"
+          ${ativacao === "completa" ? "selected" : ""}>
+          Ação Completa
+        </option>
+
+        <option value="livre"
+          ${ativacao === "livre" ? "selected" : ""}>
+          Ação Livre
+        </option>
+
+        <option value="reacao"
+          ${ativacao === "reacao" ? "selected" : ""}>
+          Reação
+        </option>
+
+        <option value="especial"
+          ${ativacao === "especial" ? "selected" : ""}>
+          Especial
+        </option>
+
+      </select>
+
+
+      <label class="popup-label">
+        Custo
+      </label>
+
+      <input
+        id="editPoderCusto"
+        placeholder="Ex.: 2 PE"
+        value="${esc(poder.custo || "")}"
+      >
+
+
+      <label class="popup-label">
+        Limite
+      </label>
+
+      <input
+        id="editPoderLimite"
+        placeholder="Ex.: 1 vez por rodada"
+        value="${esc(poder.limite || "")}"
+      >
+
+
+      <label class="popup-label">
+        Pré-requisito
+      </label>
+
+      <input
+        id="editPoderRequisito"
+        value="${esc(poder.requisito || "")}"
+      >
+
+
+      <label class="popup-label">
+        Dano ou efeito numérico
+      </label>
+
+      <input
+        id="editPoderDano"
+        value="${esc(poder.dano || "")}"
+      >
+
+
+      <label class="popup-label">
+        Alcance
+      </label>
+
+      <input
+        id="editPoderAlcance"
+        value="${esc(poder.alcance || "")}"
+      >
+
+
+      <label class="popup-label">
+        Duração
+      </label>
+
+      <input
+        id="editPoderDuracao"
+        value="${esc(poder.duracao || "")}"
+      >
+
+
+      <label class="popup-label">
+        Descrição
+      </label>
+
+      <textarea id="editPoderDesc">${esc(poder.desc || "")}</textarea>
+
+
+      <div
+        class="toggle-cargas"
+        style="margin-top:10px;"
+      >
+
+        <span class="toggle-cargas-texto">
+          Possui usos limitados
+        </span>
+
+        <label class="switch-cargas">
+
+          <input
+            type="checkbox"
+            id="editPoderTemCargas"
+            ${poder.temCargas ? "checked" : ""}
+            onchange="toggleEditCampoCargasPoder()"
+          >
+
+          <span class="slider-cargas"></span>
+
+        </label>
+
+      </div>
+
+
+      <input
+        id="editPoderMaxCargas"
+        type="number"
+        min="1"
+        max="99"
+        placeholder="Quantidade de usos"
+        value="${poder.maxCargas || ""}"
+        style="
+          display:${
+            poder.temCargas
+              ? "block"
+              : "none"
+          };
+        "
+      >
+
+
+      <button
+        class="popup-salvar-btn"
+        onclick="salvarEdicaoPoder(${index})"
+      >
+        Salvar
+      </button>
+
+    </div>
+  `;
+
+  abrirPopup(
+    "Editar poder",
+    html,
+    true,
+    null
+  );
+}
+
+function salvarEdicaoPoder(index) {
+  const poderAnterior =
+    poderes[index];
+
+  if (!poderAnterior) return;
+
+
+  const nome =
+    document.getElementById(
+      "editPoderNome"
+    )?.value.trim() || "";
+
+  const categoria =
+    document.getElementById(
+      "editPoderCategoria"
+    )?.value || "outros";
+
+  const ativacao =
+    document.getElementById(
+      "editPoderAtivacao"
+    )?.value || "";
+
+  const custo =
+    document.getElementById(
+      "editPoderCusto"
+    )?.value.trim() || "";
+
+  const limite =
+    document.getElementById(
+      "editPoderLimite"
+    )?.value.trim() || "";
+
+  const requisito =
+    document.getElementById(
+      "editPoderRequisito"
+    )?.value.trim() || "";
+
+  const dano =
+    document.getElementById(
+      "editPoderDano"
+    )?.value.trim() || "";
+
+  const alcance =
+    document.getElementById(
+      "editPoderAlcance"
+    )?.value.trim() || "";
+
+  const duracao =
+    document.getElementById(
+      "editPoderDuracao"
+    )?.value.trim() || "";
+
+  const desc =
+    document.getElementById(
+      "editPoderDesc"
+    )?.value.trim() || "";
+
+
+  const temCargas =
+    !!document.getElementById(
+      "editPoderTemCargas"
+    )?.checked;
+
+
+  const maxCargas =
+    temCargas
+      ? Math.max(
+          1,
+          parseInt(
+            document.getElementById(
+              "editPoderMaxCargas"
+            )?.value
+          ) || 1
+        )
+      : 0;
+
+
+  if (!nome) {
+    alertBonito("Digite o nome do poder.");
+    return;
+  }
+
+
+  let cargasGastas = [];
+
+  if (temCargas) {
+
+    if (
+      poderAnterior.temCargas &&
+      Number(poderAnterior.maxCargas) ===
+        Number(maxCargas) &&
+      Array.isArray(
+        poderAnterior.cargasGastas
+      )
+    ) {
+
+      cargasGastas =
+        poderAnterior.cargasGastas;
+
+    } else {
+
+      cargasGastas =
+        Array(maxCargas).fill(false);
+
+    }
+  }
+
+
+  poderes[index] = {
+    ...poderAnterior,
+
+    nome,
+
+    categoria,
+    ativacao,
+
+    custo,
+    limite,
+    requisito,
+
+    dano,
+    alcance,
+    duracao,
+
+    desc,
+
+    temCargas,
+    maxCargas,
+    cargasGastas,
+  };
+
+
+  renderPoderes();
+  salvarTudo();
+  fecharPopup();
+}
+
+function atualizarTextoBotaoEdicao() {
+  const btnItem = document.querySelector("#inventario .inv-add-btn");
+  const btnArma = document.querySelector(
+    "#combate .inv-add-btn[onclick=\"addArma()\"]",
+  );
+  const btnPoder = document.querySelector("#poderes .inv-add-btn");
+
+  if (btnItem) btnItem.textContent = editandoItem >= 0 ? "Salvar edição" : "Adicionar item";
+  if (btnArma) btnArma.textContent = editandoArma >= 0 ? "Salvar edição" : "Adicionar arma";
+  if (btnPoder)
+    btnPoder.textContent = editandoPoder >= 0 ? "Salvar edição" : "Adicionar poder";
+}
+
+function fecharPopup() {
+  const popup = document.getElementById("popup");
+  if (popup) popup.style.display = "none";
+}
+
+async function salvarEdicaoArma(index) {
+  const nome = document.getElementById("editArmaNome").value.trim();
+  const dano = document.getElementById("editArmaDano").value.trim();
+  const espacos =
+  numeroInventario(
+    document.getElementById(
+      "editArmaEspacos"
+    )?.value
+  );
+  const desc = document.getElementById("editArmaDesc").value.trim();
+  const categoria =
+    document.getElementById("editArmaCategoria")?.value.trim() || "";
+
+  const requerSintonia =
+    !!document.getElementById("editArmaRequerSintonia")?.checked;
+
+  const sintonizado =
+    requerSintonia &&
+    !!document.getElementById("editArmaSintonizado")?.checked;
+
+  // o restante da sua função continua aqui...
+
+  const temCargas = !!document.getElementById("editArmaTemCargas")?.checked;
+  const maxCargas = temCargas
+    ? parseInt(document.getElementById("editArmaMaxCargas")?.value) || 0
+    : 0;
+
+  if (!nome) return;
+  if (temCargas && maxCargas <= 0) return;
+
+  const armaAnterior = armas[index];
+
+  let cargasGastas = [];
+  if (temCargas) {
+    if (
+      armaAnterior?.temCargas &&
+      armaAnterior.maxCargas === maxCargas &&
+      Array.isArray(armaAnterior.cargasGastas)
+    ) {
+      cargasGastas = armaAnterior.cargasGastas;
+    } else {
+      cargasGastas = Array(maxCargas).fill(false);
+    }
+  }
+
+  let imagemUrl = armaAnterior?.imagemUrl || "";
+  let imagemDeleteUrl = armaAnterior?.imagemDeleteUrl || "";
+
+  if (editArmaImagemBase64Temp === "REMOVIDA") {
+    imagemUrl = "";
+    imagemDeleteUrl = "";
+  } else if (editArmaImagemBase64Temp) {
+    const resultado = await uploadImagemFirebase(editArmaImagemBase64Temp, "arma");
+    if (resultado.erro || !resultado.url) {
+      alertBonito(_mensagemErroUpload("A imagem anterior foi mantida."))
+    } else {
+      imagemUrl = resultado.url;
+      imagemDeleteUrl = resultado.deleteUrl;
+    }
+  }
+
+ armas[index] = {
+    ...armaAnterior,
+    ...lerExtrasItem("editArma", "arma"),
+
+  nome,
+  dano,
+  espacos,
+  categoria,
+  desc,
+
+  temCargas,
+  maxCargas,
+  cargasGastas,
+
+  requerSintonia,
+  sintonizado,
+
+  imagemUrl,
+  imagemDeleteUrl,
+};
+
+  editArmaImagemBase64Temp = "";
+  renderArmas();
+  salvarTudo();
+  fecharPopup();
+}
+
+/* ================= ABAS ================= */
+
+function controlarHeader(mostrar) {
+  document.body.classList.remove("modo-mestre", "sem-header", "ocultar-logo", "hide-header");
+
+  if (!mostrar) {
+    document.body.classList.add("hide-header");
+  }
+}
+
+const ORDEM_ABAS_FICHA = ["personagem", "atributos", "combate", "inventario", "poderes"];
+window._abaFichaAtualId = window._abaFichaAtualId || "personagem";
+
+function trocarAba(id, btn = null) {
+  document.body.classList.remove("ocultar-logo");
+  if (document.activeElement && document.activeElement.classList.contains("tab-btn")) {
+    document.activeElement.blur();
+  }
+  const abas = document.querySelectorAll(".aba");
+  const novaAba = document.getElementById(id);
+  const abaAtual = document.querySelector(".aba.active");
+  const saindoDoCombate =
+    abaAtual && abaAtual.id === "combate" && id !== "combate";
+
+  const indexAntigo = ORDEM_ABAS_FICHA.indexOf(window._abaFichaAtualId);
+  const indexNovo = ORDEM_ABAS_FICHA.indexOf(id);
+  if (indexAntigo !== -1 && indexNovo !== -1 && indexAntigo !== indexNovo) {
+    document.documentElement.style.setProperty("--swipe-dir", indexNovo > indexAntigo ? "1" : "-1");
+  }
+  window._abaFichaAtualId = id;
+
+  if (saindoDoCombate) {
+    document.body.classList.remove("low-hp");
+  }
+
+  if (!novaAba) return;
+
+  if (abaAtual === novaAba) {
+    document
+      .querySelectorAll(".tab-btn")
+      .forEach((b) => b.classList.remove("active"));
+
+    if (btn) {
+      btn.classList.add("active");
+    } else {
+      const botao = document.querySelector(`.tab-btn[onclick*="${id}"]`);
+      if (botao) botao.classList.add("active");
+    }
+
+    setTimeout(() => {
+    }, 100);
+
+    atualizarEstadoLowHP();
+    return;
+  }
+
+  document
+    .querySelectorAll(".tab-btn")
+    .forEach((b) => b.classList.remove("active"));
+
+  if (btn) {
+    btn.classList.add("active");
+  } else {
+    const botao = document.querySelector(`.tab-btn[onclick*="${id}"]`);
+    if (botao) botao.classList.add("active");
+  }
+
+const dir = indexNovo > indexAntigo ? 1 : -1;
+
+  if (abaAtual) {
+    const rect = abaAtual.getBoundingClientRect();
+    abaAtual.style.position = "fixed";
+    abaAtual.style.top = rect.top + "px";
+    abaAtual.style.left = rect.left + "px";
+    abaAtual.style.width = rect.width + "px";
+    abaAtual.style.margin = "0";
+    abaAtual.style.zIndex = "2";
+
+    const animSaida = abaAtual.animate(
+      [
+        { opacity: 1, transform: "translateX(0)" },
+        { opacity: 0, transform: `translateX(${dir * -30}px)` }
+      ],
+      { duration: 320, easing: "cubic-bezier(0.22,1,0.36,1)", fill: "forwards" }
+    );
+
+    animSaida.onfinish = () => {
+      abaAtual.classList.remove("active");
+      abaAtual.style.display = "none";
+      abaAtual.style.position = "";
+      abaAtual.style.top = "";
+      abaAtual.style.left = "";
+      abaAtual.style.width = "";
+      abaAtual.style.margin = "";
+      abaAtual.style.zIndex = "";
+      abaAtual.style.opacity = "";
+      abaAtual.style.transform = "";
+    };
+  }
+
+ novaAba.style.display = "block";
+novaAba.classList.add("active");
+
+
+/* CORRIGE O CARROSSEL DOS PODERES
+   DEPOIS QUE A ABA FICA VISÍVEL */
+if (id === "poderes") {
+
+  requestAnimationFrame(() => {
+
+    requestAnimationFrame(() => {
+
+      const filtros =
+        document.querySelector(
+          ".poderes-ordem-filtros"
+        );
+
+      if (!filtros) return;
+
+
+      if (filtroPoderesOrdem === "todos") {
+
+        filtros.scrollLeft = 0;
+
+      } else {
+
+        const ativo =
+          filtros.querySelector(
+            ".subtab-poder.active"
+          );
+
+        if (ativo) {
+          garantirFiltroPoderVisivel(ativo);
+        }
+      }
+
+    });
+
+  });
+
+}
+
+
+novaAba.animate(
+    [
+      { opacity: 0, transform: `translateX(${dir * 30}px)` },
+      { opacity: 1, transform: "translateX(0)" }
+    ],
+    { duration: 320, easing: "cubic-bezier(0.22,1,0.36,1)", fill: "forwards" }
+  );
+
+  atualizarEstadoLowHP();
+
+  setTimeout(() => {
+    if (id === "personagem") {
+    }
+  }, 100);
+}
+
+function entrarFicha() {
+  controlarHeader(true);
+
+  const telaInicial = document.getElementById("tela-inicial");
+  const ficha = document.getElementById("ficha");
+
+  if (telaInicial) telaInicial.style.display = "none";
+  if (ficha) ficha.style.display = "block";
+
+  trocarAba("personagem");
+}
+
+function entrarModoJogadorAnimado() {
+  const tela = document.getElementById("tela-modo");
+  if (!tela) return;
+
+  tela.classList.add("saindo");
+
+  setTimeout(() => {
+    tela.classList.remove("saindo");
+    entrarModoJogador();
+
+    tela.style.opacity = "1";
+    tela.style.transform = "scale(1)";
+  }, 450);
+}
+
+function entrarModoMestre() {
+  controlarHeader(false);
+  document.querySelector(".header-rpg")?.style.setProperty("display", "none", "important");
+  document.querySelector(".folhas-bg")?.style.setProperty("display", "none", "important");
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("tela-modo").style.display = "none";
+  document.getElementById("tela-inicial").style.display = "none";
+  document.getElementById("ficha").style.display = "none";
+  document.getElementById("masterIgnea").style.display = "none";
+
+  const telaCampanhas = document.getElementById("telaCampanhasMaster");
+  if (telaCampanhas) {
+    telaCampanhas.style.display = "block";
+  }
+
+  renderCampanhasMaster();
+}
+
+function voltarInicio() {
+  const telaInicial = document.getElementById("tela-inicial");
+  const ficha = document.getElementById("ficha");
+
+  if (telaInicial) telaInicial.style.display = "block";
+  if (ficha) ficha.style.display = "none";
+  document.body.classList.remove("ocultar-logo");
+}
+
+/* ================= PERSONAGENS ================= */
+
+function renderPersonagens() {
+  const div = document.getElementById("listaPersonagens");
+  if (!div) return;
+
+  div.innerHTML = "";
+
+  personagens.forEach((p, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.backgroundImage = `url('${p.imagem || ""}')`;
+
+    const posX = p.imagemPosX ?? 50;
+    const posY = p.imagemPosY ?? 50;
+    card.style.backgroundPosition = `${posX}% ${posY}%`;
+    card.style.backgroundSize = "cover";
+
+    card.innerHTML = `
+      <div class="card-info">
+        <span class="card-nome">${esc(p.nome) || "Sem nome"}</span>
+        <span class="card-classe">${esc(p.classe) || "Sem classe"}</span>
+      </div>
+
+      <div class="card-acoes">
+        <button
+          type="button"
+          class="btn-duplicar"
+          onclick="duplicarPersonagem(${i}); event.stopPropagation();"
+        >⧉</button>
+
+        <button
+          type="button"
+          class="btn-deletar"
+          onclick="deletarPersonagem(${i}); event.stopPropagation();"
+        >X</button>
+      </div>
+    `;
+
+    card.onclick = () => {
+      if (modoExportacao) {
+        modoExportacao = false;
+        exportarFicha(i);
+        return;
+      }
+
+      const plano = getPlanoUsuario();
+      const limiteAtingido = (plano === "free") && (i >= 1);
+      if (limiteAtingido) {
+        abrirPopupBloqueio("ficha");
+        return;
+      }
+      personagemAtual = i;
+      carregarPersonagem(i);
+    };
+    div.appendChild(card);
+  });
+
+  const add = document.createElement("div");
+  add.className = "card add";
+  add.innerText = "+";
+  add.onclick = criarPersonagem;
+  div.appendChild(add);
+}
+
+function duplicarPersonagem(index) {
+  const original = personagens[index];
+  if (!original) return;
+
+  const copia = JSON.parse(JSON.stringify(original));
+  copia.nome = (original.nome || "Sem nome") + " (Cópia)";
+
+  personagens.push(copia);
+  salvarPersonagens();
+  renderPersonagens();
+}
+
+function toggleSecao(id, titulo) {
+  const box = document.getElementById(id);
+  if (!box) return;
+
+  const estaAberto = box.classList.contains("aberto");
+
+  if (estaAberto) {
+    box.classList.remove("aberto");
+    box.classList.add("fechado");
+  } else {
+    box.classList.add("aberto");
+    box.classList.remove("fechado");
+  }
+
+  if (titulo) {
+    titulo.classList.toggle("fechado", estaAberto);
+  }
+
+  localStorage.setItem("secao_" + id, estaAberto ? "fechada" : "aberta");
+}
+
+function restaurarSecoes() {
+  document.querySelectorAll(".conteudo-toggle").forEach((box) => {
+    const id = box.id;
+    if (!id) return;
+
+    const estado = localStorage.getItem("secao_" + id);
+    const titulo = document.querySelector(`[onclick*="'${id}'"]`);
+
+    // sem estado salvo: mantém como está no HTML
+    if (estado === "fechada") {
+      box.classList.remove("aberto");
+      box.classList.add("fechado");
+      if (titulo) titulo.classList.add("fechado");
+    } else if (estado === "aberta") {
+      box.classList.add("aberto");
+      box.classList.remove("fechado");
+      if (titulo) titulo.classList.remove("fechado");
+    }
+  });
+
+  // Diário
+  const diario = document.getElementById("diario-box");
+  const estadoDiario = localStorage.getItem("secao_diario-box");
+  if (diario && estadoDiario) {
+    diario.style.display = estadoDiario === "aberta" ? "block" : "none";
+  }
+}
+
+function renderAliados() {
+  const ul = document.getElementById("listaAliados");
+  if (!ul || personagemAtual === null) return;
+
+  ul.innerHTML = "";
+
+  const p = personagens[personagemAtual];
+
+  if (!Array.isArray(p.aliados)) {
+    p.aliados = [];
+  }
+
+  p.aliados.forEach((aliado, index) => {
+
+    // Aliados antigos não possuem tipo.
+    // Vamos tratá-los como companheiros.
+    const tipo = aliado.tipo || "companheiro";
+
+    aliado.tipo = tipo;
+
+    const li = document.createElement("li");
+    li.className = "item-card";
+    li.dataset.index = index;
+
+    let etiqueta = "⚔ Companheiro";
+
+    if (tipo === "inimigo") {
+      etiqueta = "☠ Inimigo";
+    } else if (tipo === "neutro") {
+      etiqueta = "◈ Neutro";
+    }
+
+    li.innerHTML = `
+      <button
+        type="button"
+        class="drag-handle"
+        aria-label="Arrastar para reordenar"
+      ></button>
+
+      <div
+        class="item-info"
+        onclick="abrirDetalhesAliado(${index})"
+        style="cursor:pointer;"
+      >
+
+        <strong class="item-nome">
+          ${esc(aliado.nome) || "Sem nome"}
+        </strong>
+
+        <div class="aliado-tipo">
+          ${etiqueta}
+        </div>
+
+        ${
+          aliado.local
+            ? `<div class="aliado-local">📍 ${esc(aliado.local)}</div>`
+            : ""
+        }
+
+        <p class="item-preview">
+          ${
+            aliado.desc
+              ? esc(aliado.desc).substring(0, 80) +
+                (aliado.desc.length > 80 ? "..." : "")
+              : "Sem descrição"
+          }
+        </p>
+
+      </div>
+
+      <div class="item-acoes">
+
+        <div class="acoes-topo">
+          <button
+            type="button"
+            class="btn-editar"
+            onclick="event.stopPropagation(); editarAliado(${index})"
+          >
+            ✏️
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="item-remover"
+          onclick="event.stopPropagation(); removerAliado(${index})"
+        >
+          X
+        </button>
+
+      </div>
+    `;
+
+    ul.appendChild(li);
+  });
+
+  
+
+ habilitarArrastarReordenar(
+  ul,
+  p.aliados,
+  renderAliados
+);
+}
+
+function filtrarAliados(tipo, botao) {
+  const botoes = document.querySelectorAll(".aliado-filtro");
+
+  botoes.forEach((btn) => {
+    btn.classList.remove("ativo");
+  });
+
+  if (botao) {
+    botao.classList.add("ativo");
+  }
+
+  const ul = document.getElementById("listaAliados");
+
+  if (!ul || personagemAtual === null) return;
+
+  const p = personagens[personagemAtual];
+
+  if (!p || !Array.isArray(p.aliados)) return;
+
+  ul.innerHTML = "";
+
+  p.aliados.forEach((aliado, index) => {
+
+    const tipoAliado = aliado.tipo || "companheiro";
+
+    if (tipo !== "todos" && tipoAliado !== tipo) {
+      return;
+    }
+
+    const li = document.createElement("li");
+
+    li.className = "item-card";
+    li.dataset.index = index;
+
+    let etiqueta = "⚔ Companheiro";
+
+    if (tipoAliado === "inimigo") {
+      etiqueta = "☠ Inimigo";
+    }
+
+    if (tipoAliado === "neutro") {
+      etiqueta = "◈ Neutro";
+    }
+
+    li.innerHTML = `
+      <button
+        type="button"
+        class="drag-handle"
+        aria-label="Arrastar para reordenar"
+      ></button>
+
+      <div
+        class="item-info"
+        onclick="abrirDetalhesAliado(${index})"
+        style="cursor:pointer;"
+      >
+
+        <strong class="item-nome">
+          ${esc(aliado.nome) || "Sem nome"}
+        </strong>
+
+        <div class="aliado-tipo">
+          ${etiqueta}
+        </div>
+
+        ${
+          aliado.local
+            ? `<div class="aliado-local">
+                 📍 ${esc(aliado.local)}
+               </div>`
+            : ""
+        }
+
+        <p class="item-preview">
+          ${
+            aliado.desc
+              ? esc(aliado.desc).substring(0, 80) +
+                (aliado.desc.length > 80 ? "..." : "")
+              : "Sem descrição"
+          }
+        </p>
+
+      </div>
+
+      <div class="item-acoes">
+
+        <div class="acoes-topo">
+          <button
+            type="button"
+            class="btn-editar"
+            onclick="event.stopPropagation(); editarAliado(${index})"
+          >
+            ✏️
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="item-remover"
+          onclick="event.stopPropagation(); removerAliado(${index})"
+        >
+          X
+        </button>
+
+      </div>
+    `;
+
+    ul.appendChild(li);
+  });
+
+    habilitarArrastarReordenar(
+    ul,
+    p.aliados,
+    () => filtrarAliados(tipo, botao)
+  );
+}
+
+function removerAliado(index) {
+  const p = personagens[personagemAtual];
+  if (!p || !Array.isArray(p.aliados)) return;
+
+  p.aliados.splice(index, 1);
+
+  if (editandoAliado === index) {
+    editandoAliado = -1;
+    document.getElementById("aliadoNome").value = "";
+    document.getElementById("aliadoDesc").value = "";
+  } else if (editandoAliado > index) {
+    editandoAliado--;
+  }
+
+  salvarTudo();
+  renderAliados();
+}
+
+function toggleDominio(index) {
+  dominio[index] = !dominio[index];
+  renderDominio();
+  salvarTudo();
+}
+
+async function editarQuantidadePontosDominio() {
+  const atual = dominio.length;
+  const resposta = await promptBonito("Quantos Pontos de Domínio?", atual);
+
+  if (resposta === null) return;
+
+  let novoTotal = parseInt(resposta);
+  if (isNaN(novoTotal) || novoTotal < 0) novoTotal = 0;
+
+  const novoArray = [];
+  for (let i = 0; i < novoTotal; i++) {
+    novoArray.push(dominio[i] || false);
+  }
+
+  dominio = novoArray;
+
+  renderDominio();
+  salvarTudo();
+}
+
+function renderDominio() {
+  const container = document.getElementById("dominioChecks");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  dominio.forEach((ativo, i) => {
+    const check = document.createElement("div");
+    check.className = "dominio-check" + (ativo ? " ativo" : "");
+    check.onclick = () => toggleDominio(i);
+    container.appendChild(check);
+  });
+}
+
+function toggleCampoCargas() {
+  const check = document.getElementById("armaTemCargas");
+  const input = document.getElementById("armaMaxCargas");
+
+  if (!check || !input) return;
+
+  if (check.checked) {
+    input.style.display = "block";
+  } else {
+    input.style.display = "none";
+    input.value = "";
+  }
+}
+function editarAliado(index) {
+  const p = personagens[personagemAtual];
+
+  if (!p || !Array.isArray(p.aliados)) return;
+
+  const aliado = p.aliados[index];
+
+  if (!aliado) return;
+
+  const tipo = aliado.tipo || "companheiro";
+
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">Nome</label>
+
+      <input
+        id="editAliadoNome"
+        value="${esc(aliado.nome || "")}"
+      >
+
+      <label class="popup-label">Tipo</label>
+
+      <select id="editAliadoTipo">
+
+        <option
+          value="companheiro"
+          ${tipo === "companheiro" ? "selected" : ""}
+        >
+          ⚔ Companheiro
+        </option>
+
+        <option
+          value="inimigo"
+          ${tipo === "inimigo" ? "selected" : ""}
+        >
+          ☠ Inimigo
+        </option>
+
+        <option
+          value="neutro"
+          ${tipo === "neutro" ? "selected" : ""}
+        >
+          ◈ Neutro
+        </option>
+
+      </select>
+
+      <label class="popup-label">Região / Local</label>
+
+      <input
+        id="editAliadoLocal"
+        value="${esc(aliado.local || "")}"
+      >
+
+      <label class="popup-label">Descrição</label>
+
+      <textarea id="editAliadoDesc">${esc(aliado.desc || "")}</textarea>
+
+      <label class="popup-label">Imagem do personagem</label>
+
+      <div class="upload-imagem aliado-upload-edicao">
+
+        <label
+          for="editAliadoImagem"
+          class="botao-upload"
+        >
+          🖼 ${aliado.imagem ? "Alterar imagem" : "Escolher imagem"}
+        </label>
+
+        <input
+          type="file"
+          id="editAliadoImagem"
+          accept="image/*"
+        />
+
+        ${
+          aliado.imagem
+            ? `
+              <img
+                id="editAliadoImagemPreview"
+                src="${aliado.imagem}"
+                class="aliado-imagem-edicao-preview"
+              >
+
+              <span
+                class="link-remover-imagem"
+                onclick="removerImagemEdicaoAliado()"
+              >
+                Remover imagem
+              </span>
+            `
+            : `
+              <img
+                id="editAliadoImagemPreview"
+                class="aliado-imagem-edicao-preview"
+                style="display:none;"
+              >
+
+              <span
+                id="editAliadoRemover"
+                class="link-remover-imagem"
+                style="display:none;"
+                onclick="removerImagemEdicaoAliado()"
+              >
+                Remover imagem
+              </span>
+            `
+        }
+
+        <input
+          type="hidden"
+          id="editAliadoImagemRemovida"
+          value="0"
+        />
+
+      </div>
+
+      <button
+        class="popup-salvar-btn"
+        onclick="salvarEdicaoAliado(${index})"
+      >
+        Salvar
+      </button>
+
+    </div>
+  `;
+
+  abrirPopup("Editar personagem", html, true, null);
+
+  const imagemInput =
+    document.getElementById("editAliadoImagem");
+
+  if (imagemInput) {
+    imagemInput.onchange = () => {
+
+      const arquivo = imagemInput.files?.[0];
+
+      if (!arquivo) return;
+
+      const preview =
+        document.getElementById("editAliadoImagemPreview");
+
+      if (preview) {
+        preview.src = URL.createObjectURL(arquivo);
+        preview.style.display = "block";
+      }
+
+      const remover =
+        document.getElementById("editAliadoRemover");
+
+      if (remover) {
+        remover.style.display = "inline";
+      }
+
+      const removida =
+        document.getElementById("editAliadoImagemRemovida");
+
+      if (removida) {
+        removida.value = "0";
+      }
+    };
+  }
+}
+
+function removerImagemEdicaoAliado() {
+  const input =
+    document.getElementById("editAliadoImagem");
+
+  const preview =
+    document.getElementById("editAliadoImagemPreview");
+
+  const removida =
+    document.getElementById("editAliadoImagemRemovida");
+
+  if (input) {
+    input.value = "";
+  }
+
+  if (preview) {
+    preview.src = "";
+    preview.style.display = "none";
+  }
+
+  if (removida) {
+    removida.value = "1";
+  }
+
+  const botao =
+    document.querySelector(
+      ".aliado-upload-edicao .botao-upload"
+    );
+
+  if (botao) {
+    botao.textContent = "🖼 Escolher imagem";
+  }
+}
+
+async function salvarEdicaoAliado(index) {
+  const p = personagens[personagemAtual];
+
+  if (!p || !Array.isArray(p.aliados)) return;
+
+  const aliado = p.aliados[index];
+
+  if (!aliado) return;
+
+  const nome =
+    document.getElementById("editAliadoNome").value.trim();
+
+  const local =
+    document.getElementById("editAliadoLocal").value.trim();
+
+  const desc =
+    document.getElementById("editAliadoDesc").value.trim();
+
+  const tipo =
+    document.getElementById("editAliadoTipo")?.value ||
+    "companheiro";
+
+  if (!nome) return;
+
+  const imagemInput =
+    document.getElementById("editAliadoImagem");
+
+  const imagemRemovida =
+    document.getElementById("editAliadoImagemRemovida")?.value === "1";
+
+  // Mantém os dados atuais
+  aliado.nome = nome;
+  aliado.local = local;
+  aliado.desc = desc;
+  aliado.tipo = tipo;
+
+  // Se clicou em remover
+  if (imagemRemovida) {
+    aliado.imagem = "";
+  }
+
+   // Se escolheu uma imagem nova
+  if (imagemInput?.files?.[0]) {
+    const base64 = await comprimirImagem(imagemInput.files[0], 900, 0.72);
+    const resultado = await uploadImagemFirebase(base64, "aliado");
+    if (resultado.erro || !resultado.url) {
+      alertBonito(_mensagemErroUpload("A imagem anterior foi mantida."))
+    } else {
+      aliado.imagem = resultado.url;
+    }
+  }
+
+  salvarTudo();
+
+  fecharPopup();
+
+  renderAliados();
+}
+
+async function adicionarAliado() {
+  const nome = document.getElementById("aliadoNome").value.trim();
+  const local = document.getElementById("aliadoLocal").value.trim();
+  const desc = document.getElementById("aliadoDesc").value.trim();
+
+  const tipo =
+    document.getElementById("aliadoTipo")?.value || "companheiro";
+
+  if (!nome) return;
+
+  const p = personagens[personagemAtual];
+
+  if (!Array.isArray(p.aliados)) {
+    p.aliados = [];
+  }
+
+  // Envia a imagem pro ImgBB (se tiver) e guarda só o link,
+  // nunca o base64 direto (isso estoura o limite do Firestore)
+  let imagem = "";
+  if (aliadoImagemBase64Temp && aliadoImagemBase64Temp !== "REMOVIDA") {
+    const resultado = await uploadImagemFirebase(aliadoImagemBase64Temp, "aliado");
+    if (resultado.erro || !resultado.url) {
+      alertBonito("Não consegui enviar a imagem (internet?). O aliado foi salvo sem foto.");
+    } else {
+      imagem = resultado.url;
+    }
+  }
+
+  // Salva o aliado
+  p.aliados.push({
+    nome,
+    local,
+    desc,
+    tipo,
+    imagem
+  });
+
+  // Limpa os campos
+  document.getElementById("aliadoNome").value = "";
+  document.getElementById("aliadoLocal").value = "";
+  document.getElementById("aliadoDesc").value = "";
+
+  // Limpa a imagem
+  const imagemInput = document.getElementById("aliadoImagem");
+  if (imagemInput) {
+    imagemInput.value = "";
+  }
+
+  const imagemPreview =
+    document.getElementById("aliadoImagemPreview");
+
+  if (imagemPreview) {
+    imagemPreview.src = "";
+    imagemPreview.style.display = "none";
+  }
+
+  // Volta o tipo para Companheiro
+  const tipoInput =
+    document.getElementById("aliadoTipo");
+
+  if (tipoInput) {
+    tipoInput.value = "companheiro";
+  }
+
+  salvarTudo();
+  aliadoImagemBase64Temp = "";
+  renderAliados();
+}
+
+function abrirDetalhesAliado(index) {
+  const p = personagens[personagemAtual];
+
+  if (!p || !Array.isArray(p.aliados)) return;
+
+  const aliado = p.aliados[index];
+
+  if (!aliado) return;
+
+  const tipo = aliado.tipo || "companheiro";
+
+  let tipoTexto = "⚔ Companheiro";
+
+  if (tipo === "inimigo") {
+    tipoTexto = "☠ Inimigo";
+  } else if (tipo === "neutro") {
+    tipoTexto = "◈ Neutro";
+  }
+
+  const html = `
+    <div class="aliado-detalhes">
+
+    ${
+  aliado.imagem
+    ? `
+      <div class="aliado-detalhes-imagem">
+        <img src="${aliado.imagem}" alt="">
+      </div>
+    `
+    : ""
+}
+
+      <div class="aliado-detalhes-cabecalho">
+
+        <div>
+          <div class="aliado-detalhes-tipo">
+            ${tipoTexto}
+          </div>
+
+          <h2 class="aliado-detalhes-nome">
+            ${esc(aliado.nome) || "Sem nome"}
+          </h2>
+
+          ${
+            aliado.local
+              ? `<div class="aliado-detalhes-local">
+                   📍 ${esc(aliado.local)}
+                 </div>`
+              : ""
+          }
+        </div>
+
+      </div>
+
+      <div class="aliado-detalhes-corpo">
+
+        <h3>Descrição</h3>
+
+        <p>${
+  aliado.desc
+    ? esc(aliado.desc)
+    : "Nenhuma descrição foi adicionada."
+}</p>
+
+      </div>
+
+    </div>
+  `;
+
+  abrirPopup(
+    aliado.nome || "Detalhes",
+    html,
+    true,
+    () => editarAliado(index)
+  );
+}
+
+function criarPersonagem() {
+  if (!podeCriarFicha()) {
+    abrirTelaPlanos();
+    return;
+  }
+  const novo = {
+    id: Date.now() + Math.floor(Math.random() * 99999),
+    nome: "",
+    classe: "",
+    raca: "",
+    idade: "",
+    altura: "",
+    nivel: "",
+    imagem: "",
+    imagens: [],
+    imagemPosX: 50,
+    imagemPosY: 50,
+    antecedentes: "",
+    idiomas: "",
+    diario: "",
+    proficienciasExtras: "",
+    gastosCirculos: {
+      0: [],
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+      6: [],
+      7: [],
+      8: [],
+      9: [],
+    },
+
+    vidaMax: 50,
+    vidaAtual: 50,
+    vidaTemp: 0,
+    ca: "",
+    deslocamento: 9,
+
+    forca: 1,
+    destreza: 10,
+    constituicao: 10,
+    inteligencia: 10,
+    sabedoria: 10,
+    carisma: 10,
+    bonusProf: 2,
+
+    armaduras: [],
+    aliados: [],
+    inventario: [],
+    armas: [],
+    poderes: [],
+    profs: {},
+    saves: {},
+    exaustao: 0,
+    inspiracao: 0,
+    pePorTurno: 0,
+    modoNexOP: typeof modoPadraoDaMesaOP === "function" ? modoPadraoDaMesaOP() : "padrao",
+    nivelOP: 1,
+    nex: typeof modoPadraoDaMesaOP === "function" && modoPadraoDaMesaOP() === "separado" ? 0 : 5,
+    dominio: [false, false, false, false, false, false],
+    morte: {
+      sucessos: [false, false, false],
+      falhas: [false, false, false],
+    },
+  };
+
+  personagens.push(novo);
+  salvarPersonagens();
+  renderPersonagens();
+}
+
+async function deletarPersonagem(index) {
+  const personagem = personagens[index];
+
+  if (!personagem) return;
+
+  if (
+    !(await confirmBonito(
+      `Tem certeza que quer excluir "${personagem.nome || "Sem nome"}"?`
+    ))
+  ) {
+    return;
+  }
+
+  // 🔥 remove imagem do ImgBB
+  if (personagem.imagemDeleteUrl?.startsWith("https://")) {
+    try {
+      await fetch(personagem.imagemDeleteUrl);
+    } catch (erro) {
+      console.warn("Erro ao deletar imagem do ImgBB:", erro);
+    }
+  }
+
+  // 🔥 remove do Firebase
+  if (
+    personagem.id &&
+    window.usuarioAtual
+  ) {
+    try {
+      await deleteDoc(
+        doc(
+          db,
+          "usuarios",
+          window.usuarioAtual.uid,
+          "fichas",
+          String(personagem.id)
+        )
+      );
+    } catch (erro) {
+      console.error(
+        "Erro ao deletar ficha da nuvem:",
+        erro
+      );
+    }
+  }
+
+  // 🔥 remove local
+  personagens.splice(index, 1);
+
+  salvarPersonagens();
+
+  renderPersonagens();
+
+  if (personagemAtual === index) {
+    personagemAtual = null;
+    voltarInicio();
+  }
+}
+
+function toggleDiario() {
+  const box = document.getElementById("diario-box");
+  if (!box) return;
+
+  const abrir = box.style.display === "none" || box.style.display === "";
+  box.style.display = abrir ? "block" : "none";
+
+  localStorage.setItem("secao_diario-box", abrir ? "aberta" : "fechada");
+}
+
+async function addArmadura() {
+  const nome = document.getElementById("armaduraNome").value.trim();
+  const ca = document.getElementById("armaduraCA").value.trim();
+    const espacos = numeroInventario(
+    document.getElementById("armaduraEspacos")?.value
+  );
+
+    const categoria =
+    document.getElementById("armaduraCategoria")?.value.trim() || "";
+
+  const temCargasEl = document.getElementById("armaduraTemCargas");
+  const maxCargasEl = document.getElementById("armaduraMaxCargas");
+
+  const temCargas = !!temCargasEl?.checked;
+  const maxCargas = temCargas ? parseInt(maxCargasEl?.value) || 0 : 0;
+
+  const descArmaduraEl = document.getElementById("armaduraDesc");
+  const desc = descArmaduraEl ? descArmaduraEl.value.trim() : "";
+
+  if (!nome) return;
+  if (temCargas && maxCargas <= 0) return;
+
+  let imagemUrl = editandoArmadura >= 0 ? armaduras[editandoArmadura]?.imagemUrl || "" : "";
+  let imagemDeleteUrl = editandoArmadura >= 0 ? armaduras[editandoArmadura]?.imagemDeleteUrl || "" : "";
+
+  if (armaduraImagemBase64Temp === "REMOVIDA") {
+    imagemUrl = "";
+    imagemDeleteUrl = "";
+  } else if (armaduraImagemBase64Temp) {
+    const resultado = await uploadImagemFirebase(armaduraImagemBase64Temp, "armadura");
+    if (resultado.erro || !resultado.url) {
+      alertBonito(_mensagemErroUpload("A vestimenta foi salva sem imagem."))
+    } else {
+      imagemUrl = resultado.url;
+      imagemDeleteUrl = resultado.deleteUrl;
+    }
+  }
+
+    const requerSintonia = !!document.getElementById("armaduraRequerSintonia")?.checked;
+  const sintonizado = requerSintonia && !!document.getElementById("armaduraSintonizado")?.checked;
+
+  const novaArmadura = {
+    ...lerExtrasItem("armadura", "vestimenta"),
+    nome,
+    ca,
+    desc,
+    categoria,
+    espacos,
+    temCargas,
+    maxCargas,
+    cargasGastas: temCargas ? Array(maxCargas).fill(false) : [],
+    requerSintonia,
+    sintonizado,
+    imagemUrl,
+    imagemDeleteUrl,
+  };
+
+  if (editandoArmadura >= 0) {
+    const armaduraAnterior = armaduras[editandoArmadura];
+
+    if (
+      armaduraAnterior?.temCargas &&
+      temCargas &&
+      armaduraAnterior.maxCargas === maxCargas &&
+      Array.isArray(armaduraAnterior.cargasGastas)
+    ) {
+      novaArmadura.cargasGastas = armaduraAnterior.cargasGastas;
+    }
+
+    armaduras[editandoArmadura] = novaArmadura;
+    editandoArmadura = -1;
+  } else {
+    armaduras.push(novaArmadura);
+  }
+
+  renderArmaduras();
+  salvarTudo();
+
+  document.getElementById("armaduraNome").value = "";
+  document.getElementById("armaduraCA").value = "";
+  montarExtrasForm("armadura", "vestimenta");
+  document.getElementById("armaduraDesc").value = "";
+  
+  const armaduraEspacosEl = document.getElementById("armaduraEspacos");
+  if (armaduraEspacosEl) armaduraEspacosEl.value = "0";
+    const armaduraCategoriaEl = document.getElementById("armaduraCategoria");
+  if (armaduraCategoriaEl) armaduraCategoriaEl.value = "";
+
+    const requerSintoniaEl = document.getElementById("armaduraRequerSintonia");
+  const sintonizadoEl = document.getElementById("armaduraSintonizado");
+  const boxSintonizadoEl = document.getElementById("boxArmaduraSintonizado");
+  if (requerSintoniaEl) requerSintoniaEl.checked = false;
+  if (sintonizadoEl) sintonizadoEl.checked = false;
+  if (boxSintonizadoEl) boxSintonizadoEl.style.display = "none";
+
+  if (temCargasEl) temCargasEl.checked = false;
+  if (maxCargasEl) {
+    maxCargasEl.value = "";
+    maxCargasEl.style.display = "none";
+  }
+
+  armaduraImagemBase64Temp = "";
+  document.getElementById("armaduraImagem").value = "";
+  document.getElementById("armaduraImagemPreview").style.display = "none";
+}
+
+function toggleSintoniaArma() {
+  const requer = document.getElementById("armaRequerSintonia");
+  const box = document.getElementById("boxArmaSintonizado");
+  const sintonizado = document.getElementById("armaSintonizado");
+  if (!requer || !box) return;
+  if (requer.checked) {
+    box.style.display = "block";
+  } else {
+    box.style.display = "none";
+    if (sintonizado) sintonizado.checked = false;
+  }
+}
+
+function toggleSintoniaArmadura() {
+  const requer = document.getElementById("armaduraRequerSintonia");
+  const box = document.getElementById("boxArmaduraSintonizado");
+  const sintonizado = document.getElementById("armaduraSintonizado");
+  if (!requer || !box) return;
+  if (requer.checked) {
+    box.style.display = "block";
+  } else {
+    box.style.display = "none";
+    if (sintonizado) sintonizado.checked = false;
+  }
+}
+
+function toggleCargaArmadura(indexArmadura, indexCarga) {
+  const armadura = armaduras[indexArmadura];
+  if (!armadura || !armadura.temCargas || !Array.isArray(armadura.cargasGastas))
+    return;
+
+  armadura.cargasGastas[indexCarga] = !armadura.cargasGastas[indexCarga];
+  renderArmaduras();
+  salvarTudo();
+}
+
+function renderArmaduras() {
+  const ul = document.getElementById("listaArmaduras");
+  if (!ul) return;
+
+  ul.innerHTML = "";
+
+  armaduras.forEach((armadura, index) => {
+    const li = document.createElement("li");
+    li.className = "armadura-card";
+    li.dataset.index = index;
+
+    const cargasHTML =
+      armadura.temCargas && armadura.maxCargas > 0
+        ? `
+        <div class="arma-cargas-box">
+          <span class="arma-cargas-label">Cargas</span>
+          <div class="arma-cargas-checks">
+            ${Array.from(
+              { length: armadura.maxCargas },
+              (_, i) => `
+              <div
+                class="arma-carga-check ${armadura.cargasGastas?.[i] ? "ativo" : ""}"
+                onclick="event.stopPropagation(); toggleCargaArmadura(${index}, ${i})"
+              ></div>
+            `,
+            ).join("")}
+          </div>
+        </div>
+      `
+        : "";
+
+    
+    li.innerHTML = `
+      <button type="button" class="drag-handle" aria-label="Arrastar para reordenar">⠿</button>
+
+      <div class="armadura-info" onclick="verArmadura(${index})">
+        <strong class="armadura-nome">
+  ${esc(armadura.nome) || "Sem nome"}
+  ${
+    armadura.requerSintonia
+      ? `<span class="item-tag-sintonia">${armadura.sintonizado ? "Sint." : "Req. Sint."}</span>`
+      : ""
+  }
+</strong>
+        <p class="armadura-ca-preview">CA: ${esc(armadura.ca) || "Sem CA"}</p>
+
+<div class="item-subtags">
+  ${
+    numeroInventario(armadura.espacos) > 0
+      ? `<span class="item-subtag item-subtag-espaco">🎒 ${formatarNumeroInventario(armadura.espacos)} ${numeroInventario(armadura.espacos) === 1 ? "espaço" : "espaços"}</span>`
+      : ""
+  }
+
+  ${
+    typeof categoriaChipOP === "function"
+      ? categoriaChipOP(armadura)
+      : armadura.categoria
+        ? `<span class="item-subtag item-subtag-categoria">Cat. ${esc(armadura.categoria)}</span>`
+        : ""
+  }
+
+  ${
+    armadura.requerSintonia
+      ? `<span class="item-subtag">🔗 Requer sintonia</span>`
+      : ""
+  }
+
+  ${
+    armadura.sintonizado
+      ? `<span class="item-subtag ativo">✅ Sintonizado</span>`
+      : ""
+  }
+</div>
+</div>
+
+${extrasCardHTML(armadura, "vestimenta")}
+
+<p class="armadura-desc-preview">
+  ${armadura.desc ? esc(armadura.desc).substring(0, 60) + (armadura.desc.length > 60 ? "..." : "") : "Sem descrição"}
+</p>
+
+${cargasHTML}
+      </div>
+
+      <div class="item-acoes">
+        <button type="button" class="btn-editar" onclick="event.stopPropagation(); editarArmadura(${index})">✏️</button>
+        <button type="button" onclick="event.stopPropagation(); window.abrirDarItem('armaduras', ${index})" style="background:#3e2f46;border:none;color:#efe7ef;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;">Dar</button>
+        <button type="button" class="arma-remover" onclick="event.stopPropagation(); removerArmadura(${index})">X</button>
+      </div>
+    `;
+
+    ul.appendChild(li);
+  });
+
+    habilitarArrastarReordenar(ul, armaduras, renderArmaduras);
+  atualizarResumoInventario();
+}
+
+function toggleCampoCargasArmadura() {
+  const check = document.getElementById("armaduraTemCargas");
+  const input = document.getElementById("armaduraMaxCargas");
+
+  if (!check || !input) return;
+
+  if (check.checked) {
+    input.style.display = "block";
+  } else {
+    input.style.display = "none";
+    input.value = "";
+  }
+}
+
+function verArmadura(index) {
+  const armadura = armaduras[index];
+  if (!armadura) return;
+
+  const html = `
+    <div class="popup-bloco">
+      ${
+        armadura.imagemUrl
+          ? `<div><img src="${armadura.imagemUrl}" class="popup-imagem-item" /></div>`
+          : ""
+      }
+
+      <div>
+        <span class="popup-label">CA</span>
+        <div class="popup-descricao-pequena">${esc(armadura.ca) || "Sem CA"}</div>
+      </div>
+
+      <div class="popup-info-grid" style="margin-top: 12px;">
+
+        <div>
+          <span class="popup-label">Espaços</span>
+          <div class="popup-descricao popup-descricao-pequena">${formatarNumeroInventario(armadura.espacos || 0)}</div>
+        </div>
+
+        <div>
+          <span class="popup-label">Categoria</span>
+          <div class="popup-descricao popup-descricao-pequena">${typeof categoriaPopupOP === "function" ? esc(categoriaPopupOP(armadura)) : armadura.categoria ? esc(armadura.categoria) : "—"}</div>
+        </div>
+
+      </div>
+
+      ${extrasPopupHTML(armadura, "vestimenta")}
+
+      <div style="margin-top: 12px;">
+        <span class="popup-label">Descrição</span>
+        <div class="popup-descricao">${esc(armadura.desc) || "Sem descrição"}</div>
+      </div>
+    </div>
+  `;
+
+  abrirPopup(armadura.nome || "Sem nome", html, true, () =>
+    editarArmadura(index),
+  );
+}
+
+function abrirTelaPlanos() {
+  const tela = document.getElementById("tela-planos");
+  if (tela) tela.style.display = "block";
+}
+
+function fecharTelaPlanos() {
+  const tela = document.getElementById("tela-planos");
+  if (tela) tela.style.display = "none";
+}
+
+function assinarPlano(plano) {
+  alertBonito("Em breve! O sistema de pagamento estará disponível no lançamento.");
+}
+
+function editarArmadura(index) {
+  const armadura = armaduras[index];
+  if (!armadura) return;
+
+  editArmaduraImagemBase64Temp = "";
+
+  const html = `
+    <div class="popup-form">
+      ${typeof htmlCatalogoEquipOP === "function" ? htmlCatalogoEquipOP("editArmadura", "vestimenta") : ""}
+      <label class="popup-label">Nome</label>
+      <input id="editArmaduraNome" value="${armadura.nome || ""}">
+
+            <label class="popup-label">CA</label>
+      <input id="editArmaduraCA" value="${armadura.ca || ""}">
+
+      <label class="popup-label">Espaços no inventário</label>
+      <input
+        id="editArmaduraEspacos"
+        type="number"
+        min="0"
+        step="any"
+        value="${numeroInventario(armadura.espacos)}"
+      >
+
+            <label class="popup-label">Categoria</label>
+      <input
+        id="editArmaduraCategoria"
+        placeholder="0, I, II, III ou IV"
+        value="${esc(armadura.categoria || "")}"
+      >
+
+      ${htmlExtrasItem("editArmadura", "vestimenta", armadura)}
+
+      <label class="popup-label">Descrição</label>
+      <textarea id="editArmaduraDesc">${armadura.desc || ""}</textarea>
+
+      <label class="popup-label">Imagem (opcional)</label>
+      <input type="file" id="editArmaduraImagem" accept="image/*" onchange="previewEditArmaduraImagem()" />
+      <label for="editArmaduraImagem" class="botao-upload">Trocar imagem</label>
+      <img
+        id="editArmaduraImagemPreview"
+        src="${armadura.imagemUrl || ""}"
+        style="display:${armadura.imagemUrl ? "block" : "none"}; max-width:100%; border-radius:10px; margin-top:8px;"
+      />
+      <span class="link-remover-imagem" onclick="removerEditImagemArmadura()">Remover imagem</span>
+
+      <div class="toggle-cargas" style="margin-top:10px;">
+        <span class="toggle-cargas-texto">Usa cargas</span>
+
+        <label class="switch-cargas">
+          <input
+            type="checkbox"
+            id="editArmaduraTemCargas"
+            ${armadura.temCargas ? "checked" : ""}
+            onchange="toggleEditCampoCargasArmadura()"
+          >
+          <span class="slider-cargas"></span>
+        </label>
+      </div>
+
+      <div class="toggle-cargas">
+  <span class="toggle-cargas-texto">Requer sintonização</span>
+
+  <label class="switch-cargas">
+    <input
+      type="checkbox"
+      id="editArmaduraRequerSintonia"
+      ${armadura.requerSintonia ? "checked" : ""}
+      onchange="toggleEditSintoniaArmadura()"
+    >
+    <span class="slider-cargas"></span>
+  </label>
+</div>
+
+<div
+  id="boxEditArmaduraSintonizado"
+  style="display:${armadura.requerSintonia ? "block" : "none"};"
+>
+  <div class="toggle-cargas">
+    <span class="toggle-cargas-texto">Está sintonizado</span>
+
+    <label class="switch-cargas">
+      <input
+        type="checkbox"
+        id="editArmaduraSintonizado"
+        ${armadura.sintonizado ? "checked" : ""}
+      >
+      <span class="slider-cargas"></span>
+    </label>
+  </div>
+</div>
+
+      <input
+        id="editArmaduraMaxCargas"
+        type="number"
+        min="1"
+        max="20"
+        placeholder="Qtd. de cargas"
+        value="${armadura.maxCargas || ""}"
+        style="display:${armadura.temCargas ? "block" : "none"};"
+      >
+
+      <button class="popup-salvar-btn" onclick="salvarEdicaoArmadura(${index})">
+        Salvar
+      </button>
+    </div>
+  `;
+
+  abrirPopup("Editar vestimenta", html, true, null);
+}
+
+function toggleEditCampoCargasArmadura() {
+  const check = document.getElementById("editArmaduraTemCargas");
+  const input = document.getElementById("editArmaduraMaxCargas");
+
+  if (!check || !input) return;
+
+  if (check.checked) {
+    input.style.display = "block";
+  } else {
+    input.style.display = "none";
+    input.value = "";
+  }
+}
+
+function toggleEditSintoniaArma() {
+  const requer = document.getElementById("editArmaRequerSintonia");
+  const box = document.getElementById("boxEditArmaSintonizado");
+  const sintonizado = document.getElementById("editArmaSintonizado");
+
+  if (!requer || !box) return;
+
+  if (requer.checked) {
+    box.style.display = "block";
+  } else {
+    box.style.display = "none";
+
+    if (sintonizado) {
+      sintonizado.checked = false;
+    }
+  }
+}
+
+function toggleEditSintoniaArmadura() {
+  const requer = document.getElementById("editArmaduraRequerSintonia");
+  const box = document.getElementById("boxEditArmaduraSintonizado");
+  const sintonizado = document.getElementById("editArmaduraSintonizado");
+
+  if (!requer || !box) return;
+
+  if (requer.checked) {
+    box.style.display = "block";
+  } else {
+    box.style.display = "none";
+
+    if (sintonizado) {
+      sintonizado.checked = false;
+    }
+  }
+}
+
+async function salvarEdicaoArmadura(index) {
+  const nome = document.getElementById("editArmaduraNome").value.trim();
+    const espacos = numeroInventario(
+    document.getElementById("editArmaduraEspacos")?.value
+  );
+
+    const categoria =
+    document.getElementById("editArmaduraCategoria")?.value.trim() || "";
+  const desc = document.getElementById("editArmaduraDesc").value.trim();
+
+  const requerSintonia =
+  !!document.getElementById("editArmaduraRequerSintonia")?.checked;
+
+const sintonizado =
+  requerSintonia &&
+  !!document.getElementById("editArmaduraSintonizado")?.checked;
+
+  const temCargas = !!document.getElementById("editArmaduraTemCargas")?.checked;
+  const maxCargas = temCargas
+    ? parseInt(document.getElementById("editArmaduraMaxCargas")?.value) || 0
+    : 0;
+
+  if (!nome) return;
+  if (temCargas && maxCargas <= 0) return;
+
+  const armaduraAnterior = armaduras[index];
+
+  let cargasGastas = [];
+  if (temCargas) {
+    if (
+      armaduraAnterior?.temCargas &&
+      armaduraAnterior.maxCargas === maxCargas &&
+      Array.isArray(armaduraAnterior.cargasGastas)
+    ) {
+      cargasGastas = armaduraAnterior.cargasGastas;
+    } else {
+      cargasGastas = Array(maxCargas).fill(false);
+    }
+  }
+
+  let imagemUrl = armaduraAnterior?.imagemUrl || "";
+  let imagemDeleteUrl = armaduraAnterior?.imagemDeleteUrl || "";
+
+  if (editArmaduraImagemBase64Temp === "REMOVIDA") {
+    imagemUrl = "";
+    imagemDeleteUrl = "";
+  } else if (editArmaduraImagemBase64Temp) {
+    const resultado = await uploadImagemFirebase(editArmaduraImagemBase64Temp, "armadura");
+    if (resultado.erro || !resultado.url) {
+      alertBonito(_mensagemErroUpload("A imagem anterior foi mantida."))
+    } else {
+      imagemUrl = resultado.url;
+      imagemDeleteUrl = resultado.deleteUrl;
+    }
+  }
+
+  armaduras[index] = {
+  ...lerExtrasItem("editArmadura", "vestimenta"),
+  nome,
+  ca,
+  categoria,
+  espacos,
+  desc,
+  temCargas,
+  maxCargas,
+  cargasGastas,
+  requerSintonia,
+  sintonizado,
+  imagemUrl,
+  imagemDeleteUrl,
+};
+
+  editArmaduraImagemBase64Temp = "";
+  renderArmaduras();
+  salvarTudo();
+  fecharPopup();
+}
+
+async function removerArmadura(index) {
+  const armadura = armaduras[index];
+  if (!armadura) return;
+
+  const confirmar = await confirmBonito(`Remover "${armadura.nome}"?`);
+  if (!confirmar) return;
+
+  armaduras.splice(index, 1);
+  renderArmaduras();
+  salvarTudo();
+}
+
+function carregarPersonagem(index) {
+  personagemAtual = index;
+  const p = personagens[index];
+  if (!p) return;
+
+  sanitizarPersonagem(p);
+  document.getElementById("classe").value = p.classe || "";
+  document.getElementById("nome").value = p.nome || "";
+  const racaSelect = document.getElementById("racaSelect");
+  if (racaSelect) {
+    racaSelect.value = p.racaSelect || p.raca || "";
+  }
+  bonusRacaCustom = p.bonusRacaCustom || {
+    forca: 0,
+    destreza: 0,
+    constituicao: 0,
+    inteligencia: 0,
+    sabedoria: 0,
+    carisma: 0,
+  };
+  document.getElementById("idade").value = p.idade || "";
+  document.getElementById("altura").value = p.altura || "";
+  document.getElementById("lorePersonagem").value = p.lore || "";
+  document.getElementById("nivel").value = p.nivel || "";
+  document.getElementById("antecedentes").value = p.antecedentes || "";
+  const classeOPEl = document.getElementById("classeOP");
+const nexEl = document.getElementById("nex");
+
+if (classeOPEl) {
+  classeOPEl.value = p.classeOP || ""; // personagem novo começa em "Selecionar classe"
+}
+
+if (nexEl) {
+  nexEl.value = p.nex ?? 5;
+}
+  document.getElementById("vidaMax").value =
+    p.vidaMax !== "" && p.vidaMax != null && Number.isFinite(Number(p.vidaMax))
+      ? p.vidaMax
+      : 50;
+  document.getElementById("ca").value = p.ca ?? "";
+  document.getElementById("deslocamento").value = p.deslocamento ?? 9;
+  const antecedenteSelect = document.getElementById("antecedenteSelect");
+  if (antecedenteSelect)
+    antecedenteSelect.value = p.antecedenteSelect || p.antecedentes || "custom";
+  document.getElementById("idiomas").value = p.idiomas || "";
+
+  const resistenciasEl = document.getElementById("resistencias");
+  const diarioEl = document.getElementById("diario");
+  const peMaxOP = document.getElementById("peMaxOP");
+const sanMaxOP = document.getElementById("sanMaxOP");
+
+if (peMaxOP) peMaxOP.value = p.peMaxOP ?? 0;
+if (sanMaxOP) sanMaxOP.value = p.sanMaxOP ?? 0;
+
+  if (resistenciasEl) resistenciasEl.value = p.resistencias || "";
+  if (diarioEl) diarioEl.value = p.diario || "";
+
+  document.getElementById("agilidade").value = p.agilidade ?? 1;
+  document.getElementById("forca").value = p.forca ?? 1;
+  document.getElementById("intelecto").value = p.intelecto ?? 1;
+  document.getElementById("presenca").value = p.presenca ?? 1;
+  document.getElementById("vigor").value = p.vigor ?? 1;
+
+  const inspiracao = document.getElementById("inspiracao");
+  if (inspiracao) inspiracao.value = p.inspiracao ?? 0;
+
+  const profExtras = document.getElementById("proficienciasExtras");
+  if (profExtras) profExtras.value = p.proficienciasExtras || "";
+
+ const pePorTurno =
+  document.getElementById("pePorTurno");
+
+if (pePorTurno) {
+  pePorTurno.value =
+    p.pePorTurno ?? 0;
+}
+
+    imagensPersonagem = Array.isArray(p.imagens) && p.imagens.length
+    ? p.imagens
+    : (p.imagem ? [{ url: p.imagem, deleteUrl: p.imagemDeleteUrl || "" }] : []);
+  indiceCarrossel = 0;
+  atualizarPreviewCarrossel();
+  imagemOriginalBase64 = p.imagemOriginal || p.imagem || "";
+
+  imagemPosX = p.imagemPosX ?? 50;
+  imagemPosY = p.imagemPosY ?? 50;
+
+  const preview = document.getElementById("preview");
+  if (preview) {
+    preview.style.objectPosition = `${imagemPosX}% ${imagemPosY}%`;
+  }
+
+  dominio = p.dominio || [false, false, false, false, false, false];
+  vidaAtual = p.vidaAtual ?? 50;
+  vidaTemp = p.vidaTemp ?? 0;
+  peAtual = p.peAtual ?? null;
+  sanAtual = p.sanAtual ?? null;
+  if (typeof atualizarRecursosOP === "function") atualizarRecursosOP();
+  inventario = p.inventario || [];
+  recipientes = Array.isArray(p.recipientes) ? p.recipientes : [];
+  veiculos =
+  Array.isArray(p.veiculos)
+    ? p.veiculos
+    : [];
+
+const inventarioEspacosMaxEl =
+  document.getElementById(
+    "inventarioEspacosMax"
+  );
+
+if (inventarioEspacosMaxEl) {
+  inventarioEspacosMaxEl.value =
+    p.capacidadeInventario ?? 0;
+}
+
+armas = p.armas || [];
+  poderes = p.poderes || [];
+  profs = p.profs || {};
+  periciasSelecionadasOP =
+  Array.isArray(p.periciasSelecionadasOP)
+    ? p.periciasSelecionadasOP
+    : [];
+  bonusPericiasOP =
+    p.bonusPericiasOP && typeof p.bonusPericiasOP === "object" ? { ...p.bonusPericiasOP } : {};
+  armaduras = p.armaduras || [];
+  mapas = p.mapas || [];
+  renderMapas();
+  documentos = Array.isArray(p.documentos) ? p.documentos : [];
+  renderDocumentos();
+  nomeRacaCustom = p.nomeRacaCustom || "";
+  atualizarNomeOpcaoCustom();
+  gastosCirculos = p.gastosCirculos || {
+    0: [],
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+    5: [],
+    6: [],
+    7: [],
+    8: [],
+    9: [],
+  };
+
+  for (let i = 0; i <= 9; i++) {
+    if (!Array.isArray(gastosCirculos[i])) {
+      gastosCirculos[i] = [];
+    }
+    renderSlotsCirculo(i);
+  }
+  saves = p.saves || {};
+  exaustao = p.exaustao ?? 0;
+  morte = p.morte || {
+    sucessos: [false, false, false],
+    falhas: [false, false, false],
+  };
+
+  renderInv();
+renderVeiculos();
+renderRecipientes();
+renderArmas();
+  renderPoderes();
+  atualizarTudo();
+  atualizarSaves();
+  atualizarBadgesSaves();
+  atualizarHP();
+  atualizarTemp();
+setExaustao(exaustao);
+atualizarMorte();
+entrarFicha();
+  renderAliados();
+  renderDominio();
+restaurarSecoes();
+renderArmaduras();
+if (typeof carregarOP === "function") carregarOP(p);
+if (typeof carregarDiarioOP === "function") carregarDiarioOP(p);
+if (typeof carregarCondicoesOP === "function") carregarCondicoesOP(p);
+
+atualizarDerivadosOP();
+
+setTimeout(() => {
+}, 100);
+}
+
+
+
+const TABELA_CLASSES_OP = {
+  combatente:  { pvBase: 20, pvPorNex: 4, peBase: 2,  pePorNex: 2, sanBase: 12, sanPorNex: 3 },
+  especialista:{ pvBase: 16, pvPorNex: 3, peBase: 3,  pePorNex: 3, sanBase: 16, sanPorNex: 4 },
+  ocultista:   { pvBase: 12, pvPorNex: 2, peBase: 4,  pePorNex: 4, sanBase: 20, sanPorNex: 4 },
+};
+
+function atualizarDerivadosOP() {
+  // Por enquanto os recursos da ficha são preenchidos manualmente.
+  // Mantemos a função para não quebrar chamadas existentes.
+}
+/* ================= SALVAR ================= */
+
+function salvarTudo() {
+  if (personagemAtual === null) return;
+
+  const p = personagens[personagemAtual];
+  if (!p) return;
+
+  p.nome = document.getElementById("nome").value;
+  p.classe = document.getElementById("classe").value;
+  p.classeOP = document.getElementById("classeOP")?.value || "";
+  p.peMaxOP = document.getElementById("peMaxOP")?.value || 0;
+p.sanMaxOP = document.getElementById("sanMaxOP")?.value || 0;
+p.peAtual = peAtual;
+p.sanAtual = sanAtual;
+  const nexValor = parseInt(document.getElementById("nex")?.value);
+
+p.nex = Number.isNaN(nexValor)
+  ? 5
+  : nexValor;
+  if (typeof salvarOP === "function") salvarOP(p);
+  if (typeof salvarDiarioOP === "function") salvarDiarioOP(p);
+  if (typeof salvarCondicoesOP === "function") salvarCondicoesOP(p);
+  p.racaSelect = document.getElementById("racaSelect")?.value || "custom";
+  p.raca = p.racaSelect;
+  p.bonusRacaCustom = bonusRacaCustom;
+  p.idade = document.getElementById("idade").value;
+  p.nomeRacaCustom = nomeRacaCustom;
+  p.altura = document.getElementById("altura").value;
+p.nivel = document.getElementById("nivel")?.value || "";
+  p.antecedentes = document.getElementById("antecedentes")?.value || "";
+  p.idiomas = document.getElementById("idiomas").value;
+  p.armaduras = armaduras;
+  p.mapas = mapas;
+  p.documentos = documentos;
+  p.proficienciasExtras =
+    document.getElementById("proficienciasExtras")?.value || "";
+    p.imagens = imagensPersonagem;
+  p.imagem = imagensPersonagem[0]?.url || imagemBase64;
+  p.imagemOriginal = imagemOriginalBase64;
+  p.imagemDeleteUrl = imagensPersonagem[0]?.deleteUrl || imagemDeleteUrl;
+  p.imagemPosX = imagemPosX;
+  p.imagemPosY = imagemPosY;
+  const resistenciasEl = document.getElementById("resistencias");
+  const diarioEl = document.getElementById("diario");
+
+  p.resistencias = resistenciasEl ? resistenciasEl.value : "";
+  p.diario = diarioEl ? diarioEl.value : "";
+
+  p.vidaMax = get("vidaMax");
+  p.vidaAtual = vidaAtual;
+  p.vidaTemp = vidaTemp;
+  p.ca = document.getElementById("ca").value;
+  p.deslocamento = document.getElementById("deslocamento").value;
+
+  p.agilidade = get("agilidade");
+  p.forca = get("forca");
+  p.intelecto = get("intelecto");
+  p.presenca = get("presenca");
+  p.vigor = get("vigor");
+
+  p.inventario = inventario;
+  p.veiculos = veiculos;
+p.recipientes = recipientes;
+
+p.capacidadeInventario =
+  numeroInventario(
+    document.getElementById(
+      "inventarioEspacosMax"
+    )?.value
+  );
+
+p.armas = armas;
+  p.poderes = poderes;
+  p.gastosCirculos = gastosCirculos;
+p.profs = profs;
+p.periciasSelecionadasOP = [...periciasSelecionadasOP];
+p.bonusPericiasOP = { ...bonusPericiasOP };
+p.saves = saves;
+  p.exaustao = exaustao;
+  p.morte = morte;
+  p.dominio = dominio;
+
+  const inspiracao =
+  document.getElementById("inspiracao");
+
+const pePorTurno =
+  document.getElementById("pePorTurno");
+
+p.inspiracao =
+  inspiracao
+    ? inspiracao.value
+    : 0;
+
+p.pePorTurno =
+  pePorTurno
+    ? Math.max(
+        0,
+        parseInt(pePorTurno.value) || 0
+      )
+    : 0;
+
+  renderPersonagens();
+  clearTimeout(window._debounceSalvar);
+  window._debounceSalvar = setTimeout(() => {
+    salvarPersonagens();
+  }, 800);
+}
+
+/* ================= IMAGEM ================= */
+
+function atualizarNomeOpcaoCustom() {
+  const optionCustom = document.querySelector(
+    '#racaSelect option[value="custom"]',
+  );
+  if (!optionCustom) return;
+
+  optionCustom.textContent = nomeRacaCustom?.trim()
+    ? nomeRacaCustom.trim()
+    : "Raças Personalizadas";
+}
+
+window._perfilUidAberto = null;
+window._perfilEhMeu = false;
+
+window.abrirPerfil = async function (uid) {
+  const meuUid = window.usuarioAtual.uid;
+  const ehMeu = uid === meuUid;
+  window._perfilUidAberto = uid;
+  window._perfilEhMeu = ehMeu;
+
+  document.getElementById("modalPerfilOverlay").style.display = "block";
+  document.getElementById("modalPerfil").style.display = "block";
+  document.getElementById("btnSalvarBio").style.display = "none";
+  document.getElementById("perfilBioEdit").style.display = "none";
+  document.getElementById("perfilBioView").style.display = "block";
+
+  try {
+    const snap = await getDoc(doc(db, "usuarios", uid));
+    const d = snap.exists() ? snap.data() : {};
+
+    document.getElementById("perfilNomeTag").innerHTML = d.nickname
+      ? `${escapeHtml(d.nickname)}<span style="opacity:.5;">#${escapeHtml(d.tag)}</span>`
+      : "";
+
+    document.getElementById("perfilFundo").style.backgroundImage = d.fotoFundo ? `url('${d.fotoFundo}')` : "none";
+    document.getElementById("perfilAvatar").style.backgroundImage = d.fotoPerfil ? `url('${d.fotoPerfil}')` : "none";
+
+    const corBase = d.corBase || "#0b070d";
+    const corNome = d.corNome || "#c78eda";
+    const corLinha = d.corLinha || "rgba(174,55,83,0.3)";
+    const corTexto = corContraste(corBase);
+    document.getElementById("modalPerfil").style.backgroundColor = corBase;
+    document.getElementById("modalPerfil").style.setProperty("--perfil-linha", corLinha);
+    document.getElementById("modalPerfil").style.setProperty("--perfil-texto", corTexto);
+    document.getElementById("perfilNomeTag").style.color = corNome;
+    document.getElementById("corBaseInput").value = corBase;
+    document.getElementById("corNomeInput").value = corNome;
+    document.getElementById("corLinhaInput").value = corLinha.startsWith("#") ? corLinha : "#ae3753";
+    document.getElementById("corBaseSwatch").style.background = corBase;
+    document.getElementById("corNomeSwatch").style.background = corNome;
+    document.getElementById("corLinhaSwatch").style.background = corLinha.startsWith("#") ? corLinha : "#ae3753";
+    document.getElementById("perfilCoresBtn").style.display = ehMeu ? "flex" : "none";
+    document.getElementById("perfilCoresBox").style.display = "none";
+
+    const bioView = document.getElementById("perfilBioView");
+    bioView.textContent = d.bio || (ehMeu ? "Adicione uma bio..." : "Sem bio ainda.");
+    document.getElementById("perfilBioEdit").value = d.bio || "";
+
+    document.getElementById("btnMudarFundo").style.display = ehMeu ? "block" : "none";
+    document.getElementById("btnMudarAvatar").style.display = ehMeu ? "block" : "none";
+    document.getElementById("btnEscolherDestaque").style.display = ehMeu ? "block" : "none";
+    bioView.onclick = ehMeu ? mostrarEditarBio : null;
+    bioView.style.cursor = ehMeu ? "pointer" : "default";
+
+    const showcase = document.getElementById("perfilShowcase");
+    const destaque = d.personagensDestaque || [];
+    window._perfilDestaqueAtual = destaque;
+    if (destaque.length === 0) {
+      showcase.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#d5cbd8;font-size:12px;font-style:italic;padding:10px 0;">Nenhum personagem em destaque.</p>`;
+    } else {
+      showcase.innerHTML = destaque.map((f, i) => `
+        <div onclick="abrirPreviewFicha(${i})" style="cursor:pointer;background:rgba(255,255,255,0.05);border:1px solid var(--perfil-linha, rgba(233,224,236,0.2));border-radius:10px;overflow:hidden;">
+          <div style="height:80px;background-image:url('${f.imagem || ""}');background-size:cover;background-position:center;background-color:#150d18;"></div>
+          <div style="padding:8px;">
+            <div style="font-size:12px;font-weight:bold;color:var(--perfil-texto, #F8F4E3);">${escapeHtml(f.nome || "Sem nome")}</div>
+            <div style="font-size:11px;color:var(--perfil-texto, #d5cbd8);opacity:.75;">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""}</div>
+            ${!ehMeu && f.publica ? `<button onclick="event.stopPropagation(); pegarFichaPublica('${uid}','${f.fichaId}')" style="margin-top:6px;width:100%;padding:5px;border-radius:6px;border:none;background:#ae3753;color:#100a13;font-size:11px;font-weight:bold;cursor:pointer;">Pegar</button>` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao carregar perfil: " + (e.code || e.message));
+  }
+};
+
+window.fecharPerfil = function () {
+  document.getElementById("modalPerfilOverlay").style.display = "none";
+  document.getElementById("modalPerfil").style.display = "none";
+};
+
+window.mostrarEditarBio = function () {
+  document.getElementById("perfilBioView").style.display = "none";
+  document.getElementById("perfilBioEdit").style.display = "block";
+  document.getElementById("btnSalvarBio").style.display = "block";
+};
+
+window.salvarBioPerfil = async function () {
+  const bio = document.getElementById("perfilBioEdit").value.trim();
+  try {
+    await setDoc(doc(db, "usuarios", window.usuarioAtual.uid), { bio }, { merge: true });
+    window.abrirPerfil(window.usuarioAtual.uid);
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao salvar bio: " + (e.code || e.message));
+  }
+};
+
+window.uploadImagemPerfil = async function (input, tipo) {
+  if (!input.files || !input.files[0]) return;
+  try {
+    const base64 = await comprimirImagem(input.files[0]);
+    const resultado = await uploadImagemFirebase(base64, tipo);
+    if (resultado.erro || !resultado.url) {
+      	alertBonito(_mensagemErroUpload())
+      return;
+    }
+    const campo = tipo === "fundo" ? "fotoFundo" : "fotoPerfil";
+    await setDoc(doc(db, "usuarios", window.usuarioAtual.uid), { [campo]: resultado.url }, { merge: true });
+    window.abrirPerfil(window.usuarioAtual.uid);
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao enviar imagem: " + (e.code || e.message));
+  } finally {
+    input.value = "";
+  }
+};
+
+window.abrirEscolherDestaque = async function () {
+  document.getElementById("modalEscolherDestaqueOverlay").style.display = "block";
+  document.getElementById("modalEscolherDestaque").style.display = "block";
+
+  const lista = document.getElementById("listaEscolherDestaque");
+  const fichas = window.personagens || [];
+  if (fichas.length === 0) {
+    lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Você ainda não tem fichas.</p>`;
+    return;
+  }
+
+  let idsDestaque = [];
+  try {
+    const snap = await getDoc(doc(db, "usuarios", window.usuarioAtual.uid));
+    const destaqueAtual = (snap.exists() && snap.data().personagensDestaque) || [];
+    idsDestaque = destaqueAtual.map(d => String(d.fichaId));
+  } catch (e) {
+    console.error(e);
+  }
+
+  lista.innerHTML = fichas.map((f, i) => {
+    const jaExibida = idsDestaque.includes(String(f.id));
+    return `
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:10px;padding:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="flex:1;font-size:13px;">${escapeHtml(f.nome || "Sem nome")} <span style="color:#d5cbd8;font-size:11px;">${escapeHtml(f.classe || "")}</span></span>
+        <button type="button" onclick="var el=document.getElementById('opcoesFicha${i}');el.style.display = el.style.display === 'none' ? 'flex' : 'none';" style="background:none;border:none;color:#efe7ef;font-size:15px;cursor:pointer;padding:2px;">⚙</button>
+      </div>
+      <div id="opcoesFicha${i}" style="display:none;flex-direction:column;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(233,224,236,0.12);">
+        <label style="display:flex;align-items:center;justify-content:space-between;font-size:12px;cursor:pointer;gap:8px;">
+          <span>Exibir ficha</span>
+          <input type="checkbox" class="checkDestaqueFicha" data-index="${i}" ${jaExibida ? "checked" : ""} style="width:auto;margin:0;">
+        </label>
+        <label style="display:flex;align-items:center;justify-content:space-between;font-size:12px;cursor:pointer;gap:8px;">
+          <span>Permitir que a ficha seja copiada</span>
+          <input type="checkbox" class="checkPublicaFicha" data-index="${i}" ${f.publica ? "checked" : ""} style="width:auto;margin:0;">
+        </label>
+      </div>
+    </div>`;
+  }).join("");
+};
+
+window.fecharEscolherDestaque = function () {
+  document.getElementById("modalEscolherDestaqueOverlay").style.display = "none";
+  document.getElementById("modalEscolherDestaque").style.display = "none";
+};
+
+window.salvarDestaquePerfil = async function () {
+  const checksExibir = document.querySelectorAll(".checkDestaqueFicha:checked");
+  if (checksExibir.length > 4) {
+    alertBonito("Escolha no máximo 4 pra exibir.");
+    return;
+  }
+
+  const fichas = window.personagens || [];
+
+  document.querySelectorAll(".checkPublicaFicha").forEach(chk => {
+    const i = parseInt(chk.dataset.index);
+    if (fichas[i]) fichas[i].publica = chk.checked;
+  });
+
+  const destaque = Array.from(checksExibir).map(chk => {
+    const f = fichas[parseInt(chk.dataset.index)];
+    const arma = (f.armas || [])[0];
+    const armadura = (f.armaduras || [])[0];
+    const poderes = (f.poderes || []).slice(0, 3);
+    return {
+      fichaId: String(f.id),
+      nome: f.nome || "",
+      classe: f.classe || "",
+      nivel: f.nivel || "",
+      imagem: f.imagem || "",
+      publica: !!f.publica,
+      previewLore: (f.lore || "").trim().slice(0, 220),
+      previewEquip: arma
+        ? { tipo: "arma", nome: arma.nome || "", extra: arma.dano || "" }
+        : (armadura ? { tipo: "armadura", nome: armadura.nome || "", extra: armadura.ca ? "CA " + armadura.ca : "" } : null),
+      previewPoderes: poderes.map(p => p.nome || "").filter(Boolean)
+    };
+  });
+
+  try {
+    window.personagens = fichas;
+    if (typeof salvarPersonagens === "function") await salvarPersonagens();
+    await setDoc(doc(db, "usuarios", window.usuarioAtual.uid), { personagensDestaque: destaque }, { merge: true });
+    window.fecharEscolherDestaque();
+    window.abrirPerfil(window.usuarioAtual.uid);
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao salvar: " + (e.code || e.message));
+  }
+};
+
+
+function corContraste(hex) {
+  const c = hex.replace("#", "");
+  const r = parseInt(c.substring(0,2), 16);
+  const g = parseInt(c.substring(2,4), 16);
+  const b = parseInt(c.substring(4,6), 16);
+  const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminancia > 0.55 ? "#100a13" : "#F8F4E3";
+}
+
+
+
+// ===== Color Picker custom (quadrado saturação/valor + barra de matiz) =====
+let cpTargetInput = null, cpTargetSwatch = null, cpHue = 0, cpSat = 0, cpVal = 0;
+
+function hsvToRgb(h, s, v) {
+  s /= 100; v /= 100;
+  const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+  let r=0,g=0,b=0;
+  if (h < 60) [r,g,b] = [c,x,0];
+  else if (h < 120) [r,g,b] = [x,c,0];
+  else if (h < 180) [r,g,b] = [0,c,x];
+  else if (h < 240) [r,g,b] = [0,x,c];
+  else if (h < 300) [r,g,b] = [x,0,c];
+  else [r,g,b] = [c,0,x];
+  return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+}
+
+function rgbToHsv(r, g, b) {
+  r/=255; g/=255; b/=255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max-min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = 60 * (((g-b)/d) % 6);
+    else if (max === g) h = 60 * ((b-r)/d + 2);
+    else h = 60 * ((r-g)/d + 4);
+  }
+  if (h < 0) h += 360;
+  const s = max === 0 ? 0 : d/max;
+  return [h, s*100, max*100];
+}
+
+function rgbToHex(r,g,b){
+  return "#" + [r,g,b].map(v => v.toString(16).padStart(2,"0")).join("");
+}
+function hexToRgb(hex){
+  hex = (hex || "#000000").replace("#","");
+  if (hex.length === 3) hex = hex.split("").map(c=>c+c).join("");
+  const num = parseInt(hex,16) || 0;
+  return [(num>>16)&255, (num>>8)&255, num&255];
+}
+
+function desenharQuadradoCP(){
+  const canvas = document.getElementById("cpSquare");
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width; canvas.height = rect.height;
+  const ctx = canvas.getContext("2d");
+  const [r,g,b] = hsvToRgb(cpHue, 100, 100);
+  ctx.fillStyle = `rgb(${r},${g},${b})`;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  const gradWhite = ctx.createLinearGradient(0,0,canvas.width,0);
+  gradWhite.addColorStop(0,"rgba(255,255,255,1)");
+  gradWhite.addColorStop(1,"rgba(255,255,255,0)");
+  ctx.fillStyle = gradWhite;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  const gradBlack = ctx.createLinearGradient(0,0,0,canvas.height);
+  gradBlack.addColorStop(0,"rgba(0,0,0,0)");
+  gradBlack.addColorStop(1,"rgba(0,0,0,1)");
+  ctx.fillStyle = gradBlack;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function desenharHueCP(){
+  const canvas = document.getElementById("cpHue");
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width; canvas.height = rect.height;
+  const ctx = canvas.getContext("2d");
+  const grad = ctx.createLinearGradient(0,0,canvas.width,0);
+  for (let i=0;i<=360;i+=30) grad.addColorStop(i/360, `hsl(${i},100%,50%)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function atualizarHandlesCP(){
+  const sqWrap = document.getElementById("cpSquareWrap");
+  document.getElementById("cpSquareHandle").style.left = (cpSat/100*sqWrap.clientWidth) + "px";
+  document.getElementById("cpSquareHandle").style.top = ((1-cpVal/100)*sqWrap.clientHeight) + "px";
+  const hueWrap = document.getElementById("cpHueWrap");
+  document.getElementById("cpHueHandle").style.left = (cpHue/360*hueWrap.clientWidth) + "px";
+}
+
+function atualizarPreviewCP(){
+  const [r,g,b] = hsvToRgb(cpHue, cpSat, cpVal);
+  document.getElementById("cpPreview").style.background = rgbToHex(r,g,b);
+  document.getElementById("cpR").value = r;
+  document.getElementById("cpG").value = g;
+  document.getElementById("cpB").value = b;
+  desenharQuadradoCP();
+}
+
+window.abrirColorPicker = function(targetInputId, targetSwatchId){
+  cpTargetInput = targetInputId;
+  cpTargetSwatch = targetSwatchId;
+  const [r,g,b] = hexToRgb(document.getElementById(targetInputId).value);
+  const [h,s,v] = rgbToHsv(r,g,b);
+  cpHue = h; cpSat = s; cpVal = v;
+  document.getElementById("colorPickerOverlay").style.display = "block";
+  document.getElementById("colorPickerModal").style.display = "block";
+  requestAnimationFrame(() => {
+    desenharHueCP();
+    desenharQuadradoCP();
+    atualizarHandlesCP();
+    atualizarPreviewCP();
+  });
+};
+
+window.fecharColorPicker = function(){
+  document.getElementById("colorPickerOverlay").style.display = "none";
+  document.getElementById("colorPickerModal").style.display = "none";
+};
+
+window.confirmarColorPicker = function(){
+  const [r,g,b] = hsvToRgb(cpHue, cpSat, cpVal);
+  const hex = rgbToHex(r,g,b);
+  if (cpTargetInput) document.getElementById(cpTargetInput).value = hex;
+  if (cpTargetSwatch) document.getElementById(cpTargetSwatch).style.background = hex;
+  fecharColorPicker();
+};
+
+document.addEventListener("DOMContentLoaded", function(){
+  const sqWrap = document.getElementById("cpSquareWrap");
+  const hueWrap = document.getElementById("cpHueWrap");
+  if (!sqWrap || !hueWrap) return;
+
+  function moverQuadrado(clientX, clientY){
+    const rect = sqWrap.getBoundingClientRect();
+    const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+    const y = Math.min(Math.max(clientY - rect.top, 0), rect.height);
+    cpSat = (x/rect.width)*100;
+    cpVal = (1-(y/rect.height))*100;
+    atualizarHandlesCP();
+    atualizarPreviewCP();
+  }
+  function moverHue(clientX){
+    const rect = hueWrap.getBoundingClientRect();
+    const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+    cpHue = (x/rect.width)*360;
+    atualizarHandlesCP();
+    atualizarPreviewCP();
+  }
+
+  let arrastandoQuad = false, arrastandoHue = false;
+  sqWrap.addEventListener("pointerdown", e => { arrastandoQuad = true; moverQuadrado(e.clientX, e.clientY); sqWrap.setPointerCapture(e.pointerId); });
+  sqWrap.addEventListener("pointermove", e => { if (arrastandoQuad) moverQuadrado(e.clientX, e.clientY); });
+  sqWrap.addEventListener("pointerup", () => arrastandoQuad = false);
+  sqWrap.addEventListener("pointercancel", () => arrastandoQuad = false);
+
+  hueWrap.addEventListener("pointerdown", e => { arrastandoHue = true; moverHue(e.clientX); hueWrap.setPointerCapture(e.pointerId); });
+  hueWrap.addEventListener("pointermove", e => { if (arrastandoHue) moverHue(e.clientX); });
+  hueWrap.addEventListener("pointerup", () => arrastandoHue = false);
+  hueWrap.addEventListener("pointercancel", () => arrastandoHue = false);
+
+  ["cpR","cpG","cpB"].forEach(id => {
+    document.getElementById(id).addEventListener("change", () => {
+      const r = parseInt(document.getElementById("cpR").value)||0;
+      const g = parseInt(document.getElementById("cpG").value)||0;
+      const b = parseInt(document.getElementById("cpB").value)||0;
+      const [h,s,v] = rgbToHsv(r,g,b);
+      cpHue=h; cpSat=s; cpVal=v;
+      atualizarHandlesCP();
+      atualizarPreviewCP();
+    });
+  });
+});
+
+window.salvarCoresPerfil = async function () {
+  const corBase = document.getElementById("corBaseInput").value;
+  const corNome = document.getElementById("corNomeInput").value;
+  const corLinha = document.getElementById("corLinhaInput").value;
+  try {
+    await setDoc(doc(db, "usuarios", window.usuarioAtual.uid), { corBase, corNome, corLinha }, { merge: true });
+    window.abrirPerfil(window.usuarioAtual.uid);
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao salvar cores: " + (e.code || e.message));
+  }
+  
+};
+
+window.abrirPreviewFicha = function (i) {
+  const f = (window._perfilDestaqueAtual || [])[i];
+  if (!f) return;
+
+  document.getElementById("previewFichaNome").textContent = f.nome || "Sem nome";
+
+  let html = "";
+  if (f.previewLore) {
+    html += `<div style="border-left:2px solid rgba(233,224,236,0.23);padding-left:12px;font-style:italic;color:#d5cbd8;line-height:1.6;font-size:12.5px;">"${escapeHtml(f.previewLore)}${f.previewLore.length >= 220 ? "..." : ""}"</div>`;
+  }
+  if (f.previewEquip) {
+    const icone = f.previewEquip.tipo === "arma" ? "⚔️" : "🛡️";
+    const rotulo = f.previewEquip.tipo === "arma" ? "Arma" : "Vestimenta";
+    html += `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding-top:14px;border-top:1px solid rgba(233,224,236,0.12);">
+        <div style="width:30px;height:30px;flex-shrink:0;border-radius:50%;background:rgba(174,55,83,0.1);border:1px solid rgba(233,224,236,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;">${icone}</div>
+        <div>
+          <div style="font-family:'Cinzel',serif;color:#efe7ef;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">${rotulo}</div>
+          <div style="color:#F8F4E3;">${escapeHtml(f.previewEquip.nome)}${f.previewEquip.extra ? ` <span style="color:#d5cbd8;">— ${escapeHtml(f.previewEquip.extra)}</span>` : ""}</div>
+        </div>
+      </div>`;
+  }
+  if (f.previewPoderes && f.previewPoderes.length > 0) {
+    html += `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding-top:14px;border-top:1px solid rgba(233,224,236,0.12);">
+        <div style="width:30px;height:30px;flex-shrink:0;border-radius:50%;background:rgba(174,55,83,0.1);border:1px solid rgba(233,224,236,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;">🔥</div>
+        <div>
+          <div style="font-family:'Cinzel',serif;color:#efe7ef;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Poderes</div>
+          <div style="color:#F8F4E3;">${f.previewPoderes.map(p => escapeHtml(p)).join(" · ")}</div>
+        </div>
+      </div>`;
+  }
+  if (!html) {
+    html = `<p style="text-align:center;color:#d5cbd8;font-style:italic;">Sem itens pra mostrar ainda.</p>`;
+  }
+
+  document.getElementById("previewFichaConteudo").innerHTML = html;
+  document.getElementById("modalPreviewFichaOverlay").style.display = "block";
+  document.getElementById("modalPreviewFicha").style.display = "block";
+};
+
+window.fecharPreviewFicha = function () {
+  document.getElementById("modalPreviewFichaOverlay").style.display = "none";
+  document.getElementById("modalPreviewFicha").style.display = "none";
+};
+
+window.pegarFichaPublica = async function (donoUid, fichaId) {
+  if (!(await confirmBonito("Copiar essa ficha pra sua conta?"))) return;
+  try {
+    const snap = await getDoc(doc(db, "usuarios", donoUid, "fichas", fichaId));
+    if (!snap.exists()) {
+      alertBonito("Essa ficha não está mais disponível.");
+      return;
+    }
+    const original = snap.data();
+    const copia = JSON.parse(JSON.stringify(original));
+    copia.id = Date.now() + Math.floor(Math.random() * 99999);
+    copia.nome = (original.nome || "Sem nome") + " (cópia)";
+    copia.publica = false;
+
+    window.personagens.push(copia);
+    if (typeof salvarPersonagens === "function") salvarPersonagens();
+    if (typeof renderPersonagens === "function") renderPersonagens();
+
+    alertBonito("Ficha copiada! Ela já está na sua lista de personagens.");
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao copiar ficha: " + (e.code || e.message));
+  }
+};
+
+function salvarLorePersonagem() {
+  const p = personagens[personagemAtual];
+  if (!p) return;
+  p.lore = document.getElementById("lorePersonagem").value;
+  salvarTudo();
+}
+
+window.abrirAcoesMembro = function (uid, nickname, tag) {
+  document.getElementById("acoesMembroNome").textContent = `${nickname}#${tag}`;
+
+  document.getElementById("acoesMembroBtnPerfil").onclick = function () {
+    fecharAcoesMembro();
+    window.abrirPerfil(uid);
+  };
+
+  document.getElementById("acoesMembroBtnAmizade").onclick = function () {
+    fecharAcoesMembro();
+    window.enviarSolicitacaoAmizadePorUid(uid, nickname, tag);
+  };
+
+  document.getElementById("modalAcoesMembroOverlay").style.display = "block";
+  document.getElementById("modalAcoesMembro").style.display = "block";
+};
+
+window.fecharAcoesMembro = function () {
+  document.getElementById("modalAcoesMembroOverlay").style.display = "none";
+  document.getElementById("modalAcoesMembro").style.display = "none";
+};
+
+window.enviarSolicitacaoAmizadePorUid = async function (alvoUid, alvoNickname, alvoTag) {
+  const meuUid = window.usuarioAtual.uid;
+
+  if (alvoUid === meuUid) return;
+
+  try {
+    const jaAmigo = await getDoc(doc(db, "usuarios", meuUid, "amigos", alvoUid));
+    if (jaAmigo.exists()) {
+      alertBonito("Vocês já são amigos.");
+      return;
+    }
+
+    const meuSnap = await getDoc(doc(db, "usuarios", meuUid));
+    const meuDados = meuSnap.exists() ? meuSnap.data() : {};
+
+    await setDoc(doc(db, "usuarios", alvoUid, "solicitacoesRecebidas", meuUid), {
+      deUid: meuUid,
+      deNickname: meuDados.nickname || "",
+      deTag: meuDados.tag || "",
+      criadoEm: new Date().toISOString()
+    });
+
+    alertBonito(`Solicitação enviada pra ${alvoNickname}!`);
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao enviar solicitação: " + (e.code || e.message));
+  }
+};
+
+function previewImagem() {
+  const input = document.getElementById("imagem");
+  const preview = document.getElementById("preview");
+  const nomeArquivo = document.getElementById("nome-arquivo");
+
+  if (!input || !preview || !input.files || !input.files[0]) return;
+
+  if (imagensPersonagem.length >= 5) {
+    alertBonito("Limite de 5 fotos por personagem. Remova uma foto antes de adicionar outra.");
+    input.value = "";
+    return;
+  }
+
+  const file = input.files[0];
+  if (nomeArquivo) nomeArquivo.innerText = "Enviando imagem...";
+
+  const reader = new FileReader();
+  reader.onload = async function (e) {
+    const base64Local = e.target.result;
+
+    const resultado = await uploadImagemFirebase(base64Local, `personagens/${Date.now()}.jpg`);
+    if (resultado.erro || !resultado.url) {
+      if (nomeArquivo) nomeArquivo.innerText = "Falha ao enviar imagem";
+      alertBonito(_mensagemErroUpload("A foto não foi adicionada."))
+      input.value = "";
+      return;
+    }
+
+    imagensPersonagem.push({ url: resultado.url, deleteUrl: resultado.deleteUrl || "" });
+    indiceCarrossel = imagensPersonagem.length - 1;
+    imagemOriginalBase64 = resultado.url;
+    imagemPosX = 50;
+    imagemPosY = 50;
+    atualizarPreviewCarrossel();
+    _atualizarConteudoPopupFoto();
+
+    salvarTudo();
+    renderPersonagens();
+    input.value = "";
+  };
+
+  reader.readAsDataURL(file);
+}
+
+let editorZoom = 1;
+let editorOffsetX = 0;
+let editorOffsetY = 0;
+let editorDragging = false;
+let editorLastX = 0;
+let editorLastY = 0;
+let editorImg = new Image();
+
+function abrirEditorImagem() {
+  if (!imagemBase64) {
+    alertBonito("Escolha uma imagem primeiro.");
+    return;
+  }
+
+  const editorWrap = document.getElementById("editorImagemInline");
+  if (!editorWrap) return;
+
+  editorZoom = 1;
+  editorOffsetX = 0;
+  editorOffsetY = 0;
+  document.getElementById("editorZoom").value = 1;
+
+  editorImg = new Image();
+  editorImg.crossOrigin = "anonymous";
+  editorImg.onload = function () {
+    desenharEditorCanvas();
+    ativarDragEditorCanvas();
+  };
+  editorImg.onerror = function () {
+    alertBonito("Não foi possível carregar a imagem para edição. Tente escolher a imagem novamente.");
+  };
+  editorImg.src = imagemOriginalBase64 || imagemBase64;
+
+  editorWrap.classList.remove("fechado");
+}
+
+function desenharEditorCanvas() {
+  const canvas = document.getElementById("editorCanvas");
+  if (!canvas || !editorImg.width) return;
+
+  const size = canvas.offsetWidth;
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, size, size);
+
+  const scale = editorZoom;
+  const imgW = editorImg.width * scale;
+  const imgH = editorImg.height * scale;
+
+  const baseScale = Math.max(size / editorImg.width, size / editorImg.height);
+  const finalW = editorImg.width * baseScale * editorZoom;
+  const finalH = editorImg.height * baseScale * editorZoom;
+
+  const x = size / 2 - finalW / 2 + editorOffsetX;
+  const y = size / 2 - finalH / 2 + editorOffsetY;
+
+  ctx.drawImage(editorImg, x, y, finalW, finalH);
+}
+
+function atualizarZoomEditor() {
+  editorZoom = parseFloat(document.getElementById("editorZoom").value);
+  desenharEditorCanvas();
+}
+
+function ativarDragEditorCanvas() {
+  const canvas = document.getElementById("editorCanvas");
+  if (!canvas) return;
+
+  canvas.onmousedown = (e) => { editorDragging = true; editorLastX = e.clientX; editorLastY = e.clientY; };
+  document.onmousemove = (e) => {
+    if (!editorDragging) return;
+    editorOffsetX += e.clientX - editorLastX;
+    editorOffsetY += e.clientY - editorLastY;
+    editorLastX = e.clientX;
+    editorLastY = e.clientY;
+    desenharEditorCanvas();
+  };
+  document.onmouseup = () => { editorDragging = false; };
+
+  let editorPinchDist = null;
+
+  canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      editorDragging = true;
+      editorLastX = e.touches[0].clientX;
+      editorLastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      editorPinchDist = Math.hypot(dx, dy);
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && editorDragging) {
+      editorOffsetX += e.touches[0].clientX - editorLastX;
+      editorOffsetY += e.touches[0].clientY - editorLastY;
+      editorLastX = e.touches[0].clientX;
+      editorLastY = e.touches[0].clientY;
+      desenharEditorCanvas();
+    } else if (e.touches.length === 2 && editorPinchDist !== null) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const novaDist = Math.hypot(dx, dy);
+      const delta = novaDist / editorPinchDist;
+      editorPinchDist = novaDist;
+      editorZoom = Math.min(3, Math.max(0.5, editorZoom * delta));
+      document.getElementById("editorZoom").value = editorZoom;
+      desenharEditorCanvas();
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    if (e.touches.length === 0) {
+      editorDragging = false;
+      editorPinchDist = null;
+    }
+  }, { passive: false });
+}
+
+function fecharEditorImagem() {
+  const editorWrap = document.getElementById("editorImagemInline");
+  if (editorWrap) {
+    editorWrap.classList.add("fechado");
+  }
+}
+
+async function salvarEditorImagem() {
+  const canvas = document.getElementById("editorCanvas");
+  if (!canvas) return;
+
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = 400;
+  outputCanvas.height = 400;
+  const ctx = outputCanvas.getContext("2d");
+
+  const size = canvas.width;
+
+  ctx.drawImage(canvas, 0, 0, size, size, 0, 0, 400, 400);
+
+  const base64Local = outputCanvas.toDataURL("image/jpeg", 0.9);
+
+  const preview = document.getElementById("preview");
+  if (preview) {
+    preview.src = base64Local;
+    preview.style.objectPosition = "50% 50%";
+  }
+
+  const resultado = await uploadImagemFirebase(base64Local, `personagens/${Date.now()}.jpg`);
+  if (resultado.erro || !resultado.url) {
+    alertBonito(_mensagemErroUpload("A imagem anterior foi mantida."))
+    return;
+  }
+    imagemBase64 = resultado.url;
+  imagemDeleteUrl = resultado.deleteUrl || "";
+  // não sobrescreve imagemOriginalBase64 — mantém original para reedição
+
+  if (imagensPersonagem[indiceCarrossel]) {
+    imagensPersonagem[indiceCarrossel] = { url: resultado.url, deleteUrl: resultado.deleteUrl || "" };
+  }
+
+  salvarTudo();
+  renderPersonagens();
+  fecharEditorImagem();
+}
+
+
+function atualizarPreviewCarrossel() {
+  const preview = document.getElementById("preview");
+  const contador = document.getElementById("carrosselContador");
+  const dots = document.getElementById("carrosselDots");
+  const btnAnterior = document.getElementById("carrosselAnterior");
+  const btnProximo = document.getElementById("carrosselProximo");
+
+  const total = imagensPersonagem.length;
+  const atual = imagensPersonagem[indiceCarrossel] || null;
+
+  imagemBase64 = atual?.url || "";
+  imagemDeleteUrl = atual?.deleteUrl || "";
+
+  if (preview) {
+    preview.src = imagemBase64;
+    preview.style.objectPosition = `${imagemPosX}% ${imagemPosY}%`;
+  }
+  if (contador) contador.textContent = total ? `${indiceCarrossel + 1}/${total}` : "";
+
+  if (btnAnterior) btnAnterior.style.display = total > 1 ? "flex" : "none";
+  if (btnProximo) btnProximo.style.display = total > 1 ? "flex" : "none";
+
+  if (dots) {
+    dots.innerHTML = "";
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement("span");
+      dot.style.cssText = `width:8px;height:8px;border-radius:50%;cursor:pointer;background:${i === indiceCarrossel ? "#ae3753" : "rgba(174,55,83,0.3)"};`;
+      dot.onclick = () => { indiceCarrossel = i; atualizarPreviewCarrossel(); };
+      dots.appendChild(dot);
+    }
+  }
+}
+
+function trocarFotoCarrossel(delta) {
+  const total = imagensPersonagem.length;
+  if (total <= 1) return;
+  indiceCarrossel = (indiceCarrossel + delta + total) % total;
+  atualizarPreviewCarrossel();
+}
+
+(function ativarSwipeCarrosselPersonagem() {
+  function iniciar() {
+    const wrapper = document.getElementById("carrosselWrapper");
+    if (!wrapper) return;
+    let inicioX = 0;
+
+    wrapper.addEventListener("touchstart", (e) => {
+      inicioX = e.touches[0].clientX;
+    }, { passive: true });
+
+    wrapper.addEventListener("touchend", (e) => {
+      const fimX = e.changedTouches[0].clientX;
+      const diff = fimX - inicioX;
+      if (Math.abs(diff) > 40) {
+        trocarFotoCarrossel(diff < 0 ? 1 : -1);
+        _ultimoSwipeCarrossel = Date.now();
+      }
+    }, { passive: true });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", iniciar);
+  } else {
+    iniciar();
+  }
+})();
+
+
+function aoClicarFotoPersonagem() {
+  if (Date.now() - _ultimoSwipeCarrossel < 300) return; // evita abrir popup logo após um swipe
+  abrirPopupFotoPersonagem();
+}
+
+function abrirPopupFotoPersonagem() {
+  abrirPopup("Fotos do personagem", _htmlPopupFotoPersonagem(), true, null);
+}
+
+function _htmlPopupFotoPersonagem() {
+  const total = imagensPersonagem.length;
+  const atual = imagensPersonagem[indiceCarrossel];
+
+  const dotsHtml = Array.from({ length: total }).map((_, i) => `
+    <span onclick="irParaFotoPopup(${i})" style="width:9px;height:9px;border-radius:50%;cursor:pointer;display:inline-block;background:${i === indiceCarrossel ? "#ae3753" : "rgba(174,55,83,0.3)"};"></span>
+  `).join("");
+
+  return `
+    <div style="text-align:center;">
+      ${atual ? `
+      <div style="position:relative;display:inline-block;max-width:100%;">
+        <img src="${atual.url}" style="max-width:100%;max-height:55vh;border-radius:10px;object-fit:contain;" />
+
+        ${total > 1 ? `
+        <button type="button" onclick="trocarFotoCarrosselPopup(-1)" style="position:absolute;left:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,0.6);color:#fff;font-size:18px;cursor:pointer;">‹</button>
+        <button type="button" onclick="trocarFotoCarrosselPopup(1)" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,0.6);color:#fff;font-size:18px;cursor:pointer;">›</button>
+        ` : ""}
+      </div>
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:10px;">${dotsHtml}</div>
+      ` : `<p style="color:#d5cbd8;padding:20px 0;">Nenhuma foto ainda.</p>`}
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;">
+        <button class="popup-salvar-btn" style="margin:0;" onclick="fecharPopup(); abrirEditorImagem();" ${total === 0 ? "disabled" : ""}>Ajustar imagem</button>
+        <button class="popup-salvar-btn" style="margin:0;" onclick="document.getElementById('imagem').click()">+ Adicionar foto</button>
+        <button class="popup-salvar-btn" style="grid-column:1 / -1;margin:0;background:rgba(139,26,26,0.75);" onclick="removerFotoCarrosselPopup()" ${total === 0 ? "disabled" : ""}>🗑 Remover esta foto</button>
+      </div>
+    </div>
+  `;
+}
+
+function _atualizarConteudoPopupFoto() {
+  const textoEl = document.getElementById("popup-texto");
+  if (textoEl) textoEl.innerHTML = _htmlPopupFotoPersonagem();
+}
+
+function trocarFotoCarrosselPopup(delta) {
+  trocarFotoCarrossel(delta);
+  _atualizarConteudoPopupFoto();
+}
+
+function irParaFotoPopup(i) {
+  indiceCarrossel = i;
+  atualizarPreviewCarrossel();
+  _atualizarConteudoPopupFoto();
+}
+
+async function removerFotoCarrosselPopup() {
+  const total = imagensPersonagem.length;
+  if (total === 0) return;
+
+  const confirmar = await confirmBonito("Remover esta foto?");
+  if (!confirmar) return;
+
+    const foto = imagensPersonagem[indiceCarrossel];
+  if (foto?.deleteUrl?.startsWith("https://")) {
+    try {
+      await fetch("https://ficha-ignea-upload.fichaignea.workers.dev/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deleteUrl: foto.deleteUrl }),
+      });
+    } catch (e) { console.warn("Erro ao deletar imagem do ImgBB:", e); }
+  }
+
+  imagensPersonagem.splice(indiceCarrossel, 1);
+  if (indiceCarrossel >= imagensPersonagem.length) {
+    indiceCarrossel = Math.max(0, imagensPersonagem.length - 1);
+  }
+
+  atualizarPreviewCarrossel();
+  salvarTudo();
+  renderPersonagens();
+  _atualizarConteudoPopupFoto();
+}
+
+/* ================= INVENTÁRIO ================= */
+
+  function numeroInventario(valor) {
+  const numero = Number(
+    String(valor ?? "")
+      .trim()
+      .replace(",", ".")
+  );
+
+  if (!Number.isFinite(numero)) return 0;
+
+  return Math.max(0, numero);
+}
+
+function formatarNumeroInventario(valor) {
+  const numero = numeroInventario(valor);
+
+  return numero.toLocaleString("pt-BR", {
+    maximumFractionDigits: 2,
+  });
+}
+
+function calcularEspacosItem(item) {
+  if (!item) return 0;
+
+  const quantidade = Math.max(
+    1,
+    parseInt(item.qtd) || 1
+  );
+
+  const espacos = numeroInventario(item.espacos);
+
+  return espacos * quantidade;
+}
+
+function calcularEspacosArmas() {
+  return armas.reduce((total, arma) => {
+    return (
+      total +
+      numeroInventario(arma?.espacos)
+    );
+  }, 0);
+}
+
+
+function calcularEspacosArmaduras() {
+  return armaduras.reduce((total, armadura) => {
+    return total + numeroInventario(armadura?.espacos);
+  }, 0);
+}
+
+function calcularEspacosInventario() {
+  const espacosItens =
+    inventario.reduce((total, item) => {
+      return total + calcularEspacosItem(item);
+    }, 0);
+
+  return (
+    espacosItens +
+    calcularEspacosArmas() +
+    calcularEspacosArmaduras() +
+    recipientes.reduce((t, r) => t + calcularEspacosRecipiente(r), 0)
+  );
+}
+
+function atualizarResumoInventario() {
+  const texto = document.getElementById(
+    "inventarioEspacosTexto"
+  );
+
+  const barra = document.getElementById(
+    "inventarioBarraPreenchimento"
+  );
+
+  const inputMax = document.getElementById(
+    "inventarioEspacosMax"
+  );
+
+  const usado = calcularEspacosInventario();
+  const maximo = typeof capacidadeCargaOP === "function"
+    ? capacidadeCargaOP()
+    : numeroInventario(inputMax?.value);
+
+  if (texto) {
+    texto.textContent =
+      `${formatarNumeroInventario(usado)} / ` +
+      `${formatarNumeroInventario(maximo)} espaços`;
+  }
+
+  if (barra) {
+    let porcentagem = 0;
+
+    if (maximo > 0) {
+      porcentagem = (usado / maximo) * 100;
+    }
+
+    barra.style.width =
+      `${Math.min(100, porcentagem)}%`;
+
+    if (maximo > 0 && usado > maximo) {
+      barra.classList.add("excedido");
+    } else {
+      barra.classList.remove("excedido");
+    }
+  }
+}
+
+function atualizarCapacidadeInventario() {
+  atualizarResumoInventario();
+  salvarTudo();
+}
+
+async function addItem() {
+  const nome =
+    document.getElementById("itemNome")?.value.trim();
+
+  const desc =
+    document.getElementById("itemDesc")?.value.trim();
+
+  const qtd =
+    parseInt(
+      document.getElementById("itemQtd")?.value
+    ) || 1;
+
+  const espacos =
+    numeroInventario(
+      document.getElementById("itemEspacos")?.value
+    );
+
+  const categoria =
+    document
+      .getElementById("itemCategoria")
+      ?.value.trim() || "";
+
+  const modificacoes =
+    document
+      .getElementById("itemModificacoes")
+      ?.value.trim() || "";
+
+  const maldicoes =
+    document
+      .getElementById("itemMaldicoes")
+      ?.value.trim() || "";
+
+  const requerSintonia =
+    !!document.getElementById(
+      "itemRequerSintonia"
+    )?.checked;
+
+  const sintonizado =
+    requerSintonia &&
+    !!document.getElementById(
+      "itemSintonizado"
+    )?.checked;
+
+  if (!nome) return;
+
+  let imagemUrl =
+    editandoItem >= 0
+      ? inventario[editandoItem]?.imagemUrl || ""
+      : "";
+
+  let imagemDeleteUrl =
+    editandoItem >= 0
+      ? inventario[editandoItem]?.imagemDeleteUrl || ""
+      : "";
+
+  if (itemImagemBase64Temp === "REMOVIDA") {
+    imagemUrl = "";
+    imagemDeleteUrl = "";
+
+  } else if (itemImagemBase64Temp) {
+
+    const resultado =
+      await uploadImagemFirebase(
+        itemImagemBase64Temp,
+        "item"
+      );
+
+    if (resultado.erro || !resultado.url) {
+
+      alertBonito(
+        _mensagemErroUpload(
+          "O item foi salvo sem imagem."
+        )
+      );
+
+    } else {
+
+      imagemUrl = resultado.url;
+      imagemDeleteUrl = resultado.deleteUrl;
+    }
+  }
+
+  const novoItem = {
+    nome,
+    desc,
+    qtd,
+
+    espacos,
+    categoria,
+    modificacoes,
+    maldicoes,
+
+    requerSintonia,
+    sintonizado,
+
+    imagemUrl,
+    imagemDeleteUrl,
+  };
+
+  if (editandoItem >= 0) {
+
+    inventario[editandoItem] = novoItem;
+    editandoItem = -1;
+
+  } else {
+
+    inventario.push(novoItem);
+  }
+
+  renderInv();
+  salvarTudo();
+
+  document.getElementById("itemNome").value = "";
+  document.getElementById("itemDesc").value = "";
+  document.getElementById("itemQtd").value = "";
+
+  document.getElementById("itemEspacos").value = "";
+  document.getElementById("itemCategoria").value = "";
+  document.getElementById("itemModificacoes").value = "";
+  document.getElementById("itemMaldicoes").value = "";
+
+  document.getElementById(
+    "itemRequerSintonia"
+  ).checked = false;
+
+  document.getElementById(
+    "itemSintonizado"
+  ).checked = false;
+
+  document.getElementById(
+    "boxItemSintonizado"
+  ).style.display = "none";
+
+  document.getElementById(
+    "itemImagem"
+  ).value = "";
+
+  document.getElementById(
+    "itemImagemPreview"
+  ).style.display = "none";
+
+  itemImagemBase64Temp = "";
+}
+function previewItemImagem() {
+  _previewImagemGenerica("itemImagem", "itemImagemPreview", v => itemImagemBase64Temp = v);
+}
+
+function removerImagemItem() {
+  itemImagemBase64Temp = "REMOVIDA";
+  const preview = document.getElementById("itemImagemPreview");
+  const input = document.getElementById("itemImagem");
+  if (preview) { preview.style.display = "none"; preview.src = ""; }
+  if (input) input.value = "";
+}
+
+function previewEditItemImagem() {
+  _previewImagemGenerica("editItemImagem", "editItemImagemPreview", v => editItemImagemBase64Temp = v);
+}
+
+function removerEditImagemItem() {
+  editItemImagemBase64Temp = "REMOVIDA";
+  const preview = document.getElementById("editItemImagemPreview");
+  const input = document.getElementById("editItemImagem");
+  if (preview) { preview.style.display = "none"; preview.src = ""; }
+  if (input) input.value = "";
+}
+
+function previewArmaImagem() {
+  _previewImagemGenerica("armaImagem", "armaImagemPreview", v => armaImagemBase64Temp = v);
+}
+
+function removerImagemArma() {
+  armaImagemBase64Temp = "REMOVIDA";
+  const preview = document.getElementById("armaImagemPreview");
+  const input = document.getElementById("armaImagem");
+  if (preview) { preview.style.display = "none"; preview.src = ""; }
+  if (input) input.value = "";
+}
+
+function previewEditArmaImagem() {
+  _previewImagemGenerica("editArmaImagem", "editArmaImagemPreview", v => editArmaImagemBase64Temp = v);
+}
+
+function removerEditImagemArma() {
+  editArmaImagemBase64Temp = "REMOVIDA";
+  const preview = document.getElementById("editArmaImagemPreview");
+  const input = document.getElementById("editArmaImagem");
+  if (preview) { preview.style.display = "none"; preview.src = ""; }
+  if (input) input.value = "";
+}
+
+function previewArmaduraImagem() {
+  _previewImagemGenerica("armaduraImagem", "armaduraImagemPreview", v => armaduraImagemBase64Temp = v);
+}
+
+function previewAliadoImagem() {
+  _previewImagemGenerica(
+    "aliadoImagem",
+    "aliadoImagemPreview",
+    v => {
+      aliadoImagemBase64Temp = v;
+    }
+  );
+}
+
+function removerImagemAliado() {
+  aliadoImagemBase64Temp = "REMOVIDA";
+
+  const preview =
+    document.getElementById("aliadoImagemPreview");
+
+  const input =
+    document.getElementById("aliadoImagem");
+
+  if (preview) {
+    preview.style.display = "none";
+    preview.src = "";
+  }
+
+  if (input) {
+    input.value = "";
+  }
+}
+
+function removerImagemArmadura() {
+  armaduraImagemBase64Temp = "REMOVIDA";
+  const preview = document.getElementById("armaduraImagemPreview");
+  const input = document.getElementById("armaduraImagem");
+  if (preview) { preview.style.display = "none"; preview.src = ""; }
+  if (input) input.value = "";
+}
+
+function previewEditArmaduraImagem() {
+  _previewImagemGenerica("editArmaduraImagem", "editArmaduraImagemPreview", v => editArmaduraImagemBase64Temp = v);
+}
+
+function removerEditImagemArmadura() {
+  editArmaduraImagemBase64Temp = "REMOVIDA";
+  const preview = document.getElementById("editArmaduraImagemPreview");
+  const input = document.getElementById("editArmaduraImagem");
+  if (preview) { preview.style.display = "none"; preview.src = ""; }
+  if (input) input.value = "";
+}
+
+function toggleSintoniaItem() {
+  const requer = document.getElementById("itemRequerSintonia");
+  const box = document.getElementById("boxItemSintonizado");
+  const sintonizado = document.getElementById("itemSintonizado");
+
+  if (!requer || !box || !sintonizado) return;
+
+  if (requer.checked) {
+    box.style.display = "block";
+  } else {
+    box.style.display = "none";
+    sintonizado.checked = false;
+  }
+}
+
+function renderInv() {
+  const ul = document.getElementById("lista");
+
+  atualizarResumoInventario();
+
+  if (!ul) return;
+
+  ul.innerHTML = "";
+
+  inventario.forEach((item, index) => {
+    const li = document.createElement("li");
+
+    li.className = "item-card";
+    li.dataset.index = index;
+
+    const espacosTotal =
+      calcularEspacosItem(item);
+
+    li.innerHTML = `
+      <button
+        type="button"
+        class="drag-handle"
+        aria-label="Arrastar para reordenar"
+      >
+        ⠿
+      </button>
+
+      <div
+        class="item-info"
+        onclick="verItem(${index})"
+      >
+
+        <div class="item-topo-linha">
+
+          <strong class="item-nome">
+            ${
+              item.nome
+                ? esc(item.nome)
+                : "Sem nome"
+            }
+
+            ${
+              item.requerSintonia
+                ? `
+                  <span class="item-tag-sintonia">
+                    ${
+                      item.sintonizado
+                        ? "Sint."
+                        : "Req. Sint."
+                    }
+                  </span>
+                `
+                : ""
+            }
+          </strong>
+
+          <span class="item-qtd-badge">
+            x${item.qtd || 1}
+          </span>
+
+        </div>
+
+        <div class="item-subtags">
+
+  <span class="item-subtag item-subtag-espaco">
+    🎒 ${formatarNumeroInventario(espacosTotal)}
+    ${
+      espacosTotal === 1
+        ? " espaço"
+        : " espaços"
+    }
+  </span>
+
+          ${
+            item.categoria
+              ? `
+                <span class="item-subtag item-subtag-categoria">
+                  Cat. ${esc(item.categoria)}
+                </span>
+              `
+              : ""
+          }
+
+          ${
+            item.requerSintonia
+              ? `
+                <span class="item-subtag">
+                  🔗 Requer sintonia
+                </span>
+              `
+              : ""
+          }
+
+          ${
+            item.sintonizado
+              ? `
+                <span class="item-subtag ativo">
+                  ✅ Sintonizado
+                </span>
+              `
+              : ""
+          }
+
+        </div>
+
+        <p class="item-preview">
+          ${
+            item.desc
+              ? esc(item.desc).substring(0, 60) +
+                (
+                  item.desc.length > 60
+                    ? "..."
+                    : ""
+                )
+              : "Sem descrição"
+          }
+        </p>
+
+      </div>
+
+      <div class="item-acoes">
+
+        <div class="acoes-topo">
+          <button
+            type="button"
+            class="btn-editar"
+            onclick="
+              event.stopPropagation();
+              editarItem(${index})
+            "
+          >
+            ✏️
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onclick="
+            event.stopPropagation();
+            window.abrirDarItem(
+              'inventario',
+              ${index}
+            )
+          "
+          style="
+            background:#3e2f46;
+            border:none;
+            color:#efe7ef;
+            border-radius:8px;
+            padding:4px 8px;
+            font-size:11px;
+            cursor:pointer;
+          "
+        >
+          Dar
+        </button>
+
+        <button
+          type="button"
+          class="item-remover"
+          onclick="
+            event.stopPropagation();
+            removerItem(${index})
+          "
+        >
+          X
+        </button>
+
+      </div>
+    `;
+
+    ul.appendChild(li);
+  });
+
+  habilitarArrastarReordenar(
+    ul,
+    inventario,
+    renderInv
+  );
+
+  
+  atualizarResumoInventario();
+}
+
+function toggleEditSintoniaItem() {
+  const requer = document.getElementById("editItemRequerSintonia");
+  const box = document.getElementById("boxEditItemSintonizado");
+  const sintonizado = document.getElementById("editItemSintonizado");
+
+  if (!requer || !box) return;
+
+  if (requer.checked) {
+    box.style.display = "block";
+  } else {
+    box.style.display = "none";
+    if (sintonizado) sintonizado.checked = false;
+  }
+}
+
+function verItem(index) {
+  const item = inventario[index];
+  if (!item) return;
+
+  const espacosTotal =
+    calcularEspacosItem(item);
+
+  const html = `
+    <div class="popup-bloco">
+
+      ${
+        item.imagemUrl
+          ? `
+            <div>
+              <img
+                src="${item.imagemUrl}"
+                class="popup-imagem-item"
+              />
+            </div>
+          `
+          : ""
+      }
+
+      <div class="popup-info-grid">
+
+        <div>
+          <span class="popup-label">
+            Quantidade
+          </span>
+
+          <div class="popup-descricao popup-descricao-pequena">
+            ${item.qtd || 1}
+          </div>
+        </div>
+
+        <div>
+          <span class="popup-label">
+            Espaços
+          </span>
+
+                    <div class="popup-descricao popup-descricao-pequena">${formatarNumeroInventario(item.espacos || 0)} / un.<br><strong>${formatarNumeroInventario(espacosTotal)} no total</strong></div>
+        </div>
+
+        <div>
+          <span class="popup-label">
+            Categoria
+          </span>
+
+          <div class="popup-descricao popup-descricao-pequena">
+            ${item.categoria ? esc(item.categoria) : "Não definida"}
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:12px;">
+        <span class="popup-label">
+          Sintonia
+        </span>
+
+        <div class="popup-descricao popup-descricao-pequena">
+          ${
+            item.requerSintonia
+              ? item.sintonizado
+                ? "Requer sintonia — Sintonizado"
+                : "Requer sintonia — Não sintonizado"
+              : "Não requer sintonia"
+          }
+        </div>
+      </div>
+
+      ${
+        item.modificacoes
+          ? `
+            <div style="margin-top:12px;">
+              <span class="popup-label">
+                Modificações
+              </span>
+
+              <div class="popup-descricao">
+                ${esc(item.modificacoes)}
+              </div>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        item.maldicoes
+          ? `
+            <div style="margin-top:12px;">
+              <span class="popup-label">
+                Maldições
+              </span>
+
+              <div class="popup-descricao">
+                ${esc(item.maldicoes)}
+              </div>
+            </div>
+          `
+          : ""
+      }
+
+      <div style="margin-top:12px;">
+
+        <span class="popup-label">
+          Descrição
+        </span>
+
+        <div class="popup-descricao popup-descricao-grande">
+          ${item.desc ? esc(item.desc) : "Sem descrição"}
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  abrirPopup(
+    item.nome || "Sem nome",
+    html,
+    true,
+    () => editarItem(index)
+  );
+}
+
+async function removerItem(index) {
+  const item = inventario[index];
+  if (!item) return;
+
+  const confirmar = await confirmBonito(`Remover "${item.nome}"?`);
+  if (!confirmar) return;
+
+  inventario.splice(index, 1);
+  renderInv();
+  salvarTudo();
+}
+
+/* =========================================================
+   VEÍCULOS
+========================================================= */
+
+function calcularEspacosVeiculo(veiculo) {
+  if (!veiculo || !Array.isArray(veiculo.itens)) {
+    return 0;
+  }
+
+  return veiculo.itens.reduce(
+    (total, item) =>
+      total + calcularEspacosItem(item),
+    0
+  );
+}
+
+function addVeiculo() {
+  const nome =
+    document.getElementById("veiculoNome")
+      ?.value.trim() || "";
+
+  const icone =
+  document.getElementById("veiculoIcone")
+    ?.value || "🚗";
+
+  const desc =
+    document.getElementById("veiculoDesc")
+      ?.value.trim() || "";
+
+  const vidaMax =
+    numeroInventario(
+      document.getElementById(
+        "veiculoVidaMax"
+      )?.value
+    );
+
+  const gasolinaMax =
+    numeroInventario(
+      document.getElementById(
+        "veiculoGasolinaMax"
+      )?.value
+    );
+
+  const passageirosMax =
+    Math.max(
+      0,
+      parseInt(
+        document.getElementById(
+          "veiculoPassageirosMax"
+        )?.value
+      ) || 0
+    );
+
+  const espacosMax =
+    numeroInventario(
+      document.getElementById(
+        "veiculoEspacosMax"
+      )?.value
+    );
+
+  const categoriasPermitidas =
+    document.getElementById(
+      "veiculoCategorias"
+    )?.value.trim() || "";
+
+  if (!nome) {
+    alertBonito("Digite o nome do veículo.");
+    return;
+  }
+
+  veiculos.push({
+    ...lerExtrasItem("veiculo", "veiculo"),
+    nome,
+    icone,
+    desc,
+
+    vidaMax,
+    vidaAtual: vidaMax,
+
+    gasolinaMax,
+    gasolinaAtual: gasolinaMax,
+
+    passageirosMax,
+
+    espacosMax,
+    categoriasPermitidas,
+
+    itens: [],
+  });
+
+  document.getElementById("veiculoNome").value = "";
+document.getElementById("veiculoIcone").value = "🚗";
+document.getElementById("veiculoDesc").value = "";
+  montarExtrasForm("veiculo", "veiculo");
+  document.getElementById("veiculoVidaMax").value = "";
+  document.getElementById("veiculoGasolinaMax").value = "";
+  document.getElementById("veiculoPassageirosMax").value = "";
+  document.getElementById("veiculoEspacosMax").value = "";
+  document.getElementById("veiculoCategorias").value = "";
+
+  renderVeiculos();
+  salvarTudo();
+}
+
+function renderVeiculos() {
+  const lista =
+    document.getElementById("listaVeiculos");
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  veiculos.forEach((veiculo, index) => {
+
+    const vidaMax =
+      numeroInventario(veiculo.vidaMax);
+
+    const vidaAtual =
+      numeroInventario(
+        veiculo.vidaAtual ?? vidaMax
+      );
+
+    const gasolinaMax =
+      numeroInventario(
+        veiculo.gasolinaMax
+      );
+
+    const gasolinaAtual =
+      numeroInventario(
+        veiculo.gasolinaAtual ?? gasolinaMax
+      );
+
+    const carga =
+      calcularEspacosVeiculo(veiculo);
+
+    const card =
+      document.createElement("li");
+
+    card.className = "veiculo-card";
+
+    card.onclick = () =>
+      verVeiculo(index);
+
+    card.innerHTML = `
+      <div class="veiculo-card-principal">
+
+        <div class="veiculo-card-topo">
+
+          <strong class="veiculo-card-nome">
+  <span class="veiculo-card-icone">
+    ${veiculo.icone || "🚗"}
+  </span>
+
+  ${esc(veiculo.nome || "Veículo")}
+</strong>
+
+          <button
+            class="item-remover"
+            type="button"
+            onclick="
+              event.stopPropagation();
+              removerVeiculo(${index})
+            "
+          >
+            ×
+          </button>
+
+        </div>
+
+        ${
+          veiculo.desc
+            ? `
+              <div class="veiculo-card-desc">
+                ${esc(veiculo.desc)}
+              </div>
+            `
+            : ""
+        }
+
+        ${extrasCardHTML(veiculo, "veiculo")}
+
+        <div class="veiculo-resumo-grid">
+
+          <span>
+            ❤️ ${formatarNumeroInventario(vidaAtual)}
+            /
+            ${formatarNumeroInventario(vidaMax)}
+          </span>
+
+          <span>
+            ⛽ ${formatarNumeroInventario(gasolinaAtual)}
+            /
+            ${formatarNumeroInventario(gasolinaMax)}
+          </span>
+
+          <span>
+            👥 ${veiculo.passageirosMax || 0}
+          </span>
+
+          <span>
+            🎒 ${formatarNumeroInventario(carga)}
+            /
+            ${formatarNumeroInventario(veiculo.espacosMax)}
+          </span>
+
+        </div>
+
+      </div>
+    `;
+
+    lista.appendChild(card);
+  });
+}
+
+/* =========================================================
+   SUBPOPUP DOS VEÍCULOS
+   Fica por cima do popup principal sem fechá-lo
+========================================================= */
+
+function abrirSubPopupVeiculo(titulo, conteudo) {
+  let overlay =
+    document.getElementById("subPopupVeiculo");
+
+  if (!overlay) {
+    overlay = document.createElement("div");
+
+    overlay.id = "subPopupVeiculo";
+    overlay.className = "subpopup-veiculo";
+
+    overlay.innerHTML = `
+      <div class="subpopup-veiculo-content">
+
+        <button
+          type="button"
+          class="subpopup-veiculo-fechar"
+          onclick="fecharSubPopupVeiculo()"
+        >
+          ×
+        </button>
+
+        <h3 id="subPopupVeiculoTitulo"></h3>
+
+        <div id="subPopupVeiculoTexto"></div>
+
+      </div>
+    `;
+
+    overlay.addEventListener(
+      "click",
+      (event) => {
+        if (event.target === overlay) {
+          fecharSubPopupVeiculo();
+        }
+      }
+    );
+
+    document.body.appendChild(overlay);
+  }
+
+  const tituloEl =
+    document.getElementById(
+      "subPopupVeiculoTitulo"
+    );
+
+  const textoEl =
+    document.getElementById(
+      "subPopupVeiculoTexto"
+    );
+
+  if (tituloEl) {
+    tituloEl.textContent =
+      titulo || "";
+  }
+
+  if (textoEl) {
+    textoEl.innerHTML =
+      conteudo || "";
+          limparEspacosPopup(textoEl);
+  }
+
+  overlay.style.display = "flex";
+}
+
+
+function fecharSubPopupVeiculo() {
+  const overlay =
+    document.getElementById(
+      "subPopupVeiculo"
+    );
+
+  if (overlay) {
+    overlay.style.display = "none";
+  }
+}
+
+function verVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  if (!Array.isArray(veiculo.itens)) {
+    veiculo.itens = [];
+  }
+
+  const vidaMax =
+    numeroInventario(veiculo.vidaMax);
+
+  veiculo.vidaAtual =
+    Math.min(
+      vidaMax,
+      numeroInventario(
+        veiculo.vidaAtual ?? vidaMax
+      )
+    );
+
+  const gasolinaMax =
+    numeroInventario(
+      veiculo.gasolinaMax
+    );
+
+  veiculo.gasolinaAtual =
+    Math.min(
+      gasolinaMax,
+      numeroInventario(
+        veiculo.gasolinaAtual ?? gasolinaMax
+      )
+    );
+
+  const carga =
+    calcularEspacosVeiculo(veiculo);
+
+  const itensHTML =
+    veiculo.itens.length
+      ? veiculo.itens
+          .map((item, itemIndex) => {
+
+            const total =
+              calcularEspacosItem(item);
+
+            return `
+  <div
+    class="veiculo-item"
+    onclick="
+      verItemVeiculo(
+        ${index},
+        ${itemIndex}
+      )
+    "
+  >
+
+    <div class="veiculo-item-info">
+
+                  <strong>
+                    ${esc(item.nome || "Item")}
+                  </strong>
+
+                  <div class="veiculo-item-meta">
+
+                    <span>
+                      x${item.qtd || 1}
+                    </span>
+
+                    <span>
+                      🎒
+                      ${formatarNumeroInventario(total)}
+                    </span>
+
+                    ${
+                      item.categoria
+                        ? `
+                          <span>
+                            Cat. ${esc(item.categoria)}
+                          </span>
+                        `
+                        : ""
+                    }
+
+                  </div>
+
+                </div>
+
+                <div class="veiculo-item-acoes">
+
+                  <button
+  type="button"
+  onclick="
+    event.stopPropagation();
+
+    editarItemVeiculo(
+      ${index},
+      ${itemIndex}
+    )
+  "
+>
+                  
+                    ✏️
+                  </button>
+
+                  <button
+  type="button"
+  onclick="
+    event.stopPropagation();
+
+    removerItemVeiculo(
+      ${index},
+      ${itemIndex}
+    )
+  "
+>
+                    ×
+                  </button>
+
+                </div>
+
+              </div>
+            `;
+          })
+          .join("")
+      : `
+          <div class="veiculo-sem-itens">
+            Nenhum item guardado.
+          </div>
+        `;
+
+  const html = `
+    <div class="popup-bloco">
+
+      ${
+        veiculo.desc
+          ? `
+            <div class="popup-descricao">
+              ${esc(veiculo.desc)}
+            </div>
+          `
+          : ""
+      }
+
+      ${extrasPopupHTML(veiculo, "veiculo")}
+
+      <div class="veiculo-status-box">
+
+        <div class="veiculo-status-topo">
+
+          <span>❤️ Vida</span>
+
+          <strong id="veiculoVidaTexto">
+            ${formatarNumeroInventario(veiculo.vidaAtual)}
+            /
+            ${formatarNumeroInventario(vidaMax)}
+          </strong>
+
+        </div>
+
+        <input
+          class="veiculo-range veiculo-range-vida"
+          type="range"
+          min="0"
+          max="${Math.max(1, vidaMax)}"
+          step="1"
+          value="${veiculo.vidaAtual}"
+          ${vidaMax <= 0 ? "disabled" : ""}
+          oninput="
+            alterarVidaVeiculo(
+              ${index},
+              this.value,
+              false
+            )
+          "
+          onchange="
+            alterarVidaVeiculo(
+              ${index},
+              this.value,
+              true
+            )
+          "
+        >
+
+      </div>
+
+      <div class="veiculo-status-box">
+
+        <div class="veiculo-status-topo">
+
+          <span>⛽ Gasolina</span>
+
+          <strong id="veiculoGasolinaTexto">
+            ${formatarNumeroInventario(veiculo.gasolinaAtual)}
+            /
+            ${formatarNumeroInventario(gasolinaMax)}
+          </strong>
+
+        </div>
+
+        <input
+          class="veiculo-range veiculo-range-gasolina"
+          type="range"
+          min="0"
+          max="${Math.max(1, gasolinaMax)}"
+          step="1"
+          value="${veiculo.gasolinaAtual}"
+          ${gasolinaMax <= 0 ? "disabled" : ""}
+          oninput="
+            alterarGasolinaVeiculo(
+              ${index},
+              this.value,
+              false
+            )
+          "
+          onchange="
+            alterarGasolinaVeiculo(
+              ${index},
+              this.value,
+              true
+            )
+          "
+        >
+
+      </div>
+
+      <div class="veiculo-dados-grid">
+
+        <div>
+          <span>👥 Lugares</span>
+          <strong>
+            ${veiculo.passageirosMax || 0}
+          </strong>
+        </div>
+
+        <div>
+          <span>🎒 Carga</span>
+
+          <strong>
+            ${formatarNumeroInventario(carga)}
+            /
+            ${formatarNumeroInventario(veiculo.espacosMax)}
+          </strong>
+        </div>
+
+      </div>
+
+      <div style="margin-top:12px;">
+
+        <span class="popup-label">
+          Categorias permitidas
+        </span>
+
+        <div class="popup-descricao popup-descricao-pequena">
+          ${
+            veiculo.categoriasPermitidas
+              ? esc(veiculo.categoriasPermitidas)
+              : "Não definidas"
+          }
+        </div>
+
+      </div>
+
+      <div class="veiculo-itens-titulo">
+
+        <span>Itens no veículo</span>
+
+                <div class="veiculo-itens-botoes">
+
+          <button
+            type="button"
+            onclick="
+              abrirGuardarNoVeiculo(${index})
+            "
+          >
+            Transferir
+          </button>
+
+          ${
+            (veiculo.itens || []).length
+              ? `<button type="button" onclick="abrirRetirarVariosVeiculo(${index})">Retirar vários</button>`
+              : ""
+          }
+
+          <button
+            type="button"
+            onclick="
+              abrirAdicionarItemVeiculo(${index})
+            "
+          >
+            + Item
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="veiculo-itens-lista">
+        ${itensHTML}
+      </div>
+
+    </div>
+  `;
+
+  abrirPopup(
+    `${veiculo.icone || "🚗"} ${veiculo.nome || "Veículo"}`,
+    html,
+    true,
+    () => editarVeiculo(index)
+  );
+}
+
+function alterarVidaVeiculo(
+  index,
+  valor,
+  salvarAgora
+) {
+  const veiculo = veiculos[index];
+  if (!veiculo) return;
+
+  const max =
+    numeroInventario(veiculo.vidaMax);
+
+  veiculo.vidaAtual =
+    Math.min(
+      max,
+      numeroInventario(valor)
+    );
+
+  const texto =
+    document.getElementById(
+      "veiculoVidaTexto"
+    );
+
+  if (texto) {
+    texto.textContent =
+      `${formatarNumeroInventario(veiculo.vidaAtual)} / ` +
+      `${formatarNumeroInventario(max)}`;
+  }
+
+  if (salvarAgora) {
+    renderVeiculos();
+    salvarTudo();
+  }
+}
+
+function alterarGasolinaVeiculo(
+  index,
+  valor,
+  salvarAgora
+) {
+  const veiculo = veiculos[index];
+  if (!veiculo) return;
+
+  const max =
+    numeroInventario(
+      veiculo.gasolinaMax
+    );
+
+  veiculo.gasolinaAtual =
+    Math.min(
+      max,
+      numeroInventario(valor)
+    );
+
+  const texto =
+    document.getElementById(
+      "veiculoGasolinaTexto"
+    );
+
+  if (texto) {
+    texto.textContent =
+      `${formatarNumeroInventario(veiculo.gasolinaAtual)} / ` +
+      `${formatarNumeroInventario(max)}`;
+  }
+
+  if (salvarAgora) {
+    renderVeiculos();
+    salvarTudo();
+  }
+}
+
+function editarVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">
+        Nome
+      </label>
+
+      <input
+  id="editVeiculoNome"
+  value="${esc(veiculo.nome || "")}"
+>
+
+
+<label class="popup-label">
+  Tipo / ícone
+</label>
+
+<select
+  id="editVeiculoIcone"
+  class="input-personagem"
+>
+
+  <option value="🏍️"
+    ${veiculo.icone === "🏍️" ? "selected" : ""}>
+    🏍️ Moto
+  </option>
+
+  <option value="🚗"
+    ${!veiculo.icone || veiculo.icone === "🚗" ? "selected" : ""}>
+    🚗 Carro
+  </option>
+
+  <option value="🚌"
+    ${veiculo.icone === "🚌" ? "selected" : ""}>
+    🚌 Ônibus
+  </option>
+
+  <option value="🚐"
+    ${veiculo.icone === "🚐" ? "selected" : ""}>
+    🚐 Van
+  </option>
+
+  <option value="🚲"
+    ${veiculo.icone === "🚲" ? "selected" : ""}>
+    🚲 Bicicleta
+  </option>
+
+  <option value="🛹"
+    ${veiculo.icone === "🛹" ? "selected" : ""}>
+    🛹 Skate
+  </option>
+
+  <option value="🚚"
+    ${veiculo.icone === "🚚" ? "selected" : ""}>
+    🚚 Caminhão
+  </option>
+
+  <option value="🚁"
+    ${veiculo.icone === "🚁" ? "selected" : ""}>
+    🚁 Helicóptero
+  </option>
+
+  <option value="✈️"
+    ${veiculo.icone === "✈️" ? "selected" : ""}>
+    ✈️ Avião
+  </option>
+
+  <option value="🚤"
+    ${veiculo.icone === "🚤" ? "selected" : ""}>
+    🚤 Barco
+  </option>
+
+</select>
+
+
+${htmlExtrasItem("editVeiculo", "veiculo", veiculo)}
+
+<label class="popup-label">
+  Descrição
+</label>
+
+      <textarea id="editVeiculoDesc">${esc(veiculo.desc || "")}</textarea>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+
+          <label class="popup-label">
+            Vida máxima
+          </label>
+
+          <input
+            id="editVeiculoVidaMax"
+            type="number"
+            min="0"
+            value="${numeroInventario(veiculo.vidaMax)}"
+          >
+
+        </div>
+
+        <div class="inv-campo">
+
+          <label class="popup-label">
+            Gasolina máxima
+          </label>
+
+          <input
+            id="editVeiculoGasolinaMax"
+            type="number"
+            min="0"
+            value="${numeroInventario(veiculo.gasolinaMax)}"
+          >
+
+        </div>
+
+      </div>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+
+          <label class="popup-label">
+            Lugares
+          </label>
+
+          <input
+            id="editVeiculoPassageiros"
+            type="number"
+            min="0"
+            value="${veiculo.passageirosMax || 0}"
+          >
+
+        </div>
+
+        <div class="inv-campo">
+
+          <label class="popup-label">
+            Espaços
+          </label>
+
+          <input
+            id="editVeiculoEspacos"
+            type="number"
+            min="0"
+            step="any"
+            value="${numeroInventario(veiculo.espacosMax)}"
+          >
+
+        </div>
+
+      </div>
+
+      <label class="popup-label">
+        Categorias permitidas
+      </label>
+
+      <input
+        id="editVeiculoCategorias"
+        value="${esc(veiculo.categoriasPermitidas || "")}"
+      >
+
+      <button
+        class="popup-salvar-btn"
+        onclick="salvarEdicaoVeiculo(${index})"
+      >
+        Salvar
+      </button>
+
+    </div>
+  `;
+
+  abrirSubPopupVeiculo(
+  "Editar veículo",
+  html
+);
+}
+
+function salvarEdicaoVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  const nome =
+    document.getElementById(
+      "editVeiculoNome"
+    )?.value.trim() || "";
+
+  if (!nome) return;
+
+  const vidaMax =
+    numeroInventario(
+      document.getElementById(
+        "editVeiculoVidaMax"
+      )?.value
+    );
+
+  const gasolinaMax =
+    numeroInventario(
+      document.getElementById(
+        "editVeiculoGasolinaMax"
+      )?.value
+    );
+
+  veiculo.nome = nome;
+
+veiculo.icone =
+  document.getElementById(
+    "editVeiculoIcone"
+  )?.value || "🚗";
+
+Object.assign(veiculo, lerExtrasItem("editVeiculo", "veiculo"));
+
+veiculo.desc =
+    document.getElementById(
+      "editVeiculoDesc"
+    )?.value.trim() || "";
+
+  veiculo.vidaMax = vidaMax;
+
+  veiculo.vidaAtual =
+    Math.min(
+      numeroInventario(
+        veiculo.vidaAtual
+      ),
+      vidaMax
+    );
+
+  veiculo.gasolinaMax =
+    gasolinaMax;
+
+  veiculo.gasolinaAtual =
+    Math.min(
+      numeroInventario(
+        veiculo.gasolinaAtual
+      ),
+      gasolinaMax
+    );
+
+  veiculo.passageirosMax =
+    Math.max(
+      0,
+      parseInt(
+        document.getElementById(
+          "editVeiculoPassageiros"
+        )?.value
+      ) || 0
+    );
+
+  veiculo.espacosMax =
+    numeroInventario(
+      document.getElementById(
+        "editVeiculoEspacos"
+      )?.value
+    );
+
+  veiculo.categoriasPermitidas =
+    document.getElementById(
+      "editVeiculoCategorias"
+    )?.value.trim() || "";
+
+  renderVeiculos();
+salvarTudo();
+
+fecharSubPopupVeiculo();
+verVeiculo(index);
+}
+
+async function removerVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  const confirmar =
+    await confirmBonito(
+      `Remover "${veiculo.nome}"?`
+    );
+
+  if (!confirmar) return;
+
+  veiculos.splice(index, 1);
+
+  renderVeiculos();
+  salvarTudo();
+}
+
+function abrirAdicionarItemVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">
+        Nome
+      </label>
+
+      <input
+        id="veiculoItemNome"
+        placeholder="Nome do item"
+      >
+
+      <label class="popup-label">
+        Descrição
+      </label>
+
+      <textarea
+        id="veiculoItemDesc"
+        placeholder="Descrição"
+      ></textarea>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+
+          <label>Quantidade</label>
+
+          <input
+            id="veiculoItemQtd"
+            type="number"
+            min="1"
+            value="1"
+          >
+
+        </div>
+
+        <div class="inv-campo">
+
+          <label>Espaços por unidade</label>
+
+          <input
+            id="veiculoItemEspacos"
+            type="number"
+            min="0"
+            step="any"
+            value="0"
+          >
+
+        </div>
+
+      </div>
+
+      <label class="popup-label">
+        Categoria
+      </label>
+
+      <input
+        id="veiculoItemCategoria"
+        placeholder="0, I, II..."
+      >
+
+      <label class="popup-label">
+        Modificações
+      </label>
+
+      <textarea
+        id="veiculoItemModificacoes"
+      ></textarea>
+
+      <label class="popup-label">
+        Maldições
+      </label>
+
+      <textarea
+        id="veiculoItemMaldicoes"
+      ></textarea>
+
+      <button
+        class="popup-salvar-btn"
+        onclick="
+          salvarNovoItemVeiculo(${index})
+        "
+      >
+        Adicionar
+      </button>
+
+    </div>
+  `;
+
+  abrirSubPopupVeiculo(
+  "Adicionar item ao veículo",
+  html
+);
+}
+
+function salvarNovoItemVeiculo(index) {
+  const veiculo = veiculos[index];
+
+  if (!veiculo) return;
+
+  if (!Array.isArray(veiculo.itens)) {
+    veiculo.itens = [];
+  }
+
+  const nome =
+    document.getElementById(
+      "veiculoItemNome"
+    )?.value.trim() || "";
+
+  if (!nome) return;
+
+  veiculo.itens.push({
+    nome,
+
+    desc:
+      document.getElementById(
+        "veiculoItemDesc"
+      )?.value.trim() || "",
+
+    qtd:
+      Math.max(
+        1,
+        parseInt(
+          document.getElementById(
+            "veiculoItemQtd"
+          )?.value
+        ) || 1
+      ),
+
+    espacos:
+      numeroInventario(
+        document.getElementById(
+          "veiculoItemEspacos"
+        )?.value
+      ),
+
+    categoria:
+      document.getElementById(
+        "veiculoItemCategoria"
+      )?.value.trim() || "",
+
+    modificacoes:
+      document.getElementById(
+        "veiculoItemModificacoes"
+      )?.value.trim() || "",
+
+    maldicoes:
+      document.getElementById(
+        "veiculoItemMaldicoes"
+      )?.value.trim() || "",
+  });
+
+  renderVeiculos();
+salvarTudo();
+
+fecharSubPopupVeiculo();
+verVeiculo(index);
+}
+
+function verItemVeiculo(
+  veiculoIndex,
+  itemIndex
+) {
+  const item =
+    veiculos[veiculoIndex]
+      ?.itens?.[itemIndex];
+
+  if (!item) return;
+
+  const totalEspacos =
+    calcularEspacosItem(item);
+
+  const html = `
+    <div class="veiculo-item-popup-view">
+
+      <div class="veiculo-item-popup-grid">
+
+        <div>
+          <span>Quantidade</span>
+
+          <strong>
+            ${item.qtd || 1}
+          </strong>
+        </div>
+
+        <div>
+          <span>Espaços</span>
+
+          <strong>
+            ${formatarNumeroInventario(
+              item.espacos || 0
+            )}
+            / un.
+          </strong>
+        </div>
+
+        <div>
+          <span>Total</span>
+
+          <strong>
+            ${formatarNumeroInventario(
+              totalEspacos
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>Categoria</span>
+
+          <strong>
+            ${
+              item.categoria
+                ? esc(item.categoria)
+                : "—"
+            }
+          </strong>
+        </div>
+
+      </div>
+
+
+      ${
+        item.modificacoes
+          ? `
+            <div class="veiculo-item-popup-bloco">
+
+              <span class="popup-label">
+                Modificações
+              </span>
+
+              <div class="veiculo-item-popup-texto">
+                ${esc(item.modificacoes)}
+              </div>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      ${
+        item.maldicoes
+          ? `
+            <div class="veiculo-item-popup-bloco">
+
+              <span class="popup-label">
+                Maldições
+              </span>
+
+              <div class="veiculo-item-popup-texto">
+                ${esc(item.maldicoes)}
+              </div>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      <div class="veiculo-item-popup-bloco">
+
+        <span class="popup-label">
+          Descrição
+        </span>
+
+        <div class="veiculo-item-popup-texto">
+          ${
+            item.desc
+              ? esc(item.desc)
+              : "Sem descrição"
+          }
+        </div>
+
+      </div>
+
+
+            <div class="veiculo-item-popup-acoes">
+
+        <button
+          type="button"
+          class="popup-salvar-btn"
+          onclick="
+            editarItemVeiculo(
+              ${veiculoIndex},
+              ${itemIndex}
+            )
+          "
+        >
+          Editar item
+        </button>
+
+        <button
+          type="button"
+          class="popup-salvar-btn"
+          onclick="
+            abrirRetirarItemVeiculo(
+              ${veiculoIndex},
+              ${itemIndex}
+            )
+          "
+        >
+          Retirar do veículo
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  abrirSubPopupVeiculo(
+    item.nome || "Item",
+    html
+  );
+}
+
+function editarItemVeiculo(
+  veiculoIndex,
+  itemIndex
+) {
+  const item =
+    veiculos[veiculoIndex]
+      ?.itens?.[itemIndex];
+
+  if (!item) return;
+
+  const html = `
+    <div class="popup-form">
+
+      <label class="popup-label">
+        Nome
+      </label>
+
+      <input
+        id="editVeiculoItemNome"
+        value="${esc(item.nome || "")}"
+      >
+
+      <label class="popup-label">
+        Descrição
+      </label>
+
+      <textarea id="editVeiculoItemDesc">${esc(item.desc || "")}</textarea>
+
+      <div class="inv-campos-duplos">
+
+        <div class="inv-campo">
+
+          <label>Quantidade</label>
+
+          <input
+            id="editVeiculoItemQtd"
+            type="number"
+            min="1"
+            value="${item.qtd || 1}"
+          >
+
+        </div>
+
+        <div class="inv-campo">
+
+          <label>
+            Espaços por unidade
+          </label>
+
+          <input
+            id="editVeiculoItemEspacos"
+            type="number"
+            min="0"
+            step="any"
+            value="${numeroInventario(item.espacos)}"
+          >
+
+        </div>
+
+      </div>
+
+      <label class="popup-label">
+        Categoria
+      </label>
+
+      <input
+        id="editVeiculoItemCategoria"
+        value="${esc(item.categoria || "")}"
+      >
+
+      <label class="popup-label">
+        Modificações
+      </label>
+
+      <textarea id="editVeiculoItemModificacoes">${esc(item.modificacoes || "")}</textarea>
+
+      <label class="popup-label">
+        Maldições
+      </label>
+
+      <textarea id="editVeiculoItemMaldicoes">${esc(item.maldicoes || "")}</textarea>
+
+      <button
+        class="popup-salvar-btn"
+        onclick="
+          salvarEdicaoItemVeiculo(
+            ${veiculoIndex},
+            ${itemIndex}
+          )
+        "
+      >
+        Salvar
+      </button>
+
+    </div>
+  `;
+
+  abrirSubPopupVeiculo(
+  "Editar item do veículo",
+  html
+);
+}
+
+function salvarEdicaoItemVeiculo(
+  veiculoIndex,
+  itemIndex
+) {
+  const item =
+    veiculos[veiculoIndex]
+      ?.itens?.[itemIndex];
+
+  if (!item) return;
+
+  const nome =
+    document.getElementById(
+      "editVeiculoItemNome"
+    )?.value.trim() || "";
+
+  if (!nome) return;
+
+  item.nome = nome;
+
+  item.desc =
+    document.getElementById(
+      "editVeiculoItemDesc"
+    )?.value.trim() || "";
+
+  item.qtd =
+    Math.max(
+      1,
+      parseInt(
+        document.getElementById(
+          "editVeiculoItemQtd"
+        )?.value
+      ) || 1
+    );
+
+  item.espacos =
+    numeroInventario(
+      document.getElementById(
+        "editVeiculoItemEspacos"
+      )?.value
+    );
+
+  item.categoria =
+    document.getElementById(
+      "editVeiculoItemCategoria"
+    )?.value.trim() || "";
+
+  item.modificacoes =
+    document.getElementById(
+      "editVeiculoItemModificacoes"
+    )?.value.trim() || "";
+
+  item.maldicoes =
+    document.getElementById(
+      "editVeiculoItemMaldicoes"
+    )?.value.trim() || "";
+
+  renderVeiculos();
+salvarTudo();
+
+fecharSubPopupVeiculo();
+verVeiculo(veiculoIndex);
+}
+
+async function removerItemVeiculo(
+  veiculoIndex,
+  itemIndex
+) {
+  const veiculo =
+    veiculos[veiculoIndex];
+
+  const item =
+    veiculo?.itens?.[itemIndex];
+
+  if (!veiculo || !item) return;
+
+  const confirmar =
+    await confirmBonito(
+      `Remover "${item.nome}" do veículo?`
+    );
+
+  if (!confirmar) return;
+
+  veiculo.itens.splice(
+    itemIndex,
+    1
+  );
+
+  renderVeiculos();
+  salvarTudo();
+
+  verVeiculo(veiculoIndex);
+}
+
+
+/* ================= TRANSFERIR ITENS: VEÍCULO <-> FICHA ================= */
+
+function copiaProfunda(obj) {
+  return JSON.parse(JSON.stringify(obj || {}));
+}
+
+// Ficha -> veículo (guarda o original pra devolver sem perder nada)
+// Ficha -> veículo (guarda o original pra devolver sem perder nada)
+function itemParaVeiculo(item, tipo) {
+  const dados = copiaProfunda(item);
+
+  if (tipo === "armas") {
+    return {
+      nome: dados.nome || "Arma",
+      desc: dados.desc || "",
+      qtd: 1,
+      espacos: numeroInventario(dados.espacos),
+      categoria: dados.categoria || "",
+      modificacoes: "",
+      maldicoes: "",
+      origemTipo: "armas",
+      origemDados: dados,
+    };
+  }
+
+  if (tipo === "armaduras") {
+    return {
+      nome: dados.nome || "Vestimenta",
+      desc: dados.desc || "",
+      qtd: 1,
+      espacos: numeroInventario(dados.espacos),
+      categoria: dados.categoria || "",
+      modificacoes: "",
+      maldicoes: "",
+      origemTipo: "armaduras",
+      origemDados: dados,
+    };
+  }
+
+  return {
+    nome: dados.nome || "Item",
+    desc: dados.desc || "",
+    qtd: Math.max(1, parseInt(dados.qtd) || 1),
+    espacos: numeroInventario(dados.espacos),
+    categoria: dados.categoria || "",
+    modificacoes: dados.modificacoes || "",
+    maldicoes: dados.maldicoes || "",
+    origemTipo: "inventario",
+    origemDados: dados,
+  };
+}
+
+// Veículo -> ficha (inventario | armas | armaduras)
+// Veículo -> ficha (inventario | armas | armaduras)
+function itemDoVeiculoPara(item, destino, primeiro = true) {
+  const o = item.origemDados || {};
+
+  const comum = {
+    nome: item.nome || "Item",
+    requerSintonia: !!o.requerSintonia,
+    sintonizado: !!o.requerSintonia && !!o.sintonizado,
+    // cópias extras não reaproveitam a imagem (evita apagar uma ao remover outra)
+    imagemUrl: primeiro ? o.imagemUrl || "" : "",
+    imagemDeleteUrl: primeiro ? o.imagemDeleteUrl || "" : "",
+  };
+
+  // Saída 1: vai para o inventário
+  if (destino === "inventario") {
+    return {
+      ...comum,
+      desc: item.desc || "",
+      qtd: Math.max(1, parseInt(item.qtd) || 1),
+      espacos: numeroInventario(item.espacos),
+      categoria: item.categoria || "",
+      modificacoes: item.modificacoes || "",
+      maldicoes: item.maldicoes || "",
+    };
+  }
+
+  // Armas e vestimentas não têm modificações/maldições:
+  // esses textos vão pra dentro da descrição pra nada se perder.
+  const desc = [
+    item.desc,
+    item.modificacoes ? `Modificações: ${item.modificacoes}` : "",
+    item.maldicoes ? `Maldições: ${item.maldicoes}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const maxCargas = parseInt(o.maxCargas) || 0;
+  const temCargas = !!o.temCargas && maxCargas > 0;
+
+  const cargas = {
+    temCargas,
+    maxCargas: temCargas ? maxCargas : 0,
+    cargasGastas: temCargas
+      ? Array.isArray(o.cargasGastas)
+        ? [...o.cargasGastas]
+        : Array(maxCargas).fill(false)
+      : [],
+  };
+
+  // detalhes de combate e modificações (arrays/objetos) voltam junto
+  const extras = {
+    detalhes: JSON.parse(JSON.stringify(o.detalhes || {})),
+    modificacoes: JSON.parse(JSON.stringify(_modsDoItem(o))),
+  };
+
+  // Saída 2: vai para as armas
+  if (destino === "armas") {
+    return {
+      ...comum,
+      ...cargas,
+      ...extras,
+      desc,
+      dano: o.dano || "",
+      espacos: numeroInventario(item.espacos),
+      categoria: item.categoria || "",
+    };
+  }
+
+  // Saída 3: vai para as vestimentas
+  return {
+    ...comum,
+    ...cargas,
+    ...extras,
+    desc,
+    ca: o.ca || "",
+    espacos: numeroInventario(item.espacos),
+    categoria: item.categoria || "",
+  };
+}
+
+// Pergunta quantas unidades transferir. Devolve 1..max, ou null se cancelou.
+async function pedirQuantidadeTransferencia(nome, max, aviso = "") {
+  if (max <= 1) return 1;
+
+  const resposta = await promptBonito(
+    `Quantas unidades de "${nome}" transferir? (1 a ${max}) ${aviso}`.trim(),
+    max
+  );
+
+  if (resposta === null || resposta === undefined) return null;
+
+  const n = parseInt(String(resposta).trim(), 10);
+
+  if (!Number.isFinite(n) || n < 1) return null;
+
+  return Math.min(n, max);
+}
+
+// Dois itens são "o mesmo" se dá pra somar as quantidades
+function mesmoItem(a, b) {
+  const tipoA = a.origemTipo || "inventario";
+  const tipoB = b.origemTipo || "inventario";
+
+  if (tipoA !== "inventario" || tipoB !== "inventario") return false;
+
+  // itens no veículo guardam sintonia/imagem dentro de origemDados
+  const dadosA = a.origemDados || a;
+  const dadosB = b.origemDados || b;
+
+  return (
+    ["nome", "desc", "categoria", "modificacoes", "maldicoes"].every(
+      (campo) => (a[campo] || "") === (b[campo] || "")
+    ) &&
+    numeroInventario(a.espacos) === numeroInventario(b.espacos) &&
+    !!dadosA.requerSintonia === !!dadosB.requerSintonia &&
+    !!dadosA.sintonizado === !!dadosB.sintonizado
+  );
+}
+
+/* ---------- Transferir da ficha para o veículo ---------- */
+
+
+
+/* ================= ÍCONES DOS RECIPIENTES (SVG, estilo do site) ================= */
+
+const SVG_RECIPIENTE = {"mochila": "<path d=\"M9.5 4.2a2.5 2.5 0 0 1 5 0\"/><path d=\"M6.5 10a4.5 4.5 0 0 1 4.5-4.5h2A4.5 4.5 0 0 1 17.5 10v8.5a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2z\"/><path d=\"M6.5 11.5h11\"/><path d=\"M9.2 15h5.6v3.2a.8.8 0 0 1-.8.8h-4a.8.8 0 0 1-.8-.8z\"/><path d=\"M6.5 14H5a1 1 0 0 0-1 1v2.5a1 1 0 0 0 1 1h1.5M17.5 14H19a1 1 0 0 1 1 1v2.5a1 1 0 0 1-1 1h-1.5\"/>", "bolsa": "<path d=\"M8 8.5V7a4 4 0 0 1 8 0v1.5\"/><path d=\"M5.5 8.5h13l1.2 10.4a1.6 1.6 0 0 1-1.6 1.8H5.9a1.6 1.6 0 0 1-1.6-1.8z\"/><path d=\"M9.2 12.5h5.6\"/>", "maleta": "<path d=\"M9 7V5.6A1.6 1.6 0 0 1 10.6 4h2.8A1.6 1.6 0 0 1 15 5.6V7\"/><rect x=\"3\" y=\"7\" width=\"18\" height=\"12.5\" rx=\"2.2\"/><path d=\"M3 12.5h18\"/><path d=\"M10.5 12.5v2h3v-2\"/>", "mala": "<path d=\"M9.5 7V4.8A1.3 1.3 0 0 1 10.8 3.5h2.4a1.3 1.3 0 0 1 1.3 1.3V7\"/><rect x=\"5.5\" y=\"7\" width=\"13\" height=\"12\" rx=\"2.2\"/><path d=\"M9.5 7v12M14.5 7v12\"/><path d=\"M8 19v1.7M16 19v1.7\"/>", "caixa": "<path d=\"M12 3.2 20 7.4v9.2l-8 4.2-8-4.2V7.4z\"/><path d=\"M4 7.4l8 4.2 8-4.2M12 11.6v9.2\"/><path d=\"M8 5.3l8 4.2\"/>", "ferramentas": "<path d=\"M9 7V5.6A1.6 1.6 0 0 1 10.6 4h2.8A1.6 1.6 0 0 1 15 5.6V7\"/><rect x=\"3\" y=\"7\" width=\"18\" height=\"12.5\" rx=\"1.8\"/><path d=\"M3 12h18\"/><path d=\"M8 12v2.2M16 12v2.2\"/>"};
+
+const ICONES_RECIPIENTE = [["mochila", "Mochila"], ["bolsa", "Bolsa"], ["maleta", "Maleta"], ["mala", "Mala"], ["caixa", "Caixa"], ["ferramentas", "Caixa de ferramentas"]];
+
+/* emojis antigos continuam funcionando e viram os ícones novos */
+const EMOJI_PARA_SVG_RECIPIENTE = {
+  "🎒": "mochila", "👜": "bolsa", "💼": "maleta", "🧳": "mala", "📦": "caixa", "🧰": "ferramentas",
+};
+
+function iconeRecipienteHTML(icone, classe = "rec-ico") {
+  let chave = String(icone || "");
+  if (chave.startsWith("svg:")) chave = chave.slice(4);
+  else if (EMOJI_PARA_SVG_RECIPIENTE[chave]) chave = EMOJI_PARA_SVG_RECIPIENTE[chave];
+  else if (!SVG_RECIPIENTE[chave]) return `<span class="${classe}-emoji">${esc(icone || "🎒")}</span>`;
+
+  return `<svg class="${classe}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SVG_RECIPIENTE[chave]}</svg>`;
+}
+
+function _chaveIconeRecipiente(icone) {
+  let c = String(icone || "mochila");
+  if (c.startsWith("svg:")) c = c.slice(4);
+  return EMOJI_PARA_SVG_RECIPIENTE[c] || c;
+}
+
+function _opcoesIconeRecipiente(atual) {
+  const sel = _chaveIconeRecipiente(atual);
+  const lista = ICONES_RECIPIENTE.slice();
+  if (atual && !SVG_RECIPIENTE[sel]) lista.unshift([atual, "Personalizado"]);
+  return lista
+    .map(([v, n]) => `<option value="${esc(v)}" ${v === sel || v === atual ? "selected" : ""}>${n}</option>`)
+    .join("");
+}
+
+/* ================= RECIPIENTES (MOCHILAS, BOLSAS, MALAS...) ================= */
+/* Itens de carga: guardam outros itens do inventário e somam o espaço sozinhos.
+   O espaço dos itens guardados continua contando na carga do inventário. */
+
+function calcularEspacosDentroRecipiente(rec) {
+  return (rec?.itens || []).reduce((t, it) => t + calcularEspacosItem(it), 0);
+}
+
+function calcularEspacosRecipiente(rec) {
+  return numeroInventario(rec?.espacos) + calcularEspacosDentroRecipiente(rec);
+}
+
+function _atualizarTudoItensOP(recIndex = null) {
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderRecipientes();
+  renderVeiculos();
+  salvarTudo();
+  if (recIndex !== null && recipientes[recIndex]) {
+    fecharSubPopupVeiculo();
+    verRecipiente(recIndex);
+  }
+}
+
+function addRecipiente() {
+  const nome = document.getElementById("recNome")?.value.trim() || "";
+  if (!nome) {
+    alertBonito("Digite o nome do recipiente.");
+    return;
+  }
+
+  recipientes.push({
+    nome,
+    icone: document.getElementById("recIcone")?.value || "mochila",
+    espacos: numeroInventario(document.getElementById("recEspacos")?.value),
+    capacidade: numeroInventario(document.getElementById("recCapacidade")?.value),
+    itens: [],
+  });
+
+  ["recNome", "recEspacos", "recCapacidade"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  const ic = document.getElementById("recIcone");
+  if (ic) ic.value = "mochila";
+
+  renderRecipientes();
+  atualizarResumoInventario();
+  salvarTudo();
+}
+
+function renderRecipientes() {
+  const ul = document.getElementById("listaRecipientes");
+  if (!ul) return;
+  ul.innerHTML = "";
+
+  recipientes.forEach((rec, index) => {
+    if (!Array.isArray(rec.itens)) rec.itens = [];
+
+    const usado = calcularEspacosDentroRecipiente(rec);
+    const cap = numeroInventario(rec.capacidade);
+    const excedeu = cap > 0 && usado > cap;
+
+    const card = document.createElement("li");
+    card.className = "veiculo-card recipiente-card";
+    card.onclick = () => verRecipiente(index);
+
+    card.innerHTML = `
+      <div class="veiculo-card-principal">
+        <div class="veiculo-card-topo">
+          <strong class="veiculo-card-nome">
+            <span class="veiculo-card-icone rec-card-icone">${iconeRecipienteHTML(rec.icone)}</span>
+            ${esc(rec.nome || "Recipiente")}
+          </strong>
+          <button class="item-remover" type="button"
+            onclick="event.stopPropagation(); removerRecipiente(${index})">×</button>
+        </div>
+
+        <div class="veiculo-resumo-grid">
+          <span class="${excedeu ? "rec-excedeu" : ""}">
+            🎒 ${formatarNumeroInventario(usado)}${cap > 0 ? ` / ${formatarNumeroInventario(cap)}` : ""} espaços
+          </span>
+          <span>📦 ${rec.itens.length} ${rec.itens.length === 1 ? "item" : "itens"}</span>
+        </div>
+
+        ${
+          cap > 0
+            ? `<div class="rec-barra"><div class="rec-barra-fill ${excedeu ? "excedeu" : ""}" style="width:${Math.min(100, (usado / cap) * 100)}%"></div></div>`
+            : ""
+        }
+
+        <div class="rec-card-itens">
+          ${
+            rec.itens.length
+              ? rec.itens
+                  .slice(0, 6)
+                  .map(
+                    (it) =>
+                      `<span class="rec-card-chip">${esc(it.nome || "Item")}${(parseInt(it.qtd) || 1) > 1 ? ` <b>x${parseInt(it.qtd)}</b>` : ""}</span>`,
+                  )
+                  .join("") +
+                (rec.itens.length > 6
+                  ? `<span class="rec-card-chip">+${rec.itens.length - 6}</span>`
+                  : "")
+              : `<span class="rec-card-vazio">Vazio · toque para colocar itens</span>`
+          }
+        </div>
+      </div>`;
+
+    ul.appendChild(card);
+  });
+
+  atualizarResumoInventario();
+}
+
+function verRecipiente(index) {
+  const rec = recipientes[index];
+  if (!rec) return;
+  if (!Array.isArray(rec.itens)) rec.itens = [];
+
+  const usado = calcularEspacosDentroRecipiente(rec);
+  const cap = numeroInventario(rec.capacidade);
+
+  const itensHTML = rec.itens.length
+    ? rec.itens
+        .map(
+          (it, i) => `
+        <div class="rec-item">
+          <div class="rec-item-info" style="cursor:pointer" onclick="verItemRecipiente(${index}, ${i})">
+            <strong>${esc(it.nome || "Item")}</strong>
+            ${(parseInt(it.qtd) || 1) > 1 ? `<span class="rec-item-qtd">x${parseInt(it.qtd)}</span>` : ""}
+            <small>🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}${it.categoria ? ` · Cat. ${esc(it.categoria)}` : ""}</small>
+          </div>
+          <button type="button" class="rec-item-tirar" onclick="tirarDoRecipiente(${index}, ${i})">Tirar</button>
+        </div>`,
+        )
+        .join("")
+    : `<div class="veiculo-sem-itens">Vazio. Use “+ Colocar item”.</div>`;
+
+  const html = `
+    <div class="popup-bloco">
+      <div class="rec-resumo">
+        <span>🎒 ${formatarNumeroInventario(usado)}${cap > 0 ? ` / ${formatarNumeroInventario(cap)}` : ""} espaços dentro</span>
+        ${numeroInventario(rec.espacos) > 0 ? `<span>Próprio: ${formatarNumeroInventario(rec.espacos)}</span>` : ""}
+      </div>
+
+      <div class="rec-acoes">
+        <button type="button" onclick="abrirColocarNoRecipiente(${index})">+ Colocar item</button>
+        ${rec.itens.length ? `<button type="button" onclick="abrirTirarVariosRecipiente(${index})">Tirar vários</button>` : ""}
+        <button type="button" onclick="editarRecipiente(${index})">✏️ Editar</button>
+      </div>
+
+      <div class="rec-lista">${itensHTML}</div>
+    </div>`;
+
+  abrirPopup(rec.nome || "Recipiente", html, true);
+}
+
+/* detalhes de um item que está dentro do recipiente (igual ao do veículo) */
+function verItemRecipiente(recIndex, itemIndex) {
+  const rec = recipientes[recIndex];
+  const item = rec?.itens?.[itemIndex];
+  if (!rec || !item) return;
+
+  const o = item.origemDados || {};
+  const total = calcularEspacosItem(item);
+  const extras = [
+    ["Dano", o.dano], ["Crítico", o.critico], ["Alcance", o.alcance], ["Tipo", o.tipo],
+    ["Proteção", o.ca || o.defesa], ["Penalidade", o.penalidade],
+  ].filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== "");
+
+  const bloco = (rotulo, texto) =>
+    texto ? `<div class="veiculo-item-popup-bloco"><span class="popup-label">${rotulo}</span><div class="veiculo-item-popup-texto">${esc(texto)}</div></div>` : "";
+
+  const html = `
+    <div class="veiculo-item-popup-view">
+      <div class="veiculo-item-popup-grid">
+        <div><span>Quantidade</span><strong>${item.qtd || 1}</strong></div>
+        <div><span>Espaços</span><strong>${formatarNumeroInventario(item.espacos || 0)} / un.</strong></div>
+        <div><span>Total</span><strong>${formatarNumeroInventario(total)}</strong></div>
+        <div><span>Categoria</span><strong>${item.categoria ? esc(item.categoria) : "—"}</strong></div>
+        ${extras.map(([r, v]) => `<div><span>${r}</span><strong>${esc(String(v))}</strong></div>`).join("")}
+      </div>
+      ${bloco("Modificações", item.modificacoes)}
+      ${bloco("Maldições", item.maldicoes)}
+      <div class="veiculo-item-popup-bloco">
+        <span class="popup-label">Descrição</span>
+        <div class="veiculo-item-popup-texto">${item.desc ? esc(item.desc) : "Sem descrição"}</div>
+      </div>
+      <div class="veiculo-item-popup-acoes">
+        <button type="button" class="popup-salvar-btn" onclick="verRecipiente(${recIndex})">← Voltar</button>
+        <button type="button" class="popup-salvar-btn" onclick="tirarDoRecipiente(${recIndex}, ${itemIndex})">Tirar da mochila</button>
+      </div>
+    </div>`;
+
+  abrirPopup(item.nome || "Item", html, true);
+}
+
+async function colocarNoRecipiente(recIndex, tipo, itemIndex) {
+  const rec = recipientes[recIndex];
+  const origem = { inventario, armas, armaduras }[tipo];
+  const original = origem?.[itemIndex];
+  if (!rec || !original) return;
+  if (!Array.isArray(rec.itens)) rec.itens = [];
+
+  const qtdTotal = tipo === "inventario" ? Math.max(1, parseInt(original.qtd) || 1) : 1;
+  const quantidade = await pedirQuantidadeTransferencia(original.nome || "item", qtdTotal);
+  if (quantidade === null) return;
+
+  const novo = itemParaVeiculo(original, tipo);
+  novo.qtd = quantidade;
+  if (tipo === "inventario") novo.origemDados.qtd = quantidade;
+
+  const cap = numeroInventario(rec.capacidade);
+  if (cap > 0 && calcularEspacosDentroRecipiente(rec) + calcularEspacosItem(novo) > cap) {
+    const ok = await confirmBonito(`"${novo.nome}" passa da capacidade do recipiente. Colocar mesmo assim?`);
+    if (!ok) return;
+  }
+
+  if (quantidade < qtdTotal) original.qtd = qtdTotal - quantidade;
+  else origem.splice(itemIndex, 1);
+
+  const igual = tipo === "inventario" ? rec.itens.find((it) => mesmoItem(it, novo)) : null;
+  if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+  else rec.itens.push(novo);
+
+  _atualizarTudoItensOP(recIndex);
+}
+
+async function tirarDoRecipiente(recIndex, itemIndex) {
+  const rec = recipientes[recIndex];
+  const item = rec?.itens?.[itemIndex];
+  if (!rec || !item) return;
+
+  const destino = item.origemTipo || "inventario";
+  const alvo = { inventario, armas, armaduras }[destino];
+  if (!alvo) return;
+
+  const qtdTotal = Math.max(1, parseInt(item.qtd) || 1);
+  const quantidade = await pedirQuantidadeTransferencia(item.nome || "item", qtdTotal);
+  if (quantidade === null) return;
+
+  if (destino === "inventario") {
+    const novo = itemDoVeiculoPara(item, "inventario");
+    novo.qtd = quantidade;
+    const igual = alvo.find((it) => mesmoItem(it, novo));
+    if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+    else alvo.push(novo);
+  } else {
+    for (let i = 0; i < quantidade; i++) alvo.push(itemDoVeiculoPara(item, destino, i === 0));
+  }
+
+  if (quantidade < qtdTotal) item.qtd = qtdTotal - quantidade;
+  else rec.itens.splice(itemIndex, 1);
+
+  _atualizarTudoItensOP(recIndex);
+}
+
+function editarRecipiente(index) {
+  const rec = recipientes[index];
+  if (!rec) return;
+
+  const html = `
+    <div class="popup-form">
+      <label class="popup-label">Nome</label>
+      <input id="editRecNome" value="${esc(rec.nome || "")}" />
+
+      <label class="popup-label">Tipo / ícone</label>
+      <select id="editRecIcone" class="input-personagem">
+        ${_opcoesIconeRecipiente(rec.icone)}
+      </select>
+
+      <label class="popup-label">Espaços do próprio recipiente</label>
+      <input id="editRecEspacos" type="number" min="0" step="any" value="${numeroInventario(rec.espacos)}" />
+
+      <label class="popup-label">Capacidade (0 = sem limite)</label>
+      <input id="editRecCapacidade" type="number" min="0" step="any" value="${numeroInventario(rec.capacidade)}" />
+
+      <button type="button" class="rec-salvar" onclick="salvarEdicaoRecipiente(${index})">Salvar</button>
+    </div>`;
+
+  abrirSubPopupVeiculo("Editar recipiente", html);
+}
+
+function salvarEdicaoRecipiente(index) {
+  const rec = recipientes[index];
+  if (!rec) return;
+
+  rec.nome = document.getElementById("editRecNome")?.value.trim() || rec.nome;
+  rec.icone = document.getElementById("editRecIcone")?.value || "mochila";
+  rec.espacos = numeroInventario(document.getElementById("editRecEspacos")?.value);
+  rec.capacidade = numeroInventario(document.getElementById("editRecCapacidade")?.value);
+
+  _atualizarTudoItensOP(index);
+}
+
+async function removerRecipiente(index) {
+  const rec = recipientes[index];
+  if (!rec) return;
+
+  const temItens = Array.isArray(rec.itens) && rec.itens.length > 0;
+  const ok = await confirmBonito(
+    temItens
+      ? `Remover "${rec.nome}"? Os itens de dentro voltam para o inventário.`
+      : `Remover "${rec.nome}"?`,
+  );
+  if (!ok) return;
+
+  if (temItens) {
+    rec.itens.forEach((item) => {
+      const destino = item.origemTipo || "inventario";
+      const alvo = { inventario, armas, armaduras }[destino] || inventario;
+      const qtd = Math.max(1, parseInt(item.qtd) || 1);
+
+      if (destino === "inventario") {
+        const novo = itemDoVeiculoPara(item, "inventario");
+        novo.qtd = qtd;
+        const igual = alvo.find((it) => mesmoItem(it, novo));
+        if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + qtd;
+        else alvo.push(novo);
+      } else {
+        for (let i = 0; i < qtd; i++) alvo.push(itemDoVeiculoPara(item, destino, i === 0));
+      }
+    });
+  }
+
+  recipientes.splice(index, 1);
+  fecharPopup();
+  _atualizarTudoItensOP();
+}
+
+/* Transferência: tirar itens de um recipiente direto para o veículo */
+async function guardarDoRecipienteNoVeiculo(veiculoIndex, recIndex, itemIndex) {
+  const veiculo = veiculos[veiculoIndex];
+  const rec = recipientes[recIndex];
+  const original = rec?.itens?.[itemIndex];
+  if (!veiculo || !original) return;
+  if (!Array.isArray(veiculo.itens)) veiculo.itens = [];
+
+  const qtdTotal = Math.max(1, parseInt(original.qtd) || 1);
+  const quantidade = await pedirQuantidadeTransferencia(original.nome || "item", qtdTotal);
+  if (quantidade === null) return;
+
+  const novo = copiaProfunda(original);
+  novo.qtd = quantidade;
+  if (novo.origemTipo === "inventario" && novo.origemDados) novo.origemDados.qtd = quantidade;
+
+  const max = numeroInventario(veiculo.espacosMax);
+  if (max > 0 && calcularEspacosVeiculo(veiculo) + calcularEspacosItem(novo) > max) {
+    const ok = await confirmBonito(`"${novo.nome}" passa da capacidade do veículo. Guardar mesmo assim?`);
+    if (!ok) return;
+  }
+
+  if (quantidade < qtdTotal) original.qtd = qtdTotal - quantidade;
+  else rec.itens.splice(itemIndex, 1);
+
+  const igual = novo.origemTipo === "inventario" ? veiculo.itens.find((it) => mesmoItem(it, novo)) : null;
+  if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+  else veiculo.itens.push(novo);
+
+  renderInv();
+  renderRecipientes();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+/* ================= SELEÇÃO MÚLTIPLA (colocar / retirar / transferir vários itens) ================= */
+
+let _multiCtx = null;
+
+/* grupos: [{ titulo, itens: [{ chave, nome, qtd, info }] }] */
+function abrirMultiSelecao({ titulo, grupos, confirmar, aoConfirmar }) {
+  _multiCtx = { aoConfirmar, confirmar };
+
+  const linha = (it) => `
+    <div class="multi-linha">
+      <label class="multi-label">
+        <input type="checkbox" class="multi-chk" data-chave="${esc(it.chave)}" onchange="multiAtualizar()" />
+        <span class="multi-nome">${esc(it.nome || "Sem nome")}</span>
+        ${it.info ? `<small class="multi-info">${esc(it.info)}</small>` : ""}
+      </label>
+      ${
+        (parseInt(it.qtd) || 1) > 1
+          ? `<span class="multi-qtd"><input type="number" class="multi-qtd-input" data-chave="${esc(it.chave)}" min="1" max="${parseInt(it.qtd)}" value="${parseInt(it.qtd)}" inputmode="numeric" /><small>/ ${parseInt(it.qtd)}</small></span>`
+          : ""
+      }
+    </div>`;
+
+  const html = `
+    <div class="multi-sel">
+      <button type="button" class="multi-todos" onclick="multiSelecionarTodos()">Selecionar todos</button>
+
+      ${grupos
+        .map(
+          (g) => `
+        <div class="veiculo-transf-grupo">
+          <span class="popup-label">${esc(g.titulo)}</span>
+          ${g.itens.length ? g.itens.map(linha).join("") : `<div class="veiculo-sem-itens">Nada por aqui.</div>`}
+        </div>`,
+        )
+        .join("")}
+
+      <button type="button" class="multi-confirmar" id="multiConfirmar" onclick="multiConfirmar()" disabled>${esc(confirmar)}</button>
+    </div>`;
+
+  abrirSubPopupVeiculo(titulo, html);
+}
+
+function multiAtualizar() {
+  const n = document.querySelectorAll(".multi-sel .multi-chk:checked").length;
+  const btn = document.getElementById("multiConfirmar");
+  if (btn && _multiCtx) {
+    btn.disabled = n === 0;
+    btn.textContent = n ? `${_multiCtx.confirmar} (${n})` : _multiCtx.confirmar;
+  }
+}
+
+function multiSelecionarTodos() {
+  const chks = [...document.querySelectorAll(".multi-sel .multi-chk")];
+  const marcar = chks.some((c) => !c.checked);
+  chks.forEach((c) => (c.checked = marcar));
+  multiAtualizar();
+}
+
+async function multiConfirmar() {
+  if (!_multiCtx) return;
+
+  const sels = [...document.querySelectorAll(".multi-sel .multi-chk:checked")].map((c) => {
+    const chave = c.dataset.chave;
+    const q = document.querySelector(`.multi-qtd-input[data-chave="${CSS.escape(chave)}"]`);
+    const max = parseInt(q?.max) || 1;
+    const quantidade = q ? Math.min(max, Math.max(1, parseInt(q.value) || 1)) : 1;
+    return { chave, quantidade };
+  });
+
+  if (!sels.length) return;
+  await _multiCtx.aoConfirmar(sels);
+}
+
+/* chave -> item real. Formatos: inventario:3 | armas:1 | armaduras:0 | rec:0:2 | vei:1:4 */
+function _resolverChaveMulti(chave) {
+  const p = String(chave).split(":");
+
+  if (p[0] === "rec") {
+    const rec = recipientes[+p[1]];
+    return rec ? { fonte: "rec", lista: rec.itens, item: rec.itens[+p[2]] } : null;
+  }
+  if (p[0] === "vei") {
+    const v = veiculos[+p[1]];
+    return v ? { fonte: "vei", lista: v.itens, item: v.itens[+p[2]] } : null;
+  }
+
+  const lista = { inventario, armas, armaduras }[p[0]];
+  return lista ? { fonte: p[0], lista, item: lista[+p[1]] } : null;
+}
+
+function _removerQtdDaLista(lista, item, quantidade, total) {
+  if (quantidade < total) {
+    item.qtd = total - quantidade;
+  } else {
+    const i = lista.indexOf(item);
+    if (i >= 0) lista.splice(i, 1);
+  }
+}
+
+/* manda um item no formato "veículo" de volta para a ficha (inventário / armas / vestimentas) */
+function _enviarItemParaFicha(item, quantidade, destino) {
+  const alvo = { inventario, armas, armaduras }[destino] || inventario;
+
+  if (alvo === inventario) {
+    const novo = itemDoVeiculoPara(item, "inventario");
+    novo.qtd = quantidade;
+    const igual = alvo.find((it) => mesmoItem(it, novo));
+    if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+    else alvo.push(novo);
+  } else {
+    for (let i = 0; i < quantidade; i++) alvo.push(itemDoVeiculoPara(item, destino, i === 0));
+  }
+}
+
+function _itensFichaParaMulti() {
+  const info = (it, tipo) => {
+    const esp = calcularEspacosItem(tipo === "inventario" ? it : { ...it, qtd: 1 });
+    return `🎒 ${formatarNumeroInventario(esp)}`;
+  };
+
+  return [
+    { titulo: "Inventário", tipo: "inventario", lista: inventario },
+    { titulo: "Armas", tipo: "armas", lista: armas },
+    { titulo: "Vestimentas", tipo: "armaduras", lista: armaduras },
+  ].map((g) => ({
+    titulo: g.titulo,
+    itens: g.lista.map((it, i) => ({
+      chave: `${g.tipo}:${i}`,
+      nome: it.nome,
+      qtd: g.tipo === "inventario" ? Math.max(1, parseInt(it.qtd) || 1) : 1,
+      info: info(it, g.tipo),
+    })),
+  }));
+}
+
+/* ---- Colocar vários no recipiente ---- */
+function abrirColocarNoRecipiente(recIndex) {
+  if (!recipientes[recIndex]) return;
+
+  abrirMultiSelecao({
+    titulo: "Colocar no recipiente",
+    grupos: _itensFichaParaMulti(),
+    confirmar: "Colocar selecionados",
+    aoConfirmar: (sels) => colocarVariosNoRecipiente(recIndex, sels),
+  });
+}
+
+async function colocarVariosNoRecipiente(recIndex, sels) {
+  const rec = recipientes[recIndex];
+  if (!rec) return;
+  if (!Array.isArray(rec.itens)) rec.itens = [];
+
+  const prontos = [];
+  let adiciona = 0;
+
+  sels.forEach((s) => {
+    const r = _resolverChaveMulti(s.chave);
+    if (!r?.item) return;
+
+    const total = r.fonte === "inventario" ? Math.max(1, parseInt(r.item.qtd) || 1) : 1;
+    const q = Math.min(s.quantidade, total);
+
+    const novo = itemParaVeiculo(r.item, r.fonte);
+    novo.qtd = q;
+    if (r.fonte === "inventario") novo.origemDados.qtd = q;
+
+    adiciona += calcularEspacosItem(novo);
+    prontos.push({ r, total, q, novo });
+  });
+
+  if (!prontos.length) return;
+
+  const cap = numeroInventario(rec.capacidade);
+  if (cap > 0 && calcularEspacosDentroRecipiente(rec) + adiciona > cap) {
+    const ok = await confirmBonito("Os itens selecionados passam da capacidade do recipiente. Colocar mesmo assim?");
+    if (!ok) return;
+  }
+
+  prontos.forEach(({ r, total, q, novo }) => {
+    _removerQtdDaLista(r.lista, r.item, q, total);
+    const igual = r.fonte === "inventario" ? rec.itens.find((it) => mesmoItem(it, novo)) : null;
+    if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + q;
+    else rec.itens.push(novo);
+  });
+
+  _atualizarTudoItensOP(recIndex);
+}
+
+/* ---- Tirar vários do recipiente ---- */
+function abrirTirarVariosRecipiente(recIndex) {
+  const rec = recipientes[recIndex];
+  if (!rec) return;
+
+  abrirMultiSelecao({
+    titulo: "Tirar do recipiente",
+    grupos: [
+      {
+        titulo: rec.nome || "Recipiente",
+        itens: (rec.itens || []).map((it, i) => ({
+          chave: `rec:${recIndex}:${i}`,
+          nome: it.nome,
+          qtd: Math.max(1, parseInt(it.qtd) || 1),
+          info: `🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}`,
+        })),
+      },
+    ],
+    confirmar: "Tirar selecionados",
+    aoConfirmar: (sels) => tirarVariosDoRecipiente(recIndex, sels),
+  });
+}
+
+async function tirarVariosDoRecipiente(recIndex, sels) {
+  const rec = recipientes[recIndex];
+  if (!rec) return;
+
+  const lista = sels
+    .map((s) => ({ s, r: _resolverChaveMulti(s.chave) }))
+    .filter((x) => x.r?.item);
+
+  lista.forEach(({ s, r }) => {
+    const total = Math.max(1, parseInt(r.item.qtd) || 1);
+    const q = Math.min(s.quantidade, total);
+    _enviarItemParaFicha(r.item, q, r.item.origemTipo || "inventario");
+    _removerQtdDaLista(r.lista, r.item, q, total);
+  });
+
+  _atualizarTudoItensOP(recIndex);
+}
+
+/* ---- Transferir vários para o veículo (inclui itens de dentro dos recipientes) ---- */
+function abrirGuardarNoVeiculo(veiculoIndex) {
+  if (!veiculos[veiculoIndex]) return;
+
+  const grupos = _itensFichaParaMulti();
+
+  recipientes.forEach((rec, r) => {
+    if (!(rec.itens || []).length) return;
+    grupos.push({
+      titulo: `Dentro de: ${rec.nome || "Recipiente"}`,
+      itens: rec.itens.map((it, i) => ({
+        chave: `rec:${r}:${i}`,
+        nome: it.nome,
+        qtd: Math.max(1, parseInt(it.qtd) || 1),
+        info: `🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}`,
+      })),
+    });
+  });
+
+  abrirMultiSelecao({
+    titulo: "Transferir para o veículo",
+    grupos,
+    confirmar: "Transferir selecionados",
+    aoConfirmar: (sels) => guardarVariosNoVeiculo(veiculoIndex, sels),
+  });
+}
+
+async function guardarVariosNoVeiculo(veiculoIndex, sels) {
+  const veiculo = veiculos[veiculoIndex];
+  if (!veiculo) return;
+  if (!Array.isArray(veiculo.itens)) veiculo.itens = [];
+
+  const prontos = [];
+  let adiciona = 0;
+
+  sels.forEach((s) => {
+    const r = _resolverChaveMulti(s.chave);
+    if (!r?.item) return;
+
+    const doRecipiente = r.fonte === "rec";
+    const total = doRecipiente
+      ? Math.max(1, parseInt(r.item.qtd) || 1)
+      : r.fonte === "inventario"
+        ? Math.max(1, parseInt(r.item.qtd) || 1)
+        : 1;
+    const q = Math.min(s.quantidade, total);
+
+    const novo = doRecipiente ? copiaProfunda(r.item) : itemParaVeiculo(r.item, r.fonte);
+    novo.qtd = q;
+    if (novo.origemTipo === "inventario" && novo.origemDados) novo.origemDados.qtd = q;
+
+    adiciona += calcularEspacosItem(novo);
+    prontos.push({ r, total, q, novo });
+  });
+
+  if (!prontos.length) return;
+
+  const max = numeroInventario(veiculo.espacosMax);
+  if (max > 0 && calcularEspacosVeiculo(veiculo) + adiciona > max) {
+    const ok = await confirmBonito("Os itens selecionados passam da capacidade do veículo. Transferir mesmo assim?");
+    if (!ok) return;
+  }
+
+  prontos.forEach(({ r, total, q, novo }) => {
+    _removerQtdDaLista(r.lista, r.item, q, total);
+    const empilha = novo.origemTipo === "inventario";
+    const igual = empilha ? veiculo.itens.find((it) => mesmoItem(it, novo)) : null;
+    if (igual) igual.qtd = (parseInt(igual.qtd) || 1) + q;
+    else veiculo.itens.push(novo);
+  });
+
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderRecipientes();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+/* ---- Retirar vários do veículo (cada um volta para onde veio) ---- */
+function abrirRetirarVariosVeiculo(veiculoIndex) {
+  const veiculo = veiculos[veiculoIndex];
+  if (!veiculo) return;
+
+  abrirMultiSelecao({
+    titulo: "Retirar do veículo",
+    grupos: [
+      {
+        titulo: veiculo.nome || "Veículo",
+        itens: (veiculo.itens || []).map((it, i) => ({
+          chave: `vei:${veiculoIndex}:${i}`,
+          nome: it.nome,
+          qtd: Math.max(1, parseInt(it.qtd) || 1),
+          info: `🎒 ${formatarNumeroInventario(calcularEspacosItem(it))}`,
+        })),
+      },
+    ],
+    confirmar: "Retirar selecionados",
+    aoConfirmar: (sels) => retirarVariosDoVeiculo(veiculoIndex, sels),
+  });
+}
+
+async function retirarVariosDoVeiculo(veiculoIndex, sels) {
+  const veiculo = veiculos[veiculoIndex];
+  if (!veiculo) return;
+
+  sels
+    .map((s) => ({ s, r: _resolverChaveMulti(s.chave) }))
+    .filter((x) => x.r?.item)
+    .forEach(({ s, r }) => {
+      const total = Math.max(1, parseInt(r.item.qtd) || 1);
+      const q = Math.min(s.quantidade, total);
+      _enviarItemParaFicha(r.item, q, r.item.origemTipo || "inventario");
+      _removerQtdDaLista(r.lista, r.item, q, total);
+    });
+
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderRecipientes();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+async function guardarNoVeiculo(veiculoIndex, tipo, itemIndex) {
+  const veiculo = veiculos[veiculoIndex];
+  const origem = { inventario, armas, armaduras }[tipo];
+  const original = origem?.[itemIndex];
+
+  if (!veiculo || !original) return;
+
+  if (!Array.isArray(veiculo.itens)) veiculo.itens = [];
+
+  // só o inventário tem quantidade; arma e vestimenta vão inteiras
+  const qtdTotal =
+    tipo === "inventario" ? Math.max(1, parseInt(original.qtd) || 1) : 1;
+
+  const quantidade = await pedirQuantidadeTransferencia(
+    original.nome || "item",
+    qtdTotal
+  );
+
+  if (quantidade === null) return;
+
+  const novo = itemParaVeiculo(original, tipo);
+  novo.qtd = quantidade;
+
+  if (tipo === "inventario") novo.origemDados.qtd = quantidade;
+
+  const max = numeroInventario(veiculo.espacosMax);
+  const cargaFinal = calcularEspacosVeiculo(veiculo) + calcularEspacosItem(novo);
+
+  if (max > 0 && cargaFinal > max) {
+    const ok = await confirmBonito(
+      `"${novo.nome}" passa da capacidade do veículo. Guardar mesmo assim?`
+    );
+    if (!ok) return;
+  }
+
+  // tira da ficha só a quantidade escolhida
+  if (quantidade < qtdTotal) {
+    original.qtd = qtdTotal - quantidade;
+  } else {
+    origem.splice(itemIndex, 1);
+  }
+
+  // soma na pilha do veículo se já existir um igual
+  const igual =
+    tipo === "inventario"
+      ? veiculo.itens.find((it) => mesmoItem(it, novo))
+      : null;
+
+  if (igual) {
+    igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+  } else {
+    veiculo.itens.push(novo);
+  }
+
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+/* ---------- Retirar do veículo para a ficha ---------- */
+
+async function retirarItemVeiculo(veiculoIndex, itemIndex, destino) {
+  const veiculo = veiculos[veiculoIndex];
+  const item = veiculo?.itens?.[itemIndex];
+
+  if (!veiculo || !item) return;
+
+  const alvo = { inventario, armas, armaduras }[destino];
+  if (!alvo) return;
+
+  const qtdTotal = Math.max(1, parseInt(item.qtd) || 1);
+
+  const aviso =
+    destino === "inventario"
+      ? ""
+      : `(${destino === "armas" ? "Armas" : "Vestimentas"} não têm quantidade: cada unidade vira uma entrada separada.)`;
+
+  const quantidade = await pedirQuantidadeTransferencia(
+    item.nome || "item",
+    qtdTotal,
+    aviso
+  );
+
+  if (quantidade === null) return;
+
+  if (destino === "inventario") {
+    const novo = itemDoVeiculoPara(item, "inventario");
+    novo.qtd = quantidade;
+
+    const igual = alvo.find((it) => mesmoItem(it, novo));
+
+    if (igual) {
+      igual.qtd = (parseInt(igual.qtd) || 1) + quantidade;
+    } else {
+      alvo.push(novo);
+    }
+  } else {
+    for (let i = 0; i < quantidade; i++) {
+      alvo.push(itemDoVeiculoPara(item, destino, i === 0));
+    }
+  }
+
+  // tira do veículo só a quantidade escolhida
+  if (quantidade < qtdTotal) {
+    item.qtd = qtdTotal - quantidade;
+  } else {
+    veiculo.itens.splice(itemIndex, 1);
+  }
+
+  renderInv();
+  renderArmas();
+  renderArmaduras();
+  renderVeiculos();
+  salvarTudo();
+
+  fecharSubPopupVeiculo();
+  verVeiculo(veiculoIndex);
+}
+
+function abrirRetirarItemVeiculo(veiculoIndex, itemIndex) {
+  const item = veiculos[veiculoIndex]?.itens?.[itemIndex];
+  if (!item) return;
+
+  const destinos = [
+    ["inventario", "Inventário"],
+    ["armas", "Armas"],
+    ["armaduras", "Vestimentas"],
+  ];
+
+  const html = `
+    <div class="veiculo-transf">
+      <div class="veiculo-transf-grupo">
+        <span class="popup-label">Enviar para</span>
+        ${destinos
+          .map(
+            ([tipo, nome]) => `
+          <button
+            type="button"
+            class="veiculo-transf-btn"
+            onclick="retirarItemVeiculo(${veiculoIndex}, ${itemIndex}, '${tipo}')"
+          >
+            <span>${nome}</span>
+          </button>`
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+
+  abrirSubPopupVeiculo("Retirar do veículo", html);
+}
+
+
+/* ================= ARMAS ================= */
+
+async function addArma() {
+  const nome = document.getElementById("armaNome").value.trim();
+  const dano =
+  document.getElementById("armaDano")
+    .value.trim();
+
+const espacos =
+  numeroInventario(
+    document.getElementById(
+      "armaEspacos"
+    )?.value
+  );
+
+  const categoria =
+  document.getElementById("armaCategoria")?.value.trim() || "";
+
+const descEl =
+  document.getElementById("armaDesc");
+  const desc = descEl ? descEl.value.trim() : "";
+
+  const temCargasEl = document.getElementById("armaTemCargas");
+  const maxCargasEl = document.getElementById("armaMaxCargas");
+
+  const temCargas = !!temCargasEl?.checked;
+  const maxCargas = temCargas ? parseInt(maxCargasEl?.value) || 0 : 0;
+
+  if (!nome) return;
+  if (temCargas && maxCargas <= 0) return;
+
+  let imagemUrl = editandoArma >= 0 ? armas[editandoArma]?.imagemUrl || "" : "";
+  let imagemDeleteUrl = editandoArma >= 0 ? armas[editandoArma]?.imagemDeleteUrl || "" : "";
+
+  if (armaImagemBase64Temp === "REMOVIDA") {
+    imagemUrl = "";
+    imagemDeleteUrl = "";
+  } else if (armaImagemBase64Temp) {
+    const resultado = await uploadImagemFirebase(armaImagemBase64Temp, "arma");
+    if (resultado.erro || !resultado.url) {
+      alertBonito(_mensagemErroUpload("A arma foi salva sem imagem."))
+    } else {
+      imagemUrl = resultado.url;
+      imagemDeleteUrl = resultado.deleteUrl;
+    }
+  }
+
+    const requerSintonia = !!document.getElementById("armaRequerSintonia")?.checked;
+  const sintonizado = requerSintonia && !!document.getElementById("armaSintonizado")?.checked;
+
+  const novaArma = {
+    ...lerExtrasItem("arma", "arma"),
+    nome,
+    dano,
+    espacos,
+    categoria,
+    desc,
+    temCargas,
+    maxCargas,
+    cargasGastas: temCargas ? Array(maxCargas).fill(false) : [],
+    requerSintonia,
+    sintonizado,
+    imagemUrl,
+    imagemDeleteUrl,
+  };
+
+  if (editandoArma >= 0) {
+    const armaAnterior = armas[editandoArma];
+
+    if (
+      armaAnterior?.temCargas &&
+      temCargas &&
+      armaAnterior.maxCargas === maxCargas &&
+      Array.isArray(armaAnterior.cargasGastas)
+    ) {
+      novaArma.cargasGastas = armaAnterior.cargasGastas;
+    }
+
+    armas[editandoArma] = novaArma;
+    editandoArma = -1;
+  } else {
+    armas.push(novaArma);
+  }
+
+  renderArmas();
+  salvarTudo();
+
+  document.getElementById("armaNome").value = "";
+document.getElementById("armaDano").value = "";
+montarExtrasForm("arma", "arma");
+
+const armaEspacosEl =
+  document.getElementById("armaEspacos");
+
+if (armaEspacosEl) {
+  armaEspacosEl.value = "0";
+}
+
+const armaCategoriaEl = document.getElementById("armaCategoria");
+if (armaCategoriaEl) armaCategoriaEl.value = "";
+
+if (descEl) {
+  descEl.value = "";
+}
+
+    const requerSintoniaEl = document.getElementById("armaRequerSintonia");
+  const sintonizadoEl = document.getElementById("armaSintonizado");
+  const boxSintonizadoEl = document.getElementById("boxArmaSintonizado");
+  if (requerSintoniaEl) requerSintoniaEl.checked = false;
+  if (sintonizadoEl) sintonizadoEl.checked = false;
+  if (boxSintonizadoEl) boxSintonizadoEl.style.display = "none";
+
+  if (temCargasEl) temCargasEl.checked = false;
+  if (maxCargasEl) {
+    maxCargasEl.value = "";
+    maxCargasEl.style.display = "none";
+  }
+
+  armaImagemBase64Temp = "";
+  document.getElementById("armaImagem").value = "";
+  document.getElementById("armaImagemPreview").style.display = "none";
+}
+
+function renderArmas() {
+  const ul = document.getElementById("listaArmas");
+  if (!ul) return;
+
+  ul.innerHTML = "";
+
+  armas.forEach((arma, index) => {
+    const li = document.createElement("li");
+    li.className = "arma-card";
+    li.dataset.index = index;
+
+    const cargasHTML =
+      arma.temCargas && arma.maxCargas > 0
+        ? `
+        <div class="arma-cargas-box">
+          <span class="arma-cargas-label">Cargas</span>
+          <div class="arma-cargas-checks">
+            ${Array.from(
+              { length: arma.maxCargas },
+              (_, i) => `
+              <div
+                class="arma-carga-check ${arma.cargasGastas?.[i] ? "ativo" : ""}"
+                onclick="event.stopPropagation(); toggleCargaArma(${index}, ${i})"
+              ></div>
+            `,
+            ).join("")}
+          </div>
+        </div>
+      `
+        : "";
+
+
+    li.innerHTML = `
+      <button type="button" class="drag-handle" aria-label="Arrastar para reordenar">⠿</button>
+
+      <div class="arma-info" onclick="verArma(${index})">
+        <strong class="arma-nome">
+  ${esc(arma.nome) || "Sem nome"}
+  ${
+    arma.requerSintonia
+      ? `<span class="item-tag-sintonia">${arma.sintonizado ? "Sint." : "Req. Sint."}</span>`
+      : ""
+  }
+</strong>
+        <p class="arma-dano-preview">${esc(arma.dano) || "Sem dano"}</p>
+
+
+<div class="item-subtags">
+  ${
+    numeroInventario(arma.espacos) > 0
+      ? `<span class="item-subtag item-subtag-espaco">🎒 ${formatarNumeroInventario(arma.espacos)} ${numeroInventario(arma.espacos) === 1 ? "espaço" : "espaços"}</span>`
+      : ""
+  }
+
+    ${
+    typeof categoriaChipOP === "function"
+      ? categoriaChipOP(arma)
+      : arma.categoria
+        ? `<span class="item-subtag item-subtag-categoria">Cat. ${esc(arma.categoria)}</span>`
+        : ""
+  }
+
+  ${
+    arma.requerSintonia
+      ? `<span class="item-subtag">🔗 Requer sintonia</span>`
+      : ""
+  }
+
+  ${
+    arma.sintonizado
+      ? `<span class="item-subtag ativo">✅ Sintonizado</span>`
+      : ""
+  }
+</div>
+
+${extrasCardHTML(arma, "arma")}
+
+<p class="arma-desc-preview">
+  ${arma.desc ? esc(arma.desc).substring(0, 60) + (arma.desc.length > 60 ? "..." : "") : "Sem descrição"}
+</p>
+
+${cargasHTML}
+      </div>
+
+      <div class="item-acoes">
+        <button type="button" class="btn-editar" onclick="event.stopPropagation(); editarArma(${index})">✏️</button>
+        <button type="button" onclick="event.stopPropagation(); window.abrirDarItem('armas', ${index})" style="background:#3e2f46;border:none;color:#efe7ef;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;">Dar</button>
+        <button type="button" class="arma-remover" onclick="event.stopPropagation(); removerArma(${index})">X</button>
+      </div>
+    `;
+
+    ul.appendChild(li);
+  });
+
+    habilitarArrastarReordenar(ul, armas, renderArmas);
+  atualizarResumoInventario();
+}
+
+function toggleCargaArma(indexArma, indexCarga) {
+  const arma = armas[indexArma];
+  if (!arma || !arma.temCargas || !Array.isArray(arma.cargasGastas)) return;
+
+  arma.cargasGastas[indexCarga] = !arma.cargasGastas[indexCarga];
+  renderArmas();
+  salvarTudo();
+}
+
+function verArma(index) {
+  const arma = armas[index];
+  if (!arma) return;
+
+  const html = `
+    <div class="popup-bloco">
+      ${
+        arma.imagemUrl
+          ? `<div><img src="${arma.imagemUrl}" class="popup-imagem-item" /></div>`
+          : ""
+      }
+
+      <div>
+        <span class="popup-label">Dano</span>
+        <div class="popup-tags">
+          <span class="tag-dano">${arma.dano || "—"}</span>
+        </div>
+      </div>
+
+      <div class="popup-info-grid" style="margin-top: 12px;">
+
+        <div>
+          <span class="popup-label">Espaços</span>
+          <div class="popup-descricao popup-descricao-pequena">${formatarNumeroInventario(arma.espacos || 0)}</div>
+        </div>
+
+        <div>
+          <span class="popup-label">Categoria</span>
+          <div class="popup-descricao popup-descricao-pequena">${typeof categoriaPopupOP === "function" ? esc(categoriaPopupOP(arma)) : arma.categoria ? esc(arma.categoria) : "—"}</div>
+        </div>
+
+      </div>
+
+      ${extrasPopupHTML(arma, "arma")}
+
+      <div style="margin-top: 12px;">
+        <span class="popup-label">Descrição</span>
+        <div class="popup-descricao">
+          ${arma.desc || "Sem descrição"}
+        </div>
+      </div>
+    </div>
+  `;
+
+  abrirPopup(arma.nome || "Sem nome", html, true, () => editarArma(index));
+}
+
+async function removerArma(index) {
+  const arma = armas[index];
+  if (!arma) return;
+
+  const confirmar = await confirmBonito(`Remover "${arma.nome}"?`);
+  if (!confirmar) return;
+
+  armas.splice(index, 1);
+  renderArmas();
+  salvarTudo();
+}
+
+/* ================= PODERES ================= */
+
+function addPoder() {
+  const nome =
+    document.getElementById("poderNome")?.value.trim() || "";
+
+  const categoria =
+    document.getElementById("poderCategoria")?.value || "";
+
+  const ativacao =
+    document.getElementById("poderAtivacao")?.value || "";
+
+  const custo =
+    document.getElementById("poderCusto")?.value.trim() || "";
+
+  const limite =
+    document.getElementById("poderLimite")?.value.trim() || "";
+
+  const requisito =
+    document.getElementById("poderRequisito")?.value.trim() || "";
+
+  const dano =
+    document.getElementById("poderDano")?.value.trim() || "";
+
+  const alcance =
+    document.getElementById("poderAlcance")?.value.trim() || "";
+
+  const duracao =
+    document.getElementById("poderDuracao")?.value.trim() || "";
+
+  const desc =
+    document.getElementById("poderDesc")?.value.trim() || "";
+
+  const temCargas =
+    !!document.getElementById("poderTemCargas")?.checked;
+
+  const maxCargas =
+    temCargas
+      ? Math.max(
+          1,
+          parseInt(
+            document.getElementById("poderMaxCargas")?.value
+          ) || 1
+        )
+      : 0;
+
+  if (!nome) {
+    alertBonito("Digite o nome do poder.");
+    return;
+  }
+
+  if (!categoria) {
+    alertBonito("Selecione a categoria do poder.");
+    return;
+  }
+
+  if (!ativacao) {
+    alertBonito("Selecione a ativação do poder.");
+    return;
+  }
+
+  const novoPoder = {
+    nome,
+
+    categoria,
+    ativacao,
+
+    custo,
+    limite,
+    requisito,
+
+    dano,
+    alcance,
+    duracao,
+
+    desc,
+
+    temCargas,
+    maxCargas,
+
+    cargasGastas:
+      temCargas
+        ? Array(maxCargas).fill(false)
+        : [],
+  };
+
+  poderes.push(novoPoder);
+
+  renderPoderes();
+  salvarTudo();
+
+  document.getElementById("poderNome").value = "";
+  document.getElementById("poderCategoria").value = "";
+  document.getElementById("poderAtivacao").value = "";
+
+  document.getElementById("poderCusto").value = "";
+  document.getElementById("poderLimite").value = "";
+  document.getElementById("poderRequisito").value = "";
+
+  document.getElementById("poderDano").value = "";
+  document.getElementById("poderAlcance").value = "";
+  document.getElementById("poderDuracao").value = "";
+  document.getElementById("poderDesc").value = "";
+
+  document.getElementById("poderTemCargas").checked = false;
+  document.getElementById("poderMaxCargas").value = "";
+  document.getElementById("poderMaxCargas").style.display = "none";
+}
+
+function atualizarEstadoLowHP() {
+  const vidaTotal = vidaAtual + vidaTemp;
+  const abaCombate = document.querySelector(".aba.active");
+
+  const combateAtivo = abaCombate && abaCombate.id === "combate";
+
+  if (vidaTotal < 15 && combateAtivo) {
+    document.body.classList.add("low-hp");
+  } else {
+    document.body.classList.remove("low-hp");
+  }
+}
+
+function normalizarCategoriaPoder(poder) {
+  if (!poder) return "outros";
+
+  const categoria =
+    String(poder.categoria || "")
+      .trim()
+      .toLowerCase();
+
+  const permitidas = [
+    "classe",
+    "trilha",
+    "paranormal",
+    "origem",
+    "ritual",
+    "outros",
+  ];
+
+  if (permitidas.includes(categoria)) {
+    return categoria;
+  }
+
+  // Compatibilidade com poderes antigos
+  return "outros";
+}
+
+
+function normalizarAtivacaoPoder(poder) {
+  if (!poder) return "";
+
+  if (poder.ativacao) {
+    return String(poder.ativacao)
+      .trim()
+      .toLowerCase();
+  }
+
+  // Poder antigo que estava na aba Passivas
+  if (
+    String(poder.circulo || "")
+      .toLowerCase() === "passiva"
+  ) {
+    return "passiva";
+  }
+
+  return "";
+}
+
+
+function nomeCategoriaPoder(categoria) {
+  const nomes = {
+    classe: "Classe",
+    trilha: "Trilha",
+    paranormal: "Paranormal",
+    origem: "Origem",
+    ritual: "Ritual",
+    outros: "Outros",
+  };
+
+  return nomes[categoria] || "Outros";
+}
+
+
+function nomeAtivacaoPoder(ativacao) {
+  const nomes = {
+    passiva: "Passiva",
+    padrao: "Ação Padrão",
+    movimento: "Ação de Movimento",
+    completa: "Ação Completa",
+    livre: "Ação Livre",
+    reacao: "Reação",
+    especial: "Especial",
+  };
+
+  return nomes[ativacao] || "";
+}
+
+function garantirFiltroPoderVisivel(botao) {
+  if (!botao) return;
+
+  const container =
+    botao.closest(".poderes-ordem-filtros");
+
+  if (!container) return;
+
+  const margem = 12;
+
+  const containerRect =
+    container.getBoundingClientRect();
+
+  const botaoRect =
+    botao.getBoundingClientRect();
+
+  // botão ficou cortado na esquerda
+  if (
+    botaoRect.left <
+    containerRect.left + margem
+  ) {
+    container.scrollBy({
+      left:
+        botaoRect.left -
+        containerRect.left -
+        margem,
+
+      behavior: "smooth",
+    });
+
+    return;
+  }
+
+  // botão ficou cortado na direita
+  if (
+    botaoRect.right >
+    containerRect.right - margem
+  ) {
+    container.scrollBy({
+      left:
+        botaoRect.right -
+        containerRect.right +
+        margem,
+
+      behavior: "smooth",
+    });
+  }
+}
+
+function filtrarPoderesOrdem(filtro, botao) {
+  filtroPoderesOrdem = filtro || "todos";
+
+  const container = document.querySelector(
+    ".poderes-ordem-filtros"
+  );
+
+  document
+    .querySelectorAll(
+      ".poderes-ordem-filtros .subtab-poder"
+    )
+    .forEach((btn) => {
+      btn.classList.remove("active");
+    });
+
+  const ativo =
+    botao ||
+    document.querySelector(
+      `[data-filtro-poder="${filtroPoderesOrdem}"]`
+    );
+
+  if (ativo) {
+    ativo.classList.add("active");
+  }
+
+  renderPoderes();
+
+  requestAnimationFrame(() => {
+    if (!container) return;
+
+    if (filtroPoderesOrdem === "todos") {
+      container.scrollTo({
+        left: 0,
+        behavior: "smooth",
+      });
+
+      return;
+    }
+
+    if (ativo) {
+      garantirFiltroPoderVisivel(ativo);
+    }
+  });
+}
+
+function renderPoderes() {
+  const lista =
+    document.getElementById("listaPoderesOrdem");
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  poderes.forEach((poder, index) => {
+    if (poder && poder.origemRitual && (typeof ritualNaAbaOP !== "function" || ritualNaAbaOP())) return; // rituais ficam na aba 💀 Rituais (só Ocultista)
+
+    const categoria =
+      normalizarCategoriaPoder(poder);
+
+    const ativacao =
+      normalizarAtivacaoPoder(poder);
+
+    if (
+      filtroPoderesOrdem !== "todos" &&
+      categoria !== filtroPoderesOrdem
+    ) {
+      return;
+    }
+
+    let cargasHTML = "";
+
+    if (
+      poder.temCargas &&
+      Number(poder.maxCargas) > 0
+    ) {
+      if (!Array.isArray(poder.cargasGastas)) {
+        poder.cargasGastas =
+          Array(Number(poder.maxCargas))
+            .fill(false);
+      }
+
+      cargasHTML = `
+        <div class="poder-usos">
+      `;
+
+      for (
+        let i = 0;
+        i < Number(poder.maxCargas);
+        i++
+      ) {
+        const usada =
+          !!poder.cargasGastas[i];
+
+        cargasHTML += `
+          <span
+            class="poder-uso-bolinha ${
+              usada ? "usado" : ""
+            }"
+            onclick="
+              event.stopPropagation();
+              toggleCargaPoder(${index}, ${i})
+            "
+          ></span>
+        `;
+      }
+
+      cargasHTML += `</div>`;
+    }
+
+    const li =
+      document.createElement("li");
+
+    li.className = "poder-card";
+    li.dataset.index = index;
+
+    li.innerHTML = `
+      <button
+        type="button"
+        class="drag-handle"
+        aria-label="Arrastar para reordenar"
+      >
+        ⠿
+      </button>
+
+      <div
+        class="poder-info"
+        onclick="verPoder(${index})"
+      >
+
+        <strong class="poder-nome">
+          ${esc(poder.nome || "Sem nome")}
+        </strong>
+
+        <div class="poder-tags poder-tags-ordem">
+
+          <span class="popup-tag poder-tag-categoria">
+            ${nomeCategoriaPoder(categoria)}
+          </span>
+
+          ${
+            ativacao
+              ? `
+                <span class="popup-tag poder-tag-ativacao">
+                  ${nomeAtivacaoPoder(ativacao)}
+                </span>
+              `
+              : ""
+          }
+
+          ${
+            poder.custo
+              ? `
+                <span class="popup-tag">
+                  ${esc(poder.custo)}
+                </span>
+              `
+              : ""
+          }
+
+        </div>
+
+        <p class="poder-preview">
+          ${
+            poder.desc
+              ? esc(poder.desc).substring(0, 90) +
+                (
+                  poder.desc.length > 90
+                    ? "..."
+                    : ""
+                )
+              : "Sem descrição"
+          }
+        </p>
+
+        ${cargasHTML}
+
+      </div>
+
+      <div class="item-acoes">
+
+        <div class="acoes-topo">
+
+          <button
+            class="btn-editar"
+            onclick="
+              event.stopPropagation();
+              editarPoder(${index})
+            "
+          >
+            ✏️
+          </button>
+
+        </div>
+
+        <button
+          class="btn-deletar"
+          onclick="
+            event.stopPropagation();
+            removerPoder(${index})
+          "
+        >
+          X
+        </button>
+
+      </div>
+    `;
+
+    lista.appendChild(li);
+  });
+
+  habilitarArrastarReordenar(
+    lista,
+    poderes,
+    renderPoderes
+  );
+
+
+  /* ================= CONTADORES ================= */
+
+  const contadores = {
+    todos: poderes.filter((x) => !(x && x.origemRitual && (typeof ritualNaAbaOP !== "function" || ritualNaAbaOP()))).length,
+    classe: 0,
+    trilha: 0,
+    paranormal: 0,
+    origem: 0,
+    ritual: 0,
+    outros: 0,
+  };
+
+  poderes.forEach((poder) => {
+    if (poder && poder.origemRitual && (typeof ritualNaAbaOP !== "function" || ritualNaAbaOP())) return;
+    const categoria =
+      normalizarCategoriaPoder(poder);
+
+    contadores[categoria]++;
+  });
+
+
+  const elementos = {
+    todos:
+      document.getElementById(
+        "contadorPoderTodos"
+      ),
+
+    classe:
+      document.getElementById(
+        "contadorPoderClasse"
+      ),
+
+    trilha:
+      document.getElementById(
+        "contadorPoderTrilha"
+      ),
+
+    paranormal:
+      document.getElementById(
+        "contadorPoderParanormal"
+      ),
+
+    origem:
+      document.getElementById(
+        "contadorPoderOrigem"
+      ),
+
+    ritual:
+      document.getElementById(
+        "contadorPoderRitual"
+      ),
+
+    outros:
+      document.getElementById(
+        "contadorPoderOutros"
+      ),
+  };
+
+
+  Object.keys(elementos).forEach((chave) => {
+    if (elementos[chave]) {
+      elementos[chave].textContent =
+        `(${contadores[chave]})`;
+    }
+  });
+
+  if (filtroPoderesOrdem === "todos") {
+  const filtros =
+    document.querySelector(
+      ".poderes-ordem-filtros"
+    );
+
+  if (filtros) {
+    filtros.scrollTo({
+      left: 0,
+      behavior: "smooth",
+    });
+  }
+}
+
+}
+function exportarFicha(index) {
+  const personagens = JSON.parse(localStorage.getItem("personagens")) || [];
+  const ficha = personagens[index];
+
+  if (!ficha) {
+    alertBonito("Ficha não encontrada.");
+    return;
+  }
+
+  const nomeArquivo =
+    ficha.nome && ficha.nome.trim()
+      ? ficha.nome.trim().replace(/[\\/:*?"<>|]/g, "_")
+      : `ficha-${index + 1}`;
+
+  const conteudo = JSON.stringify(ficha, null, 2);
+  const arquivo = `${nomeArquivo}.json`;
+
+  // Android WebView
+  if (window.Android && Android.exportarFicha) {
+    Android.exportarFicha(conteudo, arquivo);
+    return;
+  }
+
+  // Navegador normal
+  const blob = new Blob([conteudo], {
+    type: "application/json",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = arquivo;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function colarFicha() {
+  const codigo = await promptBonito("Cole o código:");
+  if (!codigo) return;
+  const dados = atob(codigo);
+  localStorage.setItem("personagens", dados);
+  location.reload();
+}
+function aoMover(ev) {
+  atualizarDestino(ev.clientY);
+}
+
+function aoSoltar() {
+  const card = document.querySelector(".poder-card.dragging");
+  const lista = document.getElementById("listaPoderes");
+
+  if (card) {
+    card.classList.remove("dragging");
+  }
+
+  if (lista) {
+    lista.querySelectorAll(".poder-card").forEach((c) => {
+      c.classList.remove("drag-over");
+    });
+  }
+
+  window.removeEventListener("pointermove", aoMover);
+  window.removeEventListener("pointerup", aoSoltar);
+
+  if (
+    typeof destino !== "undefined" &&
+    typeof origem !== "undefined" &&
+    destino !== origem
+  ) {
+    moverPoderPorDrag(origem, destino);
+  }
+}
+
+function moverPoderPorDrag(origem, destino) {
+  if (origem === destino || origem < 0 || destino < 0) return;
+  if (origem >= poderes.length || destino >= poderes.length) return;
+
+  const [itemMovido] = poderes.splice(origem, 1);
+  poderes.splice(destino, 0, itemMovido);
+
+  renderPoderes();
+  salvarTudo();
+}
+
+function verPoder(index) {
+  const poder = poderes[index];
+
+  if (!poder) return;
+
+
+  const categoria =
+    normalizarCategoriaPoder(poder);
+
+  const ativacao =
+    normalizarAtivacaoPoder(poder);
+
+
+  const tags = [
+
+    `
+      <span class="popup-tag">
+        ${nomeCategoriaPoder(categoria)}
+      </span>
+    `,
+
+    ativacao
+      ? `
+        <span class="popup-tag">
+          ${nomeAtivacaoPoder(ativacao)}
+        </span>
+      `
+      : "",
+
+    poder.custo
+      ? `
+        <span class="popup-tag">
+          Custo: ${esc(poder.custo)}
+        </span>
+      `
+      : "",
+
+    poder.dano
+      ? `
+        <span class="popup-tag">
+          ${esc(poder.dano)}
+        </span>
+      `
+      : "",
+
+    poder.alcance
+      ? `
+        <span class="popup-tag">
+          Alcance: ${esc(poder.alcance)}
+        </span>
+      `
+      : "",
+
+    poder.duracao
+      ? `
+        <span class="popup-tag">
+          Duração: ${esc(poder.duracao)}
+        </span>
+      `
+      : "",
+
+  ].join("");
+
+
+  const html = `
+    <div class="popup-bloco">
+
+      <div class="popup-tags">
+        ${tags}
+      </div>
+
+
+      ${
+        poder.limite
+          ? `
+            <div style="margin-top:12px;">
+
+              <span class="popup-label">
+                Limite
+              </span>
+
+              <div class="popup-descricao popup-descricao-pequena">
+                ${esc(poder.limite)}
+              </div>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      ${
+        poder.requisito
+          ? `
+            <div style="margin-top:12px;">
+
+              <span class="popup-label">
+                Pré-requisito
+              </span>
+
+              <div class="popup-descricao popup-descricao-pequena">
+                ${esc(poder.requisito)}
+              </div>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      <div style="margin-top:12px;">
+
+        <span class="popup-label">
+          Descrição
+        </span>
+
+        <div class="popup-descricao">
+          ${
+            poder.desc
+              ? esc(poder.desc)
+              : "Sem descrição"
+          }
+        </div>
+
+      </div>
+
+      ${poder.origemRitual ? `<button type="button" class="rit-excluir" onclick="excluirRitualOP(${index})">🗑️ Excluir ritual</button>` : ""}
+
+    </div>
+  `;
+
+
+  abrirPopup(
+    poder.nome || "Poder",
+    html,
+    true,
+    () => editarPoder(index)
+  );
+}
+
+async function removerPoder(index) {
+  const poder = poderes[index];
+  if (!poder) return;
+
+  const confirmar = await confirmBonito(`Remover "${poder.nome}"?`);
+  if (!confirmar) return;
+
+  if (typeof reverterTreinoPoderOP === "function") reverterTreinoPoderOP(poder);
+  poderes.splice(index, 1);
+  renderPoderes();
+  if (typeof atualizarTudo === "function") atualizarTudo();
+  if (typeof aoMudarPoderesOP === "function") aoMudarPoderesOP();
+  salvarTudo();
+}
+
+function ativarDragVida() {
+  const barra = document.getElementById("hpBar");
+  if (!barra) return;
+
+  let arrastando = false;
+
+  function atualizarPorPosicao(clientX) {
+    const rect = barra.getBoundingClientRect();
+    const max = get("vidaMax");
+
+    let pos = clientX - rect.left;
+    pos = Math.max(0, Math.min(pos, rect.width));
+
+    const porcentagem = pos / rect.width;
+    vidaAtual = Math.round(porcentagem * max);
+
+    atualizarHP();
+    salvarTudo();
+  }
+
+  // CLICK normal (desktop e toque rápido)
+  barra.addEventListener("click", (e) => {
+    if (e.target.tagName === "BUTTON") return;
+    atualizarPorPosicao(e.clientX);
+  });
+
+  // TOUCH (celular)
+  barra.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.target.tagName === "BUTTON") return;
+
+      arrastando = true;
+      atualizarPorPosicao(e.touches[0].clientX);
+    },
+    { passive: true },
+  );
+
+  barra.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!arrastando) return;
+
+      atualizarPorPosicao(e.touches[0].clientX);
+    },
+    { passive: true },
+  );
+
+  barra.addEventListener("touchend", () => {
+    arrastando = false;
+  });
+
+  // MOUSE DRAG (PC também fica bom)
+  barra.addEventListener("mousedown", (e) => {
+    if (e.target.tagName === "BUTTON") return;
+
+    arrastando = true;
+    atualizarPorPosicao(e.clientX);
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!arrastando) return;
+
+    atualizarPorPosicao(e.clientX);
+  });
+
+  document.addEventListener("mouseup", () => {
+    arrastando = false;
+  });
+}
+
+/* ================= VIDA ================= */
+
+function atualizarHP() {
+  const max = get("vidaMax");
+  const porcentagem = max > 0 ? (vidaAtual / max) * 100 : 0;
+
+  const fill = document.getElementById("hp-fill");
+  const texto = document.getElementById("vida-texto");
+
+  if (fill) fill.style.width = `${porcentagem}%`;
+  if (texto) texto.innerText = vidaAtual;
+  vidaMaxPrev = max;
+
+  atualizarTotal();
+  atualizarEstadoLowHP();
+}
+
+function animarAttr(id) {
+  const el = document.getElementById(id).closest(".attr, .attr-node");
+  el.classList.add("up");
+
+  setTimeout(() => {
+    el.classList.remove("up");
+  }, 400);
+}
+
+function atualizarTemp() {
+  const max = get("vidaMax");
+  const porcentagem = max > 0 ? (vidaTemp / max) * 100 : 0;
+
+  const fill = document.getElementById("temp-fill");
+  const texto = document.getElementById("temp-texto");
+
+  if (fill) fill.style.width = `${porcentagem}%`;
+  if (texto) texto.innerText = vidaTemp;
+
+  atualizarEstadoLowHP();
+  atualizarTotal();
+}
+
+function atualizarTotal() {
+  const max = get("vidaMax");
+  const total = vidaAtual + vidaTemp;
+  const totalBox = document.querySelector(".hp-total");
+  const totalEl = document.getElementById("vida-total");
+
+  if (!totalBox || !totalEl) return;
+
+  if (vidaTemp > 0) {
+    totalBox.style.display = "block";
+    totalEl.innerText = `${total}/${max}`;
+  } else {
+    totalBox.style.display = "none";
+  }
+}
+
+
+function mudarMaxVida() {
+  const max = Math.max(0, parseInt(document.getElementById("vidaMax")?.value) || 0);
+
+  // se estava cheia continua cheia; senão só limita ao novo máximo
+  if (vidaAtual >= vidaMaxPrev) vidaAtual = max;
+  if (vidaAtual > max) vidaAtual = max;
+
+  atualizarHP();
+  salvarTudo();
+}
+
+function alterarVida(v) {
+  const max = get("vidaMax");
+  vidaAtual += v;
+
+  if (vidaAtual > max) vidaAtual = max;
+  if (vidaAtual < 0) vidaAtual = 0;
+
+  atualizarHP();
+  salvarTudo();
+}
+
+function alterarTemp(v) {
+  vidaTemp += v;
+  if (vidaTemp < 0) vidaTemp = 0;
+
+  atualizarTemp();
+  salvarTudo();
+}
+
+
+/* ================= SANIDADE / ESFORÇO (barras) ================= */
+
+function maxRecursoOP(tipo) {
+  const el = document.getElementById(tipo === "san" ? "sanMaxOP" : "peMaxOP");
+  return Math.max(0, parseInt(el?.value) || 0);
+}
+
+function atualizarRecursosOP() {
+  ["san", "pe"].forEach((t) => {
+    const max = maxRecursoOP(t);
+    let atual = t === "san" ? sanAtual : peAtual;
+
+    if (atual === null || isNaN(atual)) atual = max;
+    atual = Math.max(0, Math.min(atual, max));
+
+    if (t === "san") { sanAtual = atual; sanMaxPrev = max; }
+    else { peAtual = atual; peMaxPrev = max; }
+
+    const fill = document.getElementById(`${t}-fill`);
+    const texto = document.getElementById(`${t}-texto`);
+    if (fill) fill.style.width = `${max > 0 ? (atual / max) * 100 : 0}%`;
+    if (texto) texto.innerText = atual;
+  });
+}
+
+function alterarRecursoOP(tipo, v) {
+  const max = maxRecursoOP(tipo);
+  let atual = tipo === "san" ? sanAtual : peAtual;
+  if (atual === null || isNaN(atual)) atual = max;
+
+  atual = Math.max(0, Math.min(max, atual + v));
+
+  if (tipo === "san") sanAtual = atual;
+  else peAtual = atual;
+
+  atualizarRecursosOP();
+  salvarTudo();
+}
+
+// quando o máximo muda: se a barra estava cheia, continua cheia
+function mudarMaxRecursoOP(tipo) {
+  const prev = tipo === "san" ? sanMaxPrev : peMaxPrev;
+  const atual = tipo === "san" ? sanAtual : peAtual;
+  const novoMax = maxRecursoOP(tipo);
+
+  if (atual === null || atual >= prev) {
+    if (tipo === "san") sanAtual = novoMax;
+    else peAtual = novoMax;
+  }
+
+  atualizarRecursosOP();
+  salvarTudo();
+}
+
+/* ================= EXAUSTÃO ================= */
+
+function setExaustao(nivel) {
+  exaustao = nivel;
+
+  const checks = document.querySelectorAll(".exaustao-check");
+  checks.forEach((el, i) => {
+    el.classList.toggle("ativo", i === nivel);
+  });
+
+  const desc = document.getElementById("exaustao-desc");
+  if (desc) desc.innerText = efeitosExaustao[nivel] || "Sem exaustão";
+
+  salvarTudo();
+}
+
+/* ================= MORTE ================= */
+
+function toggleMorte(tipo, index) {
+  morte[tipo][index] = !morte[tipo][index];
+  atualizarMorte();
+  salvarTudo();
+}
+
+function atualizarMorte() {
+  const checksSucesso = document.querySelectorAll(
+    ".morte-linha:nth-of-type(1) .morte-check",
+  );
+  const checksFalha = document.querySelectorAll(
+    ".morte-linha:nth-of-type(2) .morte-check",
+  );
+
+  checksSucesso.forEach((check, i) => {
+    check.classList.toggle("ativo", !!morte.sucessos[i]);
+  });
+
+  checksFalha.forEach((check, i) => {
+    check.classList.toggle("ativo", !!morte.falhas[i]);
+  });
+}
+
+/* ================= SAVES ================= */
+
+function toggleSave(attr) {
+  saves[attr] = !saves[attr];
+  atualizarSaves();
+  atualizarBadgesSaves();
+  salvarTudo();
+}
+
+function atualizarSaves() {
+  [
+    "forca",
+    "destreza",
+    "constituicao",
+    "inteligencia",
+    "sabedoria",
+    "carisma",
+  ].forEach((attr) => {
+    const check = document.querySelector(
+      `.save-check[onclick="toggleSave('${attr}')"]`,
+    );
+    if (check) check.classList.toggle("ativo", !!saves[attr]);
+  });
+}
+
+function atualizarBadgesSaves() {
+  const bonus = get("bonusProf");
+  const attrs = [
+    "forca",
+    "destreza",
+    "constituicao",
+    "inteligencia",
+    "sabedoria",
+    "carisma",
+  ];
+
+  attrs.forEach((attr) => {
+    const badge = document.getElementById(`save_${attr}`);
+    if (!badge) return;
+
+    const valor = mod(getAtributoFinal(attr)) + (saves[attr] ? bonus : 0);
+
+    if (saves[attr]) {
+      badge.style.display = "flex";
+      badge.textContent = valor >= 0 ? `+${valor}` : `${valor}`;
+    } else {
+      badge.style.display = "none";
+      badge.textContent = "";
+    }
+  });
+}
+
+/* ================= PERÍCIAS ================= */
+
+function toggleCampoCargasPoder() {
+  const check = document.getElementById("poderTemCargas");
+  const input = document.getElementById("poderMaxCargas");
+
+  if (!check || !input) return;
+
+  if (check.checked) {
+    input.style.display = "block";
+  } else {
+    input.style.display = "none";
+    input.value = "";
+  }
+}
+
+function toggleCargaPoder(index, i) {
+  const poder = poderes[index];
+  if (!poder) return;
+
+  if (!Array.isArray(poder.cargasGastas)) {
+    poder.cargasGastas = Array(poder.maxCargas || 0).fill(false);
+  }
+
+  poder.cargasGastas[i] = !poder.cargasGastas[i];
+
+  renderPoderes();
+  salvarTudo();
+}
+
+
+/* ================= FILTRO / ORDEM DAS PERÍCIAS ================= */
+
+let filtroPericiasOP = "todas";
+try {
+  filtroPericiasOP = localStorage.getItem("filtroPericiasOP") || "todas";
+} catch (e) {}
+
+function listaPericiasFiltrada() {
+  let lista = pericias.slice();
+
+  switch (filtroPericiasOP) {
+    case "az":
+      lista.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+      break;
+    case "marcadas":
+      lista = lista.filter((p) => periciasSelecionadasOP.includes(p.nome) || _periciasOrigemOP().includes(p.nome));
+      break;
+    case "treinadas":
+      lista = lista.filter((p) => (profs[p.nome] || 0) >= 1);
+      break;
+    case "bonus":
+      lista = lista
+        .map((p, i) => ({ p, i }))
+        .sort(
+          (x, y) =>
+            (profs[y.p.nome] || 0) - (profs[x.p.nome] || 0) || x.i - y.i,
+        )
+        .map((x) => x.p);
+      break;
+  }
+
+  return lista;
+}
+
+function atualizarVisualFiltroPericias() {
+  const btn = document.getElementById("btnFiltroPericias");
+  if (btn) btn.classList.toggle("ativo", filtroPericiasOP !== "todas");
+
+  document
+    .querySelectorAll("#menuFiltroPericias [data-filtro]")
+    .forEach((b) => {
+      b.classList.toggle("ativo", b.dataset.filtro === filtroPericiasOP);
+    });
+}
+
+function setFiltroPericias(filtro) {
+  filtroPericiasOP = filtro;
+  try {
+    localStorage.setItem("filtroPericiasOP", filtro);
+  } catch (e) {}
+
+  const menu = document.getElementById("menuFiltroPericias");
+  if (menu) menu.hidden = true;
+
+  atualizarVisualFiltroPericias();
+  atualizarTudo();
+}
+
+function toggleMenuFiltroPericias(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById("menuFiltroPericias");
+  if (!menu) return;
+  menu.hidden = !menu.hidden;
+  atualizarVisualFiltroPericias();
+}
+
+document.addEventListener("click", (e) => {
+  const menu = document.getElementById("menuFiltroPericias");
+  if (menu && !menu.hidden && !e.target.closest(".pericias-filtro-wrap")) {
+    menu.hidden = true;
+  }
+});
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", atualizarVisualFiltroPericias);
+} else {
+  atualizarVisualFiltroPericias();
+}
+
+const SIGLA_ATTR_PERICIA = {
+  agilidade: "AGI",
+  forca: "FOR",
+  intelecto: "INT",
+  presenca: "PRE",
+  vigor: "VIG",
+};
+
+
+/* ================= ROLAGEM AUTOMÁTICA DE PERÍCIAS ================= */
+/* Regra: rola (valor do atributo) d20 e fica com o MAIOR.
+   Atributo 0: rola 2d20 e fica com o MENOR. Soma o bônus de treino (+5/+10/+15). */
+
+let rolagensRecentesOP = [];
+let _rolagemTimer = null;
+let _rolagemAnim = null;
+
+function _d20() {
+  return 1 + Math.floor(Math.random() * 20);
+}
+
+function rolarPericia(nome, event) {
+  if (event) event.stopPropagation();
+
+  const pericia = pericias.find((p) => p.nome === nome);
+  if (!pericia) return;
+
+  const valorAttr = get(pericia.attr);
+  const grau = profs[nome] || 0;
+  const bonus = (BONUS_TREINO[grau] || 0) + (Number(bonusPericiasOP[nome]) || 0);
+
+  const desvantagem = valorAttr <= 0;
+  const qtd = desvantagem ? 2 : valorAttr;
+
+  const dados = Array.from({ length: qtd }, _d20);
+  const escolhido = desvantagem ? Math.min(...dados) : Math.max(...dados);
+  const total = escolhido + bonus;
+
+  const rolagem = {
+    nome,
+    sigla: SIGLA_ATTR_PERICIA[pericia.attr] || "",
+    dados,
+    escolhido,
+    bonus,
+    total,
+    desvantagem,
+  };
+
+  rolagensRecentesOP.unshift({ nome, total });
+  rolagensRecentesOP = rolagensRecentesOP.slice(0, 5);
+
+  mostrarRolagemOP(rolagem);
+}
+
+function _painelRolagemOP() {
+  let painel = document.getElementById("rolagemPainelOP");
+  if (!painel) {
+    painel = document.createElement("div");
+    painel.id = "rolagemPainelOP";
+    painel.className = "rolagem-painel";
+    document.body.appendChild(painel);
+  }
+  return painel;
+}
+
+function fecharRolagemOP() {
+  const painel = document.getElementById("rolagemPainelOP");
+  if (painel) painel.classList.remove("aberto");
+  clearTimeout(_rolagemTimer);
+  clearInterval(_rolagemAnim);
+}
+
+function mostrarRolagemOP(r) {
+  const painel = _painelRolagemOP();
+  clearTimeout(_rolagemTimer);
+  clearInterval(_rolagemAnim);
+
+  const formula = r.desvantagem
+    ? `menor de 2d20 (atributo 0)`
+    : `maior de ${r.dados.length}d20`;
+
+  const historico = rolagensRecentesOP
+    .slice(1)
+    .map((h) => `<span>${h.nome} <b>${h.total}</b></span>`)
+    .join("");
+
+  const montar = (valores, final) => {
+    const marcado = final
+      ? r.dados.indexOf(r.escolhido)
+      : -1;
+
+    const chips = valores
+      .map(
+        (v, i) =>
+          `<span class="rolagem-dado ${final && i === marcado ? "escolhido" : ""} ${
+            final && i !== marcado ? "descartado" : ""
+          }">${v}</span>`,
+      )
+      .join("");
+
+    const natural =
+      final && r.escolhido === 20
+        ? '<div class="rolagem-natural">20 natural</div>'
+        : final && r.escolhido === 1
+          ? '<div class="rolagem-natural ruim">1 natural</div>'
+          : "";
+
+    painel.innerHTML = `
+      <button type="button" class="rolagem-fechar" onclick="fecharRolagemOP()" aria-label="Fechar">×</button>
+      <div class="rolagem-titulo">${r.nome} <span class="rolagem-attr">${r.sigla}</span></div>
+      <div class="rolagem-dados">${chips}</div>
+      <div class="rolagem-total ${final ? "" : "girando"}">${
+        final ? r.total : "…"
+      }</div>
+      ${
+        final
+          ? `<div class="rolagem-formula">${formula} → ${r.escolhido}${
+              r.bonus ? (r.bonus > 0 ? ` + ${r.bonus}` : ` − ${Math.abs(r.bonus)}`) : ""
+            }</div>${natural}`
+          : ""
+      }
+      ${final && historico ? `<div class="rolagem-historico">${historico}</div>` : ""}
+    `;
+  };
+
+  painel.classList.add("aberto");
+
+  // animação rápida de "dados girando"
+  const qtd = r.dados.length;
+  let ticks = 0;
+  _rolagemAnim = setInterval(() => {
+    ticks++;
+    montar(Array.from({ length: qtd }, _d20), false);
+    if (ticks >= 8) {
+      clearInterval(_rolagemAnim);
+      montar(r.dados, true);
+      _rolagemTimer = setTimeout(fecharRolagemOP, 9000);
+    }
+  }, 60);
+}
+
+
+/* ================= DETALHES E MODIFICADORES (ARMAS / VESTIMENTAS) ================= */
+/* Só informativo: aparece no card e no popup, não altera cálculos da ficha. */
+
+const CAMPOS_DETALHES_ARMA = [
+  { id: "critico", label: "Crítico", ph: "20", curto: true },
+  { id: "multiplicador", label: "Multiplicador", ph: "2", curto: true },
+  { id: "ataqueBonus", label: "Ataque bônus", ph: "0", curto: true },
+  { id: "tipoDano", label: "Tipo de dano", ph: "Balístico", meio: true, lista: "dlTipoDanoOP" },
+  { id: "alcance", label: "Alcance", ph: "Curto", meio: true, lista: "dlAlcanceOP" },
+  { id: "pericia", label: "Perícia", ph: "Luta", meio: true, lista: "dlPericiaOP" },
+  { id: "atributoDano", label: "Atributo do dano", ph: "Força", meio: true, lista: "dlAtributoOP" },
+  { id: "danoExtra", label: "Dano extra", ph: "Ex.: +1d6 de fogo" },
+];
+
+const CAMPOS_DETALHES_VEICULO = [
+  { id: "categoria", label: "Categoria", ph: "3", curto: true },
+  { id: "tamanho", label: "Tamanho", ph: "Médio", curto: true },
+  { id: "defesa", label: "Defesa", ph: "17", curto: true },
+  { id: "reducaoDano", label: "Redução de dano", ph: "5", meio: true },
+  { id: "combustivel", label: "Combustível", ph: "Ex.: 5d6", meio: true },
+];
+
+function _camposExtras(tipo) {
+  return tipo === "arma"
+    ? CAMPOS_DETALHES_ARMA
+    : tipo === "veiculo"
+      ? CAMPOS_DETALHES_VEICULO
+      : CAMPOS_DETALHES_VESTIMENTA;
+}
+
+function _rotulosExtras(tipo) {
+  if (tipo === "arma")
+    return { det: "⚔ Detalhes de combate", detPopup: "Detalhes de combate", mods: "🔧 Modificações", modsPopup: "Modificações", add: "Adicionar modificação personalizada", nomePh: "Nome da modificação (ex.: Carregador Rápido)", cat: true };
+  if (tipo === "veiculo")
+    return { det: "🏍 Características", detPopup: "Características", mods: "⚙ Aprimoramentos", modsPopup: "Aprimoramentos", add: "+ Adicionar aprimoramento", nomePh: "Nome (ex.: Aprimoramentos de Velocidade)", cat: false };
+  return { det: "🛡 Detalhes da vestimenta", detPopup: "Detalhes", mods: "🔧 Modificações", modsPopup: "Modificações", add: "Adicionar modificação personalizada", nomePh: "Nome da modificação", cat: true };
+}
+
+const CAMPOS_DETALHES_VESTIMENTA = [
+  { id: "resistencias", label: "Resistências", ph: "Ex.: Balístico 5, Fogo 2" },
+  { id: "penalidades", label: "Penalidades", ph: "Ex.: -3m deslocamento" },
+  { id: "requisitos", label: "Requisitos", ph: "Ex.: Força 3" },
+];
+
+function garantirDatalistsOP() {
+  if (document.getElementById("dlTipoDanoOP")) return;
+  const dl = (id, itens) =>
+    `<datalist id="${id}">${itens.map((i) => `<option value="${i}"></option>`).join("")}</datalist>`;
+  const html =
+    dl("dlTipoDanoOP", ["Balístico", "Corte", "Impacto", "Perfuração", "Fogo", "Frio", "Eletricidade", "Químico", "Mental", "Sangue", "Morte", "Conhecimento", "Energia"]) +
+    dl("dlAlcanceOP", ["Corpo a corpo", "Curto", "Médio", "Longo", "Extremo"]) +
+    dl("dlPericiaOP", ["Luta", "Pontaria", "Atletismo", "Ocultismo", "Tecnologia"]) +
+    dl("dlAtributoOP", ["Força", "Agilidade", "Intelecto", "Presença", "Vigor"]) +
+    dl("dlAlvoModOP", ["Defesa", "Deslocamento", "PV", "PE", "SAN", "Agilidade", "Força", "Intelecto", "Presença", "Vigor", "Acrobacia", "Atletismo", "Furtividade", "Luta", "Pontaria", "Percepção", "Reflexos", "Fortitude", "Vontade", "Dano", "Ataque"]);
+
+  const caixa = document.createElement("div");
+  caixa.id = "datalistsOP";
+  caixa.style.display = "none";
+  caixa.innerHTML = html;
+  document.body.appendChild(caixa);
+}
+
+function _linhaModHTML(prefix, nome = "", desc = "", cat = 0, tipo = "arma") {
+  const rot = _rotulosExtras(tipo);
+  return `
+    <div class="mod-linha">
+      <div class="mod-linha-topo">
+        <input class="mod-nome" placeholder="${rot.nomePh}" value="${esc(nome)}" />
+        <button type="button" class="mod-remover" onclick="this.closest('.mod-linha').remove()" aria-label="Remover">×</button>
+      </div>
+      ${
+        rot.cat
+          ? `<div class="mod-cat-linha">
+        <label>Aumenta a categoria em</label>
+        <input class="mod-cat" type="number" min="0" max="9" step="1" value="${Number(cat) > 0 ? Number(cat) : 0}" />
+        <span>(0 = não aumenta)</span>
+      </div>`
+          : ""
+      }
+      <textarea class="mod-desc" placeholder="Descreva...">${esc(desc)}</textarea>
+    </div>`;
+}
+
+/* aceita o formato antigo {nome, valor} também */
+function _modsDoItem(item) {
+  const lista = Array.isArray(item.modificacoes)
+    ? item.modificacoes
+    : Array.isArray(item.modificadores)
+      ? item.modificadores
+      : [];
+  return lista
+    .map((m) => ({
+      nome: m.nome || "",
+      desc: m.desc ?? m.valor ?? "",
+      cat: Math.max(0, parseInt(m.cat) || 0),
+    }))
+    .filter((m) => m.nome || m.desc || m.cat);
+}
+
+function addLinhaModificador(prefix) {
+  const box = document.getElementById(`${prefix}ModLista`);
+  if (box)
+    box.insertAdjacentHTML(
+      "beforeend",
+      _linhaModHTML(prefix, "", "", 0, box.dataset.tipo || "arma"),
+    );
+}
+
+/* tipo: "arma" | "vestimenta" ; prefix: "arma", "editArma", "armadura", "editArmadura" */
+function htmlExtrasItem(prefix, tipo, item = {}) {
+  garantirDatalistsOP();
+  const campos = _camposExtras(tipo);
+  const rot = _rotulosExtras(tipo);
+  const det = item.detalhes || {};
+  const mods = _modsDoItem(item);
+  const temDet = campos.some((c) => (det[c.id] || "").toString().trim());
+
+  const camposHTML = campos
+    .map(
+      (c) => `
+      <div class="extra-campo ${c.curto ? "curto" : c.meio ? "meio" : ""}">
+        <label for="${prefix}Det_${c.id}">${c.label}</label>
+        <input id="${prefix}Det_${c.id}" ${c.lista ? `list="${c.lista}"` : ""} placeholder="${c.ph}" value="${esc(det[c.id] || "")}" />
+      </div>`,
+    )
+    .join("");
+
+  return `
+    <details class="item-extra-secao" ${temDet ? "open" : ""}>
+      <summary>${rot.det}</summary>
+      <div class="extra-grid">${camposHTML}</div>
+    </details>
+
+    <details class="item-extra-secao" ${mods.length ? "open" : ""}>
+      <summary>${rot.mods}</summary>
+      <div id="${prefix}ModLista" class="mod-lista" data-tipo="${tipo}">
+        ${mods.map((m) => _linhaModHTML(prefix, m.nome, m.desc, m.cat, tipo)).join("")}
+      </div>
+      <button type="button" class="mod-add" onclick="addLinhaModificador('${prefix}')">${rot.add}</button>
+    </details>
+  `;
+}
+
+function lerExtrasItem(prefix, tipo) {
+  const campos = _camposExtras(tipo);
+  const detalhes = {};
+  campos.forEach((c) => {
+    const v = document.getElementById(`${prefix}Det_${c.id}`)?.value.trim() || "";
+    if (v) detalhes[c.id] = v;
+  });
+
+  const modificacoes = [];
+  document.querySelectorAll(`#${prefix}ModLista .mod-linha`).forEach((l) => {
+    const nome = l.querySelector(".mod-nome")?.value.trim() || "";
+    const desc = l.querySelector(".mod-desc")?.value.trim() || "";
+    const cat = Math.max(0, parseInt(l.querySelector(".mod-cat")?.value) || 0);
+    if (nome || desc || cat) modificacoes.push({ nome, desc, cat });
+  });
+
+  return { detalhes, modificacoes };
+}
+
+function montarExtrasForm(prefix, tipo) {
+  const box = document.getElementById(`${prefix}ExtrasBox`);
+  if (box) box.innerHTML = htmlExtrasItem(prefix, tipo, {});
+}
+
+/* chips resumidos para o card */
+function extrasCardHTML(item, tipo) {
+  const d = item.detalhes || {};
+  const chips = [];
+
+  if (tipo === "arma") {
+    if (d.critico || d.multiplicador)
+      chips.push(`🎯 Crít. ${esc(d.critico || "20")}/x${esc(d.multiplicador || "2")}`);
+    if (d.ataqueBonus && d.ataqueBonus !== "0") chips.push(`Atq ${esc(d.ataqueBonus)}`);
+    if (d.tipoDano) chips.push(esc(d.tipoDano));
+    if (d.alcance) chips.push(`📏 ${esc(d.alcance)}`);
+    if (d.pericia) chips.push(esc(d.pericia) + (d.atributoDano ? ` · ${esc(d.atributoDano)}` : ""));
+    if (d.danoExtra) chips.push(`+ ${esc(d.danoExtra)}`);
+  } else if (tipo === "veiculo") {
+    if (d.categoria) chips.push(`Cat. ${esc(d.categoria)}`);
+    if (d.tamanho) chips.push(esc(d.tamanho));
+    if (d.defesa) chips.push(`🛡 Def. ${esc(d.defesa)}`);
+    if (d.reducaoDano) chips.push(`RD ${esc(d.reducaoDano)}`);
+    if (d.combustivel) chips.push(`⛽ ${esc(d.combustivel)}`);
+  } else {
+    if (d.resistencias) chips.push(`🛡 ${esc(d.resistencias)}`);
+    if (d.penalidades) chips.push(`⚠ ${esc(d.penalidades)}`);
+    if (d.requisitos) chips.push(`Req. ${esc(d.requisitos)}`);
+  }
+
+  const mods = _modsDoItem(item);
+  const modsChips = mods
+    .slice(0, 3)
+    .map((m) => `<span class="item-subtag mod-chip">${tipo === "veiculo" ? "⚙" : "🔧"} ${esc(m.nome || "Aprimoramento")}${m.cat ? ` <b>+${m.cat} cat.</b>` : ""}</span>`);
+  if (mods.length > 3) modsChips.push(`<span class="item-subtag mod-chip">+${mods.length - 3}</span>`);
+
+  if (!chips.length && !modsChips.length) return "";
+
+  return `<div class="item-subtags item-extras-card">${chips
+    .map((c) => `<span class="item-subtag extra-chip">${c}</span>`)
+    .join("")}${modsChips.join("")}</div>`;
+}
+
+/* seções completas para o popup de visualização */
+function extrasPopupHTML(item, tipo) {
+  const campos = _camposExtras(tipo);
+  const rot = _rotulosExtras(tipo);
+  const d = item.detalhes || {};
+  const linhas = campos
+    .filter((c) => d[c.id])
+    .map(
+      (c) => `<div><span class="popup-label">${c.label}</span>
+        <div class="popup-descricao popup-descricao-pequena">${esc(d[c.id])}</div></div>`,
+    )
+    .join("");
+
+  const mods = _modsDoItem(item);
+
+  return `
+    ${
+      linhas
+        ? `<div class="popup-secao-extra">
+            <div class="popup-secao-titulo">${rot.detPopup}</div>
+            <div class="popup-info-grid">${linhas}</div>
+          </div>`
+        : ""
+    }
+    ${
+      mods.length
+        ? `<div class="popup-secao-extra">
+            <div class="popup-secao-titulo">${rot.modsPopup}${
+              mods.reduce((s, m) => s + (m.cat || 0), 0) > 0
+                ? ` · +${mods.reduce((s, m) => s + (m.cat || 0), 0)} categoria${mods.reduce((s, m) => s + (m.cat || 0), 0) > 1 ? "s" : ""} no total`
+                : ""
+            }</div>
+            ${mods
+              .map(
+                (m) => `<div class="popup-mod">
+                  <div class="popup-mod-nome">${esc(m.nome || rot.modsPopup)}${m.cat ? `<span class="popup-mod-cat">+${m.cat} categoria${m.cat > 1 ? "s" : ""}</span>` : ""}</div>
+                  ${m.desc ? `<div class="popup-mod-desc">${esc(m.desc)}</div>` : ""}
+                </div>`,
+              )
+              .join("")}
+          </div>`
+        : ""
+    }`;
+}
+
+function _iniciarExtrasItensOP() {
+  montarExtrasForm("arma", "arma");
+  montarExtrasForm("armadura", "vestimenta");
+  montarExtrasForm("veiculo", "veiculo");
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", _iniciarExtrasItensOP);
+} else {
+  _iniciarExtrasItensOP();
+}
+
+const NOMES_TREINO = ["Não treinado", "Treinado", "Veterano", "Expert"];
+const BONUS_TREINO = [0, 5, 10, 15];
+
+function atualizarTudo() {
+  const atributos = {
+    agilidade: get("agilidade"),
+    forca: get("forca"),
+    intelecto: get("intelecto"),
+    presenca: get("presenca"),
+    vigor: get("vigor"),
+  };
+
+  const lista = document.getElementById("pericias");
+  if (lista) {
+    lista.innerHTML = "";
+
+    const listaFiltrada = listaPericiasFiltrada();
+
+    if (listaFiltrada.length === 0) {
+      lista.innerHTML =
+        '<div class="pericias-vazio">Nenhuma perícia encontrada para este filtro.</div>';
+    }
+
+    listaFiltrada.forEach((pericia) => {
+  const grau = profs[pericia.nome] || 0;
+
+  const dados =
+    Math.max(1, atributos[pericia.attr] || 0);
+
+  const extra = Number(bonusPericiasOP[pericia.nome]) || 0;
+
+  const bonus =
+    (BONUS_TREINO[grau] || 0) + extra;
+
+  const daClasseOP = periciasSelecionadasOP.includes(pericia.nome);
+  const daOrigemOP = _periciasOrigemOP().includes(pericia.nome);
+  const selecionada = daClasseOP || daOrigemOP;
+
+
+  const div = document.createElement("div");
+
+  div.className = `pericia ${
+    selecionada
+      ? "pericia-treinada"
+      : "pericia-nao-treinada"
+  }`;
+
+
+  div.innerHTML = `
+    <div class="pericia-linha-conteudo">
+
+      <div class="pericia-esquerda">
+
+        <div
+          class="check ${selecionada ? "ativo" : ""}"
+          onclick="togglePericiaSelecionadaOP('${pericia.nome}', event)"
+          title="${selecionada ? "Selecionada" : "Não selecionada"}"
+        ></div>
+
+        <span class="pericia-nome pericia-clicavel" onclick="rolarPericia('${pericia.nome}', event)" title="Clique para rolar">
+          ${pericia.nome}${
+            pericia.soTreinada
+              ? '<span class="pericia-marca" title="Somente treinada: só pode ser usada se você for treinado nela">*</span>'
+              : ""
+          }${
+            pericia.carga
+              ? '<span class="pericia-marca" title="Penalidade de carga: o peso do equipamento atrapalha o teste">+</span>'
+              : ""
+          }${
+            daOrigemOP ? '<span class="pericia-fonte pf-origem" title="Treinada pela sua origem">origem</span>' : daClasseOP ? '<span class="pericia-fonte pf-classe" title="Treinada pela sua classe">classe</span>' : ""
+          }
+        </span>
+
+        <span class="pericia-attr" title="Atributo base da perícia">${SIGLA_ATTR_PERICIA[pericia.attr] || ""}</span>
+
+      </div>
+
+
+      <div class="pericia-botoes-op">
+      <button
+        type="button"
+        class="btn-treino-pericia grau-${grau} ${extra ? "tem-extra" : ""}"
+        onclick="toggleProf('${pericia.nome}', event)"
+        title="${NOMES_TREINO[grau]}${extra ? ` · bônus personalizado ${extra > 0 ? "+" : ""}${extra}` : ""}"
+      >
+        ${
+          grau === 0 && !extra
+            ? "—"
+            : "+" + ((BONUS_TREINO[grau] || 0) + extra)
+        }
+      </button>
+      </div>
+
+
+      <span class="pericia-rolagem pericia-clicavel" onclick="rolarPericia('${pericia.nome}', event)" title="Clique para rolar">
+        ${(atributos[pericia.attr] || 0) <= 0 ? "2d20↓" : dados + "d20"}${bonus > 0 ? ` +${bonus}` : bonus < 0 ? ` ${bonus}` : ""}
+      </span>
+
+    </div>
+  `;
+
+  lista.appendChild(div);
+});
+  }
+}
+
+function abrirPopupBonusPericiasOP(event) {
+  if (event) event.stopPropagation();
+
+  const linhas = pericias
+    .slice()
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+    .map((per) => {
+      const grau = profs[per.nome] || 0;
+      const extra = Number(bonusPericiasOP[per.nome]) || 0;
+      return `
+        <label class="bp-linha">
+          <span class="bp-nome">${per.nome}<em>${SIGLA_ATTR_PERICIA[per.attr] || ""}</em></span>
+          <span class="bp-treino">treino +${BONUS_TREINO[grau] || 0}</span>
+          <input type="number" inputmode="numeric" class="bp-input" data-bonus-pericia="${per.nome}" value="${extra || ""}" placeholder="0" />
+        </label>`;
+    })
+    .join("");
+
+  const html = `
+    <div class="popup-bloco bp-popup">
+      <p class="bp-dica">Digite o bônus extra que você tem em cada perícia (itens, poderes…). Ele soma com o treino: com treino +5 e bônus 2, a perícia mostra +7. Use número negativo para penalidade.</p>
+      <div class="bp-lista">${linhas}</div>
+      <div class="bp-rodape">
+        <button type="button" class="bp-btn" onclick="limparBonusPericiasOP()">Zerar tudo</button>
+        <button type="button" class="bp-btn bp-btn-salvar" onclick="salvarBonusPericiasOP()">Salvar</button>
+      </div>
+    </div>`;
+
+  abrirPopup("Bônus das perícias", html, true);
+}
+
+function limparBonusPericiasOP() {
+  document.querySelectorAll(".bp-input").forEach((i) => { i.value = ""; });
+}
+
+function salvarBonusPericiasOP() {
+  const novo = {};
+  document.querySelectorAll(".bp-input").forEach((inp) => {
+    const n = Math.max(-99, Math.min(99, parseInt(inp.value, 10) || 0));
+    if (n !== 0) novo[inp.dataset.bonusPericia] = n;
+  });
+  bonusPericiasOP = novo;
+  if (typeof fecharPopup === "function") fecharPopup();
+  atualizarTudo();
+  salvarTudo();
+}
+
+function togglePericiaSelecionadaOP(nome, event) {
+  if (event) event.stopPropagation();
+
+  const index = periciasSelecionadasOP.indexOf(nome);
+
+  if (index >= 0) {
+    periciasSelecionadasOP.splice(index, 1);
+  } else {
+    periciasSelecionadasOP.push(nome);
+  }
+
+  atualizarTudo();
+  salvarTudo();
+}
+
+function toggleProf(nome, event) {
+  if (event) event.stopPropagation();
+
+  // 0 = não treinado | 1 = treinado | 2 = veterano | 3 = expert
+  const atual = profs[nome] || 0;
+  profs[nome] = atual >= 3 ? 0 : atual + 1;
+
+  atualizarTudo();
+  salvarTudo();
+}
+
+function aoSelecionarClasseOP() {
+  salvarTudo();
+
+  const classe = document.getElementById("classeOP")?.value;
+
+  if (!classe) return;
+
+  abrirPopupPericiasClasse();
+}
+
+function _periciasOrigemOP() {
+  try {
+    if (typeof origemOP !== "undefined" && origemOP && Array.isArray(origemOP.treinos)) return origemOP.treinos.map((t) => t.pericia);
+  } catch (e) {}
+  return [];
+}
+
+function abrirPopupPericiasClasse() {
+  const modal = document.getElementById("modalPericiasClasse");
+  const overlay = document.getElementById("modalPericiasClasseOverlay");
+  const lista = document.getElementById("listaPericiasClasse");
+
+  if (!modal || !overlay || !lista) return;
+
+  lista.innerHTML = "";
+
+  const classeSel = document.getElementById("classeOP")?.value || "";
+  const info = typeof infoPericiasClasseOP === "function" ? infoPericiasClasseOP(classeSel) : null;
+  if (info) {
+    const aviso = document.createElement("div");
+    aviso.id = "infoPericiasClasseOP";
+    const linhas = [];
+    if (info.fixas.length) linhas.push(`<li data-r="fixas"><i class="pcl-ico pcl-fixa"></i><span>Já inclusas: <b>${info.fixas.join("</b> e <b>")}</b></span></li>`);
+    info.escolhas.forEach((par, k) => linhas.push(`<li data-r="par${k}"><i class="pcl-ico pcl-rec"></i><span>Escolha <b>uma</b>: <b>${par.join("</b> ou <b>")}</b></span><em class="pcl-ok">✓</em></li>`));
+    const deOrigem = _periciasOrigemOP();
+    if (deOrigem.length) linhas.push(`<li data-r="origem"><i class="pcl-ico pcl-orig"></i><span>Da origem <small>(já treinadas, não contam aqui)</small>: <b>${deOrigem.join("</b>, <b>")}</b></span></li>`);
+    linhas.push(`<li data-r="livres"><i class="pcl-ico pcl-livre"></i><span><b>${info.extraTotal}</b> à sua escolha <small>(${info.extra} + Intelecto)</small></span><em id="pclLivresOP" class="pcl-n"></em></li>`);
+    aviso.innerHTML = `<div class="pcl-topo"><span>Treinadas pela classe</span><span id="contPericiasClasseOP" class="pcl-cont"></span></div><ul class="pcl-regras">${linhas.join("")}</ul>`;
+    lista.appendChild(aviso);
+  }
+
+  const periciasOrigem = _periciasOrigemOP();
+  pericias.forEach((pericia) => {
+    const daOrigem = periciasOrigem.includes(pericia.nome);
+    const selecionada = !daOrigem && (
+      periciasSelecionadasOP.includes(pericia.nome) ||
+      (info && info.fixas.includes(pericia.nome)));
+
+    const item = document.createElement("label");
+
+    item.className = "pericia-selecao-item" + (daOrigem ? " da-origem" : "");
+
+    item.innerHTML = `
+      <input
+        type="checkbox"
+        data-pericia="${pericia.nome}"
+        ${selecionada ? "checked" : ""}
+        ${daOrigem ? "disabled" : ""}
+      >
+
+      <span class="pericia-selecao-check"></span>
+
+      <span class="pericia-selecao-nome">
+        ${pericia.nome}
+      </span>
+      ${daOrigem ? '<span class="pericia-tag pericia-tag-origem">origem</span>' : ""}
+      ${!daOrigem && info && info.fixas.includes(pericia.nome) ? '<span class="pericia-tag pericia-tag-fixa">fixa</span>' : ""}
+      ${!daOrigem && info && info.escolhas.some((par) => par.includes(pericia.nome)) ? '<span class="pericia-tag pericia-tag-rec" title="Recomendada pela classe: escolha uma das duas"></span>' : ""}
+    `;
+
+    lista.appendChild(item);
+  });
+
+  if (info) {
+    lista.querySelectorAll('input[type="checkbox"]').forEach((c) => {
+      c.addEventListener("change", atualizarContPericiasClasseOP);
+    });
+    atualizarContPericiasClasseOP();
+  }
+
+  overlay.style.display = "block";
+  modal.style.display = "flex";
+}
+
+function atualizarContPericiasClasseOP() {
+  const el = document.getElementById("contPericiasClasseOP");
+  if (!el) return;
+  const info = infoPericiasClasseOP(document.getElementById("classeOP")?.value || "");
+  if (!info) return;
+  const marcou = (n) => !!document.querySelector('#listaPericiasClasse input[data-pericia="' + n + '"]:checked');
+  const marcadas = document.querySelectorAll('#listaPericiasClasse input[type="checkbox"]:checked').length;
+  el.textContent = `${marcadas} de ${info.total}`;
+  el.className = "pcl-cont" + (marcadas > info.total ? " pcl-excede" : marcadas === info.total ? " pcl-completo" : "");
+
+  // pares "uma ou outra": ao escolher uma, o sinalzinho das duas some
+  let usadasPares = 0;
+  info.escolhas.forEach((par, k) => {
+    const feito = par.some(marcou);
+    if (feito) usadasPares += par.filter(marcou).length ? 1 : 0;
+    par.forEach((n) => {
+      const inp = document.querySelector('#listaPericiasClasse input[data-pericia="' + n + '"]');
+      inp?.closest(".pericia-selecao-item")?.classList.toggle("rec-off", feito);
+    });
+    document.querySelector('#infoPericiasClasseOP li[data-r="par' + k + '"]')?.classList.toggle("feito", feito);
+  });
+  const fixasMarcadas = info.fixas.filter(marcou).length;
+  document.querySelector('#infoPericiasClasseOP li[data-r="fixas"]')?.classList.toggle("feito", fixasMarcadas === info.fixas.length);
+  const livresUsadas = Math.max(0, marcadas - fixasMarcadas - usadasPares);
+  const liv = document.getElementById("pclLivresOP");
+  if (liv) liv.textContent = `${livresUsadas}/${info.extraTotal}`;
+  document.querySelector('#infoPericiasClasseOP li[data-r="livres"]')?.classList.toggle("feito", livresUsadas === info.extraTotal);
+  document.querySelector('#infoPericiasClasseOP li[data-r="livres"]')?.classList.toggle("excede", livresUsadas > info.extraTotal);
+}
+
+function fecharPopupPericiasClasse() {
+  const modal = document.getElementById("modalPericiasClasse");
+  const overlay = document.getElementById("modalPericiasClasseOverlay");
+
+  if (modal) modal.style.display = "none";
+  if (overlay) overlay.style.display = "none";
+}
+
+function confirmarPericiasClasse() {
+  const checkboxes = document.querySelectorAll(
+    '#listaPericiasClasse input[type="checkbox"]'
+  );
+
+  periciasSelecionadasOP = [];
+
+  checkboxes.forEach((checkbox) => {
+    if (checkbox.checked) {
+      periciasSelecionadasOP.push(checkbox.dataset.pericia);
+      if (!(profs[checkbox.dataset.pericia] >= 1)) profs[checkbox.dataset.pericia] = 1; // classe: treinado
+    }
+  });
+
+  atualizarTudo();
+  salvarTudo();
+
+  fecharPopupPericiasClasse();
+}
+
+function limparFocoBotoesVida() {
+  const botoes = document.querySelectorAll(".hp-overlay button");
+
+  botoes.forEach((botao) => {
+    botao.addEventListener("click", () => {
+      botao.blur();
+    });
+
+    botao.addEventListener(
+      "touchend",
+      () => {
+        botao.blur();
+      },
+      { passive: true },
+    );
+
+    botao.addEventListener("mouseup", () => {
+      botao.blur();
+    });
+  });
+}
+
+function ativarDragTemp() {
+  const barra = document.getElementById("tempBar");
+  if (!barra) return;
+
+  let arrastando = false;
+
+  function atualizarPorPosicao(clientX) {
+    const rect = barra.getBoundingClientRect();
+    const max = get("vidaMax");
+
+    if (max <= 0) return;
+
+    let pos = clientX - rect.left;
+    pos = Math.max(0, Math.min(pos, rect.width));
+
+    const porcentagem = pos / rect.width;
+    vidaTemp = Math.round(porcentagem * max);
+
+    atualizarTemp();
+    salvarTudo();
+  }
+
+  barra.addEventListener("click", (e) => {
+    if (e.target.tagName === "BUTTON") return;
+    atualizarPorPosicao(e.clientX);
+  });
+
+  barra.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.target.tagName === "BUTTON") return;
+
+      arrastando = true;
+      atualizarPorPosicao(e.touches[0].clientX);
+    },
+    { passive: true },
+  );
+
+  barra.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!arrastando) return;
+      atualizarPorPosicao(e.touches[0].clientX);
+    },
+    { passive: true },
+  );
+
+  barra.addEventListener("touchend", () => {
+    arrastando = false;
+  });
+
+  barra.addEventListener("mousedown", (e) => {
+    if (e.target.tagName === "BUTTON") return;
+
+    arrastando = true;
+    atualizarPorPosicao(e.clientX);
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!arrastando) return;
+    atualizarPorPosicao(e.clientX);
+  });
+
+  document.addEventListener("mouseup", () => {
+    arrastando = false;
+  });
+}
+
+
+function limitarAtributo(input) {
+  let valor = parseInt(input.value);
+
+  if (isNaN(valor)) return;
+  if (valor > 5) input.value = 5;
+  if (valor < 0) input.value = 0;
+}
+
+/* ================= GRIMÓRIO ÍGNEO / MASTER ================= */
+
+
+const npcsPadrao = [
+  {
+    id: "npc-padrao-leonardo",
+    _tipo: "npc",
+    origem: "padrao",
+    nome: "Leonardo, o Taverneiro Sombrio",
+    tipo: "Humano",
+    relacao: "neutro",
+    personalidade: "Carismático, brincalhão e sempre disposto a ouvir uma boa história. Leonardo demonstra um carinho incomum por tudo que existe ao seu redor, desde os maiores heróis até as criaturas mais insignificantes. Enfrenta qualquer situação com serenidade e bom humor, como se soubesse exatamente como cada história termina.",
+    lore: "Ninguém sabe de onde Leonardo veio. Ele simplesmente apareceu certa noite, comprou a taverna com moedas de origem desconhecida e nunca mais saiu de trás do balcão. Dizem que já serviu reis, assassinos e deuses — e tratou todos com a mesma indiferença.",
+    observacoes: "'Caso algum jogador perguntar do 'CRIADOR' Leonardo responde: O Criador ? Leonardo ri e toma um gole da caneca. Dizem que era um homem teimoso demais para desistir daquilo que começou. Ele sorri. Se existe alguém assim, espero que esteja se divertindo tanto quanto eu.",
+    hpMax: 1000, hpAtual: 1000, ca: 100,
+    ataques: "Punho cortante:  +15 para acertar, alcance 3m, 6d6+20 de dano. | Linhas do destino: Abre um livro e começa a escrever como se fosse afetar a linha temporal, 8d8 de dano Psiquico.",
+    habilidades: "Deletar: pode simplesmente te deletar do mundo sem mais nem menos, | Entre as Linhas: qualquer ataque direcionado a Leonardo desacelera antes de atingi-lo. Ataques corpo a corpo falham automaticamente, a menos que o atacante passe em CD 30 Sab. ",
+    fraquezas: "Nenhuma.",
+    status: { for: 30, des: 30, con: 30, int: 30, sab: 30, car: 30 },
+    imagem: "img/Npc/Leonardo.jpeg"
+  }
+];
+
+const encontrosPadrao = [
+  {
+    id: "encontro-padrao-1", origem: "padrao",
+    nome: "Emboscada na Estrada",
+    regiao: "Estrada Real",
+    localizacao: "Entre duas cidades",
+    dificuldade: "Médio",
+    objetivo: "Sobreviver e descobrir quem ordenou a emboscada",
+    envolvidos: "Grupo de bandidos com um líder misterioso encapuzado",
+    gatilho: "Os jogadores viajam entre cidades sem escolta",
+    ambiente: "Floresta às margens da estrada, visibilidade reduzida, terreno irregular",
+    consequencias: "O líder foge se reduzido a 30% HP, deixando uma carta cifrada",
+    loot: "Bolsas com 50po, a carta cifrada, adaga com emblema desconhecido",
+    notas: "O emblema na adaga pode ser gancho para próxima aventura",
+    imagem: "img/Encontros/Emboscada-na-Estrada.jpg"
+  },
+  {
+    id: "encontro-padrao-2", origem: "padrao",
+    nome: "O Mercado Sombrio",
+    regiao: "Cidade",
+    localizacao: "Beco nos fundos do mercado principal",
+    dificuldade: "Fácil",
+    objetivo: "Investigar rumores de itens roubados sendo vendidos",
+    envolvidos: "Comerciantes ilegais, guarda corrupto, possível informante",
+    gatilho: "Jogadores ouvem rumores ou perdem um item valioso",
+    ambiente: "Beco escuro, tendas improvisadas, movimento constante de pessoas suspeitas",
+    consequencias: "Confronto com a guarda se prenderem alguém. Informante pode virar aliado.",
+    loot: "Itens roubados variados, lista de compradores VIP",
+    notas: "Oportunidade de roleplay e investigação antes de qualquer combate",
+    imagem: "img/Encontros/O-Mercado-Sombrio.jpg"
+  },
+  {
+    id: "encontro-padrao-3", origem: "padrao",
+    nome: "A Cripta Desperta",
+    regiao: "Cemitério Antigo",
+    localizacao: "Cripta da família nobre abandonada",
+    dificuldade: "Difícil",
+    objetivo: "Descobrir o que perturbou os mortos e pará-lo",
+    envolvidos: "Esqueletos, zumbis, e um espectro no nível mais profundo",
+    gatilho: "Mortos começam a aparecer na cidade à noite",
+    ambiente: "Escuridão total sem tochas, paredes cobertas de musgo, armadilhas antigas",
+    consequencias: "Se o espectro escapar vai possuir um NPC importante da cidade",
+    loot: "Joia da família nobre, pergaminhos antigos, 200po em moedas velhas",
+    notas: "O espectro era um membro da família — pode ser apaziguado com informação certa",
+    imagem: "img/Encontros/A-Cripta Desperta.jpg"
+  },
+  {
+    id: "encontro-padrao-5", origem: "padrao",
+    nome: "Tempestade no Mar",
+    regiao: "Alto Mar",
+    localizacao: "Navio mercante a dois dias do porto",
+    dificuldade: "Lendário",
+    objetivo: "Sobreviver à tempestade e ao monstro marinho que ela acordou",
+    envolvidos: "Tripulação em pânico, capitão ferido, criatura das profundezas",
+    gatilho: "Jogadores viajam de navio ou são contratados como escolta",
+    ambiente: "Navio balançando, visibilidade zero, chuva torrencial, ondas gigantes",
+    consequencias: "Se o navio afundar os jogadores precisam chegar à costa nadando",
+    loot: "Carga valiosa do navio, gratidão do capitão, mapa de rotas secretas",
+    notas: "A criatura não é maliciosa — foi perturbada por algo no fundo do mar",
+    imagem: "img/Encontros/Tempestade-no-Mar.jpg"
+  }
+];
+
+
+const itensPadrao = [
+  {
+    id: "item-padrao-1", _tipo: "item", origem: "padrao",
+    nome: "Lâmina do Crepúsculo",
+    tipo: "arma",
+    raridade: "raro",
+    sintonizacao: "Sim",
+    efeito: "Espada longa +2. Ao anoitecer e amanhecer causa 2d6 de dano extra de radiante. Uma vez por dia pode lançar Palavra Divina.",
+    imagem: "img/Itens/Lâmina-do-Crepúsculo.jpg"
+  },
+  {
+    id: "item-padrao-2", _tipo: "item", origem: "padrao",
+    nome: "Manto dos Sussurros",
+    tipo: "armadura",
+    raridade: "incomum",
+    sintonizacao: "Sim",
+    efeito: "Capa encantada que concede vantagem em testes de Furtividade. O usuário pode lançar Silêncio uma vez por dia sem gastar espaço de magia.",
+    imagem: "img/Itens/Manto-dos-Sussurros.jpg"
+  },
+  {
+    id: "item-padrao-3", _tipo: "item", origem: "padrao",
+    nome: "Amuleto do Viajante",
+    tipo: "acessório",
+    raridade: "normal",
+    sintonizacao: "Não",
+    efeito: "Concede resistência a cansaço de viagem. O portador nunca se perde em locais que já visitou e pode rolar Sobrevivência com vantagem.",
+    imagem: "img/Itens/Amuleto-do-Viajante.jpg"
+  },
+  {
+    id: "item-padrao-4", _tipo: "item", origem: "padrao",
+    nome: "Frasco de Memórias",
+    tipo: "poção",
+    raridade: "raro",
+    sintonizacao: "Não",
+    efeito: "Ao quebrar, libera as memórias de quem o criou. Pode conter informações valiosas ou revelar segredos de um NPC. Conteúdo definido pelo Mestre.",
+    imagem: "img/Itens/Frasco-de-Memórias.jpg"
+  },
+  {
+    id: "item-padrao-5", _tipo: "item", origem: "padrao",
+    nome: "Grimório das Chamas",
+    tipo: "livro",
+    raridade: "reliquia",
+    sintonizacao: "Sim",
+    efeito: "Contém 3 magias de fogo esquecidas. Ao sintonizar, o usuário aprende Bola de Fogo aprimorada (8d6). O livro queima qualquer um que tente lê-lo sem sintonização.",
+    imagem: "img/Itens/Grimório-das-Chamas.jpg"
+  }
+];
+
+const bossesPadrao = [
+  {
+    id: "boss-padrao-1", _tipo: "boss", origem: "padrao",
+    nome: "Senhor das Sombras",
+    tipo: "Morto-vivo",
+    regiao: "Catacumbas Profundas",
+    hpMax: 180, hpAtual: 180, ca: 17,
+    status: { for: 20, des: 14, con: 18, int: 16, sab: 12, car: 18 },
+    lore: "Um antigo senhor da guerra que fez um pacto com forças das trevas para escapar da morte. Governa um exército de mortos-vivos nas catacumbas sob a cidade esquecida.",
+    habilidades: "Drenar Vida: ao acertar um golpe, recupera 10 HP. Aura de Terror: criaturas a até 10m fazem teste de sabedoria ou ficam amedrontadas.",
+    fraquezas: "Luz sagrada causa dano dobrado. Fica enfraquecido ao amanhecer.",
+    imagem: "",
+    ataques: "Espada das Sombras: +8 para acertar, alcance 1,5m, 2d8+5 cortante. | Drenar Vida (ação bônus): +6 para acertar, 2d6 necrótico — recupera o mesmo em HP.",
+    reacoes: "Escudo das Trevas: quando acertado, reduz 1d8 de dano.",
+    resistencias: "Resistente a necrótico e veneno. Imune a medo e charme."
+  },
+  {
+    id: "boss-padrao-2", _tipo: "boss", origem: "padrao",
+    nome: "A Tecelã",
+    tipo: "Aberração",
+    regiao: "Floresta Corrompida",
+    hpMax: 150, hpAtual: 150, ca: 15,
+    status: { for: 16, des: 18, con: 14, int: 20, sab: 16, car: 8 },
+    lore: "Uma entidade antiga que tece o destino dos mortais como fios. Habita o coração de uma floresta corrompida, manipulando os habitantes locais há séculos.",
+    habilidades: "Fios do Destino: pode reescrever o resultado de um dado uma vez por rodada. Marionetes: controla até 3 humanoides simultaneamente.",
+    fraquezas: "Seus fios podem ser cortados com lâminas abençoadas. Perde poderes longe da floresta.",
+    imagem: "",
+    ataques: "Fios Cortantes: +7 para acertar, alcance 3m, 2d6+4 cortante. | Lançar Marionete: CD 15 Sab ou força alvo a atacar um aliado.",
+    reacoes: "Reescrever o Fado: cancela um acerto crítico sofrido uma vez por rodada.",
+    resistencias: "Resistente a dano psíquico. Imune a encantamento."
+  },
+  {
+    id: "boss-padrao-3", _tipo: "boss", origem: "padrao",
+    nome: "Kargoth, o Devastador",
+    tipo: "Gigante",
+    regiao: "Montanhas do Norte",
+    hpMax: 220, hpAtual: 220, ca: 16,
+    status: { for: 24, des: 8, con: 22, int: 6, sab: 8, car: 10 },
+    lore: "Um gigante de pedra exilado de seu clã por ser considerado cruel demais até para os seus. Constrói uma fortaleza nas montanhas usando trabalho forçado de aldeões capturados.",
+    habilidades: "Golpe Devastador: causa 4d10 de dano e joga o alvo 6m para trás. Arremesso de Rocha: ataque à distância de 30m causando 3d8.",
+    fraquezas: "Lento e previsível. Ataques em seus joelhos reduzem sua velocidade pela metade.",
+    imagem: "",
+    ataques: "Golpe Devastador: +10 para acertar, 4d10+7 contundente — empurra 6m. | Arremesso de Rocha: +8 para acertar, alcance 30m, 3d8+7 contundente.",
+    reacoes: "Bloquear com o Corpo: reduz 2d10 de um ataque físico.",
+    resistencias: "Resistente a dano físico não mágico. Vulnerável a raio."
+  },
+  {
+    id: "boss-padrao-4", _tipo: "boss", origem: "padrao",
+    nome: "Vespera",
+    tipo: "Feiticeira",
+    regiao: "Torre de Âmbar",
+    hpMax: 120, hpAtual: 120, ca: 13,
+    status: { for: 8, des: 14, con: 12, int: 22, sab: 16, car: 20 },
+    lore: "Uma ex-conselheira real que foi banida por praticar magia proibida. Passou décadas aperfeiçoando feitiços de controle mental e busca vingança contra a coroa.",
+    habilidades: "Dominação: controla um inimigo por 1 minuto. Contramagia: pode cancelar qualquer feitiço uma vez por rodada.",
+    fraquezas: "Fisicamente fraca. Tem dificuldade em combate próximo e depende de seus lacaios.",
+    imagem: "",
+    ataques: "Cajado Arcano: +6 para acertar, 1d6+2 contundente. | Bola de Fogo: área 6m, CD 16 Des ou 8d6 fogo. | Raio Controlador: +8 para acertar, 4d6 raio — alvo atordoado.",
+    reacoes: "Contramagia: cancela feitiço de 5º círculo ou menos.",
+    resistencias: "Resistente a raio e força. Imune a medo."
+  },
+  {
+    id: "boss-padrao-5", _tipo: "boss", origem: "padrao",
+    nome: "O Guardião Sem Nome",
+    tipo: "Construto",
+    regiao: "Ruínas Antigas",
+    hpMax: 200, hpAtual: 200, ca: 19,
+    status: { for: 22, des: 10, con: 20, int: 4, sab: 10, car: 1 },
+    lore: "Um golem colossal criado por uma civilização desaparecida para proteger seus segredos eternamente. Não tem vontade própria — apenas cumpre sua programação sem parar.",
+    habilidades: "Imune a charme e medo. Regenera 15 HP por rodada a menos que tome dano de raio.",
+    fraquezas: "Raio danifica seus mecanismos internos. Tem um símbolo de controle gravado nas costas.",
+    imagem: "",
+    ataques: "Punho de Pedra: +9 para acertar, 3d8+6 contundente. | Soco em Área: todos a 3m, CD 17 Des ou 2d10+6 contundente.",
+    reacoes: "Estrutura Implacável: quando reduzido a 0 HP, teste CD 15 Con — se passar fica com 1 HP.",
+    resistencias: "Imune a veneno, doença, charme e medo. Resistente a dano não mágico."
+  }
+];
+
+const compendioPadrao = [
+ {
+  id: "padrao-goblin",
+  origem: "padrao",
+  nome: "Goblin",
+  tipo: "Humanoide",
+  regiao: "Cavernas, florestas e ruínas",
+  hpMax: 7,
+  hpAtual: 7,
+  ca: 15,
+  status: { for: 8, des: 14, con: 10, int: 10, sab: 8, car: 8 },
+  lore: "Pequeno, traiçoeiro e covarde. Costuma atacar em grupo e fugir quando está em desvantagem.",
+  habilidades: "Fuga ágil: pode escapar ou se esconder rapidamente.",
+  dialogos: ["Peguem tudo que brilha!", "Corre! Corre!", "Você caiu na nossa armadilha!"],
+  encontros: "Cavernas, acampamentos saqueadores e estradas abandonadas.",
+  imagem: ""
+},
+  {
+    id: "padrao-kobold",
+    origem: "padrao",
+    nome: "Kobold",
+    tipo: "Humanoide dracônico",
+    regiao: "Minas, túneis e covis de dragão",
+    hpMax: 5,
+    hpAtual: 5,
+    ca: 12,
+    status: { for: 7, des: 15, con: 9, int: 8, sab: 7, car: 8 },
+    lore: "Criatura pequena e astuta, geralmente serve dragões ou vive em comunidades subterrâneas cheias de armadilhas.",
+    habilidades: "Táticas de grupo: perigoso quando luta ao lado de aliados.",
+    dialogos: ["O mestre dragão vai saber disso!", "Armadilha! Armadilha!", "Pequeno, mas mortal!"],
+    encontros: "Minas abandonadas, túneis estreitos e covis subterrâneos.",
+    imagem: "",
+    ataques: "Cimitarra: +4 para acertar, 1d6+2 cortante. | Arco Curto: +4 para acertar, alcance 18/72m, 1d6+2 perfurante.",
+    reacoes: "Fuga Ágil: usa Esconder ou Correr como ação bônus.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-bandit",
+    origem: "padrao",
+    nome: "Bandido",
+    tipo: "Humanoide",
+    regiao: "Estradas, vilas e acampamentos",
+    hpMax: 11,
+    hpAtual: 11,
+    ca: 12,
+    status: { for: 11, des: 12, con: 12, int: 10, sab: 10, car: 10 },
+    lore: "Criminoso comum que vive de roubos, emboscadas e intimidação.",
+    habilidades: "Ataque coordenado quando está em grupo.",
+    dialogos: ["Passe a bolsa e ninguém se machuca.", "Isso aqui é nosso território.", "Peguem eles!"],
+    encontros: "Estradas perigosas, tavernas suspeitas e acampamentos de saqueadores.",
+    imagem: "",
+    ataques: "Espada Curta: +3 para acertar, 1d6+1 perfurante. | Besta Leve: +3 para acertar, alcance 24/96m, 1d8+1 perfurante.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-skeleton",
+    origem: "padrao",
+    nome: "Esqueleto",
+    tipo: "Morto-vivo",
+    regiao: "Criptas, ruínas e cemitérios",
+    hpMax: 13,
+    hpAtual: 13,
+    ca: 13,
+    status: { for: 10, des: 14, con: 15, int: 6, sab: 8, car: 5 },
+    lore: "Restos animados por magia necromântica, obedecem ordens simples sem questionar.",
+    habilidades: "Não sente medo, dor ou cansaço.",
+    dialogos: ["...", "Clac... clac...", "A morte... permanece..."],
+    encontros: "Tumbas antigas, catacumbas e templos abandonados.",
+    imagem: "",
+    ataques: "Espada Curta: +4 para acertar, 1d6+2 perfurante. | Arco Curto: +4 para acertar, alcance 24/96m, 1d6+2 perfurante.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Vulnerável a dano contundente. Imune a veneno e doença."
+  },
+  {
+    id: "padrao-zombie",
+    origem: "padrao",
+    nome: "Zumbi",
+    tipo: "Morto-vivo",
+    regiao: "Cemitérios, pântanos e cidades destruídas",
+    hpMax: 22,
+    hpAtual: 22,
+    ca: 8,
+    status: { for: 13, des: 6, con: 16, int: 3, sab: 6, car: 5 },
+    lore: "Cadáver reanimado que avança lentamente, mas é difícil de derrubar.",
+    habilidades: "Resistência morta-viva: pode continuar de pé mesmo após golpes fatais.",
+    dialogos: ["Uuurgh...", "Carne...", "Aaah..."],
+    encontros: "Cemitérios profanados, vilas amaldiçoadas e campos de batalha antigos.",
+    imagem: "",
+    ataques: "Soco: +3 para acertar, 1d6+1 contundente.",
+    reacoes: "Resistência Morta-viva: quando reduzido a 0 HP, teste CD 5 + dano recebido Con — se passar fica com 1 HP.",
+    resistencias: "Imune a veneno e doença. Resistente a dano necrótico."
+  },
+  {
+    id: "padrao-wolf",
+    origem: "padrao",
+    nome: "Lobo",
+    tipo: "Besta",
+    regiao: "Florestas e montanhas",
+    hpMax: 11,
+    hpAtual: 11,
+    ca: 13,
+    status: { for: 12, des: 15, con: 12, int: 3, sab: 12, car: 6 },
+    lore: "Predador de matilha, rápido e perigoso quando cerca sua presa.",
+    habilidades: "Tática de matilha: luta melhor ao lado de outros lobos.",
+    dialogos: ["Grrrr...", "Auuuu!", "Rosna mostrando os dentes."],
+    encontros: "Florestas escuras, trilhas nevadas e montanhas isoladas.",
+    imagem: "",
+    ataques: "Mordida: +4 para acertar, 2d4+2 perfurante — alvo CD 11 For ou fica derrubado.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-giant-rat",
+    origem: "padrao",
+    nome: "Rato Gigante",
+    tipo: "Besta",
+    regiao: "Esgotos, porões e ruínas",
+    hpMax: 7,
+    hpAtual: 7,
+    ca: 12,
+    status: { for: 7, des: 15, con: 11, int: 2, sab: 10, car: 4 },
+    lore: "Rato enorme e agressivo, normalmente encontrado em bandos.",
+    habilidades: "Mordida infecciosa e movimentação rápida em locais apertados.",
+    dialogos: ["Squeak!", "Chiado agressivo.", "Fareja comida ou sangue."],
+    encontros: "Esgotos, depósitos abandonados e masmorras úmidas.",
+    imagem: "",
+    ataques: "Mordida: +4 para acertar, 1d4+2 perfurante — CD 10 Con ou fica envenenado por 1 hora.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-orc",
+    origem: "padrao",
+    nome: "Orc",
+    tipo: "Humanoide",
+    regiao: "Montanhas, fortalezas e campos de guerra",
+    hpMax: 15,
+    hpAtual: 15,
+    ca: 13,
+    status: { for: 16, des: 12, con: 16, int: 7, sab: 11, car: 10 },
+    lore: "Guerreiro brutal e impulsivo, valoriza força, conquista e intimidação.",
+    habilidades: "Avanço agressivo: aproxima-se rapidamente do inimigo.",
+    dialogos: ["Vou quebrar seus ossos!", "Fraco!", "Pelo clã!"],
+    encontros: "Fortalezas tribais, campos de batalha e acampamentos de guerra.",
+    imagem: "",
+    ataques: "Machadão: +5 para acertar, 1d12+3 cortante. | Lança: +5 para acertar, 1d6+3 perfurante.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-gnoll",
+    origem: "padrao",
+    nome: "Gnoll",
+    tipo: "Humanoide monstruoso",
+    regiao: "Savanas, desertos e campos devastados",
+    hpMax: 22,
+    hpAtual: 22,
+    ca: 15,
+    status: { for: 14, des: 12, con: 11, int: 6, sab: 10, car: 7 },
+    lore: "Criatura feroz semelhante a uma hiena, movida por fome e violência.",
+    habilidades: "Frenesi: fica mais perigoso quando derruba uma presa.",
+    dialogos: ["Hahaha! Carne fresca!", "Rasgar! Morder!", "A caça começou!"],
+    encontros: "Campos de batalha, vilas saqueadas e regiões selvagens.",
+    imagem: "",
+    ataques: "Lança: +4 para acertar, 1d6+2 perfurante. | Mordida: +4 para acertar, 1d4+2 perfurante.",
+    reacoes: "Frenesi Sanguinário: ao derrubar um inimigo, faz um ataque extra como ação bônus.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-bugbear",
+    origem: "padrao",
+    nome: "Bugbear",
+    tipo: "Humanoide goblinoide",
+    regiao: "Florestas, cavernas e fortalezas goblinoides",
+    hpMax: 27,
+    hpAtual: 27,
+    ca: 16,
+    status: { for: 15, des: 14, con: 13, int: 8, sab: 11, car: 9 },
+    lore: "Grande, silencioso e cruel. Usa emboscadas para destruir inimigos desprevenidos.",
+    habilidades: "Ataque surpresa: causa grande dano quando pega o alvo desprevenido.",
+    dialogos: ["Silêncio... agora morra.", "Você não me viu chegando.", "Pequenos ossos quebram fácil."],
+    encontros: "Cavernas escuras, ruínas tomadas por goblins e fortalezas escondidas.",
+    imagem: "",
+    ataques: "Maça: +4 para acertar, 2d8+2 contundente. | Ataque Surpresa: +2d6 de dano extra no primeiro ataque.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-hobgoblin",
+    origem: "padrao",
+    nome: "Hobgoblin",
+    tipo: "Humanoide goblinoide",
+    regiao: "Fortes militares e territórios conquistados",
+    hpMax: 11,
+    hpAtual: 11,
+    ca: 18,
+    status: { for: 13, des: 12, con: 12, int: 10, sab: 10, car: 9 },
+    lore: "Soldado disciplinado e estratégico, luta melhor em formação.",
+    habilidades: "Vantagem marcial: aproveita aliados próximos para atacar melhor.",
+    dialogos: ["Formação!", "Sem recuar!", "Pelo comandante!"],
+    encontros: "Postos militares, fortalezas e patrulhas organizadas.",
+    imagem: "",
+    ataques: "Espada Longa: +3 para acertar, 1d8+1 cortante. | Arco Longo: +3 para acertar, alcance 45/180m, 1d8+1 perfurante.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-giant-spider",
+    origem: "padrao",
+    nome: "Aranha Gigante",
+    tipo: "Besta",
+    regiao: "Florestas densas, cavernas e ruínas",
+    hpMax: 26,
+    hpAtual: 26,
+    ca: 14,
+    status: { for: 14, des: 16, con: 12, int: 2, sab: 11, car: 4 },
+    lore: "Predadora silenciosa que prende vítimas em teias antes de atacar.",
+    habilidades: "Teia e veneno: pode imobilizar e envenenar suas presas.",
+    dialogos: ["Som de patas nas paredes.", "A criatura observa em silêncio.", "Teias se movem ao redor."],
+    encontros: "Cavernas, ruínas tomadas por teias e florestas antigas.",
+    imagem: "",
+    ataques: "Mordida: +5 para acertar, 1d8+3 perfurante — CD 11 Con ou 2d8 veneno. | Teia (recarga 5-6): alcance 9/18m, CD 12 Des ou fica imobilizado.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Imune a veneno."
+  },
+
+  {
+    id: "padrao-bananao",
+    origem: "padrao",
+    nome: "Bananao",
+    tipo: "Fruta",
+    regiao: "Florestas densas Bananeiras.",
+    hpMax: 250,
+    hpAtual: 250,
+    ca: 14,
+    status: { for: 20, des: 20, con: 20, int: 20, sab: 20, car: 20 },
+    lore: "Um ser que cansou de ser comido e virou sua maior ameaça.",
+    habilidades: "Onda de vitamina, Suquinho natural de banana",
+    dialogos: ["Som de liquidificador", "A criatura observa em silêncio.", "Cascas de banana se movem ao redor."],
+    encontros: "florestas antigas.",
+    imagem: "",
+    ataques: "Rasteira de Casca: +8 para acertar, alcance 3m, 3d8+5 — alvo cai derrubado. | Esguicho de Vitamina C: cone 6m, CD 16 Des ou 4d6 ácido.",
+    reacoes: "Casca Escorregadia: atacante corpo a corpo CD 12 Des ou cai.",
+    resistencias: "Imune a dano ácido. Resistente a dano contundente."
+  },
+
+  {
+    id: "padrao-ogre",
+    origem: "padrao",
+    nome: "Ogro",
+    tipo: "Gigante",
+    regiao: "Colinas, cavernas e pântanos",
+    hpMax: 59,
+    hpAtual: 59,
+    ca: 11,
+    status: { for: 19, des: 8, con: 16, int: 5, sab: 7, car: 7 },
+    lore: "Criatura enorme, burra e brutal, resolve quase tudo esmagando.",
+    habilidades: "Golpes pesados capazes de derrubar aventureiros despreparados.",
+    dialogos: ["Eu esmagar!", "Pequeno demais!", "Comida?"],
+    encontros: "Cavernas grandes, pontes abandonadas e fortalezas destruídas.",
+    imagem: "",
+    ataques: "Clava: +6 para acertar, 2d8+4 contundente. | Arremesso: +6 para acertar, alcance 9/18m, 2d8+4 contundente.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Sem resistências especiais."
+  },
+  {
+    id: "padrao-troll",
+    origem: "padrao",
+    nome: "Troll",
+    tipo: "Gigante",
+    regiao: "Pântanos, cavernas e florestas sombrias",
+    hpMax: 84,
+    hpAtual: 84,
+    ca: 15,
+    status: { for: 18, des: 13, con: 20, int: 7, sab: 9, car: 7 },
+    lore: "Monstro regenerativo e faminto, conhecido por voltar a lutar mesmo após ferimentos horríveis.",
+    habilidades: "Regeneração: recupera vida rapidamente, exceto contra fogo ou ácido.",
+    dialogos: ["Arrancar braços!", "Fome! Fome!", "Você queima... eu odeio fogo!"],
+    encontros: "Pontes antigas, pântanos, cavernas úmidas e florestas amaldiçoadas.",
+    imagem: "",
+    ataques: "Mordida: +7 para acertar, 1d6+4 perfurante. | Garra (2 ataques): +7 para acertar, 2d6+4 cortante cada.",
+    reacoes: "Sem reações especiais.",
+    resistencias: "Regenera 10 HP por rodada — exceto contra fogo ou ácido. Vulnerável a fogo e ácido."
+  }
+];
+
+window.monstrosMestre = JSON.parse(localStorage.getItem("monstrosMestre")) || [];
+let monstrosMestre = window.monstrosMestre;
+
+window.combatesMestre = JSON.parse(localStorage.getItem("combatesMestre")) || [];
+let combatesMestre = window.combatesMestre;
+
+let editandoMonstroMestre = -1;
+let editandoItemMestre = -1;
+let imagemMonstroBase64 = "";
+let sheetMonstroIndexAtual = null;
+let listaSheetCompendio = [];
+let sheetDragInicioX = 0;
+let sheetDragInicioY = 0;
+let sheetArrastando = false;
+
+function abrirTelaModo() {
+  document.querySelector(".header-rpg")?.style.removeProperty("display");
+  document.querySelector(".folhas-bg")?.style.removeProperty("display");
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("tela-inicial").style.display = "none";
+  document.getElementById("masterIgnea").style.display = "none";
+
+  const campanhas = document.getElementById("telaCampanhasMaster");
+  if (campanhas) campanhas.style.display = "none";
+
+  const tela = document.getElementById("tela-modo");
+  tela.style.display = "flex";
+
+  // reset estado da tela (seletor novo)
+  if (typeof tmResetNovo === 'function') tmResetNovo();
+
+  tela.style.opacity = "0";
+  tela.style.transform = "scale(1.06)";
+
+  requestAnimationFrame(() => {
+    tela.style.transition = "transform 0.45s ease, opacity 0.45s ease";
+    tela.style.opacity = "1";
+    tela.style.transform = "scale(1)";
+  });
+}
+
+
+
+function entrarModoMestreAnimado() {
+  const tela = document.getElementById("tela-modo");
+  if (!tela) return;
+
+  tela.classList.add("zoom-grimorio");
+
+  setTimeout(() => {
+    tela.classList.remove("zoom-grimorio");
+    entrarModoMestre();
+    tela.style.opacity = "1";
+    tela.style.transform = "scale(1)";
+  }, 550);
+}
+
+function esconderTelasPrincipais() {
+  const ids = [
+    "loginBox",
+    "tela-modo",
+    "tela-inicial",
+    "ficha",
+    "masterIgnea"
+  ];
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+}
+
+function entrarModoJogador() {
+  controlarHeader(true);
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("tela-modo").style.display = "none";
+  document.getElementById("masterIgnea").style.display = "none";
+  document.getElementById("ficha").style.display = "none";
+  document.getElementById("tela-inicial").style.display = "block";
+
+  if (typeof renderPersonagens === "function") {
+    renderPersonagens();
+  }
+}
+
+function voltarTelaModo() {
+  abrirTelaModo();
+}
+
+function trocarAbaMaster(nomeAba, btn) {
+  document.querySelector('.header-rpg').style.display = 'none';
+  document.querySelectorAll(".master-aba").forEach(aba => {
+    aba.style.display = "none";
+    aba.classList.remove("active");
+  });
+
+  document.querySelectorAll(".master-tab-btn").forEach(botao => {
+    botao.classList.remove("active");
+  });
+
+  const alvo = document.getElementById(`abaMaster-${nomeAba}`);
+  if (alvo) {
+    alvo.style.display = "block";
+    alvo.classList.add("active");
+  }
+
+ if (nomeAba === "mundo") {
+  inicializarAbaMundo();
+  renderMundoCampanha();
+}
+
+if (nomeAba === "lore") {
+  setTimeout(() => renderLoreCampanha(), 50);
+}
+
+if (nomeAba === "grupoMaster" && typeof window.renderGrupoMaster === "function") {
+  window.renderGrupoMaster();
+}
+
+  if (btn) btn.classList.add("active");
+
+  if (nomeAba === "compendio") {
+  injetarFiltrosCompendio();
+  renderMonstrosMestre();
+}
+  if (nomeAba === "combateMaster") renderCombatesMestre();
+}
+
+function injetarFiltrosCompendio() {
+  const controles = document.querySelector(".compendio-controles");
+  if (!controles || document.getElementById("filtroTipoMonstro")) return;
+
+  const select = document.createElement("select");
+  select.id = "filtroTipoMonstro";
+  select.innerHTML = `
+    <option value="todos">📚 Todos</option>
+    <option value="monstros">👹 Criaturas</option>
+    <option value="bosses">💀 Bosses</option>
+    <option value="npcs">🧙 NPCs</option>
+    <option value="itens">⚔️ Itens</option>
+    <option value="mapas">🗺️ Mapas</option>
+  `;  
+  select.onchange = () => {
+    _filtroCompendio = select.value;
+    renderMonstrosMestre();
+  };
+
+  const ordenar = document.getElementById("ordenarMonstros");
+  ordenar.after(select);
+}
+
+function _estiloBtnFiltro(ativo) {
+  return `
+    padding:6px 14px;
+    border-radius:999px;
+    border:1px solid ${ativo ? "rgba(200,80,80,0.55)" : "rgba(198,186,200,0.18)"};
+    background:${ativo ? "linear-gradient(180deg,#5f1717,#2a0b0b)" : "rgba(12,9,13,0.6)"};
+    color:${ativo ? "#e1c3eb" : "#89728e"};
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.18s;
+    white-space:nowrap;
+  `;
+}
+
+
+
+function ativarFiltroCompendio(key) {
+  _filtroCompendio = key;
+  document.querySelectorAll(".compendio-filtro-btn").forEach(btn => {
+    btn.style.cssText = _estiloBtnFiltro(btn.dataset.filtro === key);
+  });
+  renderMonstrosMestre();
+}
+
+function salvarMonstrosMestreStorage() {
+  localStorage.setItem("monstrosMestre", JSON.stringify(monstrosMestre));
+  window.monstrosMestre = monstrosMestre;
+
+  if (typeof window.salvarMonstrosNaNuvem === "function") {
+    window.salvarMonstrosNaNuvem();
+  }
+}
+
+function salvarCombatesMestreStorage() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (campanha) {
+    campanha.combates = combatesMestre;
+    salvarCampanhasMaster();
+  }
+
+  localStorage.setItem("combatesMestre", JSON.stringify(combatesMestre));
+  window.combatesMestre = combatesMestre;
+
+  if (typeof window.salvarMonstrosNaNuvem === "function") {
+    window.salvarMonstrosNaNuvem();
+  }
+}
+
+function previewImagemMonstro() {
+  const input = document.getElementById("monstroImagemInput");
+  const preview = document.getElementById("previewMonstro");
+
+  if (!input || !input.files || !input.files[0]) return;
+
+  const file = input.files[0];
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const img = new Image();
+
+    img.onload = function () {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // 🔥 tamanho máximo
+      const maxWidth = 500;
+      const scale = maxWidth / img.width;
+
+      canvas.width = maxWidth;
+      canvas.height = img.height * scale;
+
+      // desenha comprimida
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // 🔥 qualidade 0.65
+      imagemMonstroBase64 = canvas.toDataURL("image/jpeg", 0.65);
+
+      if (preview) {
+        preview.src = imagemMonstroBase64;
+        preview.style.display = "block";
+      }
+    };
+
+    img.src = e.target.result;
+  };
+
+  reader.readAsDataURL(file);
+}
+
+// Comprime a imagem antes de virar base64 (evita ficha estourar o limite do Firestore)
+function comprimirImagem(file, maxLado = 900, qualidade = 0.72) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Falha ao ler o arquivo"));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Arquivo de imagem inválido"));
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > maxLado) { h = Math.round((h * maxLado) / w); w = maxLado; }
+        else if (h >= w && h > maxLado) { w = Math.round((w * maxLado) / h); h = maxLado; }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", qualidade));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function _previewImagemGenerica(inputId, previewId, setter) {
+  const input = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  if (!input?.files?.[0]) return;
+  try {
+    const base64 = await comprimirImagem(input.files[0]);
+    setter(base64);
+    if (preview) { preview.src = base64; preview.style.display = "block"; }
+  } catch (e) {
+    console.error("Erro ao processar imagem:", e);
+    alertBonito("Não consegui processar essa imagem. Tente outra.");
+    input.value = "";
+  }
+}
+
+async function uploadImagemFirebase(base64, caminho) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+    const response = await fetch("https://ficha-ignea-upload.fichaignea.workers.dev", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imagemBase64: base64.split(",")[1] }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    const data = await response.json();
+    if (!data.erro) return { url: data.url, deleteUrl: data.deleteUrl };
+    throw new Error(data.motivo || `Upload falhou (status ${response.status})`);
+  } catch (e) {
+    console.error("Erro upload imagem ImgBB:", e.message || e);
+    // NUNCA devolver o base64 aqui — era isso que estourava o documento no Firestore
+    return { url: "", deleteUrl: "", erro: true, motivo: e.message || "" };
+  }
+}
+
+function _mensagemErroUpload(complemento) {
+  if (!navigator.onLine) {
+    return `Você está sem internet no momento. Conecte-se e tente enviar a imagem de novo. ${complemento || ""}`.trim();
+  }
+  return `O serviço de imagens está fora do ar no momento. Tente enviar a foto de novo daqui a pouco. ${complemento || ""}`.trim();
+}
+
+async function salvarMonstroMestre() {
+  const nome = document.getElementById("monstroNome")?.value.trim();
+  const tipo = document.getElementById("monstroTipo")?.value.trim();
+  const regiao = document.getElementById("monstroRegiao")?.value.trim();
+
+  if (!nome) {
+    alertBonito("Coloque o nome do monstro.");
+    return;
+  }
+
+  const hpMax = parseInt(document.getElementById("monstroHpMax")?.value) || 0;
+  let hpAtual = parseInt(document.getElementById("monstroHpAtual")?.value);
+
+  if (isNaN(hpAtual)) hpAtual = hpMax;
+
+  const monstroAntigo = editandoMonstroMestre >= 0
+    ? monstrosMestre[editandoMonstroMestre]
+    : null;
+
+  const monstro = {
+    id: monstroAntigo ? monstroAntigo.id : Date.now(),
+
+    nome,
+    tipo,
+    regiao,
+    hpMax,
+    hpAtual,
+    ca: parseInt(document.getElementById("monstroCa")?.value) || 0,
+
+    status: {
+      for: parseInt(document.getElementById("monstroFor")?.value) || 10,
+      des: parseInt(document.getElementById("monstroDes")?.value) || 10,
+      con: parseInt(document.getElementById("monstroCon")?.value) || 10,
+      int: parseInt(document.getElementById("monstroInt")?.value) || 10,
+      sab: parseInt(document.getElementById("monstroSab")?.value) || 10,
+      car: parseInt(document.getElementById("monstroCar")?.value) || 10
+    },
+
+    lore: document.getElementById("monstroLore")?.value.trim() || "",
+    habilidades: document.getElementById("monstroHabilidades")?.value.trim() || "",
+    ataques:     document.getElementById("monstroAtaques")?.value.trim()     || "",
+    velocidade: document.getElementById("monstroVelocidade")?.value.trim() || "",
+    saves:      document.getElementById("monstroSaves")?.value.trim() || "",
+    sentidos:   document.getElementById("monstroSentidos")?.value.trim() || "",
+    idiomas:    document.getElementById("monstroIdiomas")?.value.trim() || "",
+    reacoes:     document.getElementById("monstroReacoes")?.value.trim()     || "",
+    resistencias: document.getElementById("monstroResistencias")?.value.trim() || "",
+    imunidades: document.getElementById("monstroImunidades")?.value.trim() || "",
+    vulnerabilidades: document.getElementById("monstroVulnerabilidades")?.value.trim() || "",
+    pontoEncontro: document.getElementById("bossPontoEncontro")?.value.trim() || "",
+
+    dialogos: (document.getElementById("monstroDialogos")?.value || "")
+      .split("\n")
+      .map(fala => fala.trim())
+      .filter(fala => fala.length > 0),
+
+    encontros: document.getElementById("monstroEncontros")?.value.trim() || "",
+    ...(imagemMonstroBase64
+    ? await uploadImagemFirebase(imagemMonstroBase64, `monstros/${Date.now()}.jpg`).then(r => ({ imagem: r.url, imagemDeleteUrl: r.deleteUrl }))
+    : { imagem: monstroAntigo?.imagem || "", imagemDeleteUrl: monstroAntigo?.imagemDeleteUrl || "" })
+  };
+
+  if (editandoMonstroMestre >= 0) {
+    monstrosMestre[editandoMonstroMestre] = monstro;
+  } else {
+    monstrosMestre.push(monstro);
+  }
+
+  salvarMonstrosMestreStorage();
+  renderMonstrosMestre();
+  limparFormMonstro();
+  atualizarModsMonstro();
+  const btnCompendio = document.querySelector(".master-tab-btn");
+  trocarAbaMaster("compendio", btnCompendio);
+}
+
+
+
+// ===== BOSS =====
+let _bossAtaquesForm = [];
+let _bossHabilidadesForm = [];
+
+function adicionarAtaqueBoss() {
+  const nome = document.getElementById("bossAtaqueNome")?.value.trim();
+  const desc = document.getElementById("bossAtaqueDesc")?.value.trim();
+  if (!nome) return;
+  _bossAtaquesForm.push({ nome, desc });
+  document.getElementById("bossAtaqueNome").value = "";
+  document.getElementById("bossAtaqueDesc").value = "";
+  _renderItemForm("bossAtaquesList", _bossAtaquesForm, "removerAtaqueBoss", "bossAtaques");
+}
+function removerAtaqueBoss(i) {
+  _bossAtaquesForm.splice(i, 1);
+  _renderItemForm("bossAtaquesList", _bossAtaquesForm, "removerAtaqueBoss", "bossAtaques");
+}
+function adicionarHabilidadeBoss() {
+  const nome = document.getElementById("bossHabilidadeNome")?.value.trim();
+  const desc = document.getElementById("bossHabilidadeDesc")?.value.trim();
+  if (!nome) return;
+  _bossHabilidadesForm.push({ nome, desc });
+  document.getElementById("bossHabilidadeNome").value = "";
+  document.getElementById("bossHabilidadeDesc").value = "";
+  _renderItemForm("bossHabilidadesList", _bossHabilidadesForm, "removerHabilidadeBoss", "bossHabilidades");
+}
+function removerHabilidadeBoss(i) {
+  _bossHabilidadesForm.splice(i, 1);
+  _renderItemForm("bossHabilidadesList", _bossHabilidadesForm, "removerHabilidadeBoss", "bossHabilidades");
+}
+
+// ===== NPC =====
+let _npcAcoesForm = [];
+let _npcHabilidadesForm = [];
+
+function adicionarAcaoNpc() {
+  const nome = document.getElementById("npcAcaoNome")?.value.trim();
+  const desc = document.getElementById("npcAcaoDesc")?.value.trim();
+  if (!nome) return;
+  _npcAcoesForm.push({ nome, desc });
+  document.getElementById("npcAcaoNome").value = "";
+  document.getElementById("npcAcaoDesc").value = "";
+  _renderItemForm("npcAcoesList", _npcAcoesForm, "removerAcaoNpc", "npcAcoes");
+}
+function removerAcaoNpc(i) {
+  _npcAcoesForm.splice(i, 1);
+  _renderItemForm("npcAcoesList", _npcAcoesForm, "removerAcaoNpc", "npcAcoes");
+}
+function adicionarHabilidadeNpc() {
+  const nome = document.getElementById("npcHabilidadeNome")?.value.trim();
+  const desc = document.getElementById("npcHabilidadeDesc")?.value.trim();
+  if (!nome) return;
+  _npcHabilidadesForm.push({ nome, desc });
+  document.getElementById("npcHabilidadeNome").value = "";
+  document.getElementById("npcHabilidadeDesc").value = "";
+  _renderItemForm("npcHabilidadesList", _npcHabilidadesForm, "removerHabilidadeNpc", "npcHabilidades");
+}
+function removerHabilidadeNpc(i) {
+  _npcHabilidadesForm.splice(i, 1);
+  _renderItemForm("npcHabilidadesList", _npcHabilidadesForm, "removerHabilidadeNpc", "npcHabilidades");
+}
+
+// ===== HELPER GENÉRICO =====
+function _renderItemForm(listaId, arr, fnRemover, hiddenId) {
+  const lista = document.getElementById(listaId);
+  if (!lista) return;
+  lista.innerHTML = arr.map((a, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#eadeea;border-radius:8px;margin-bottom:4px;border:1px solid rgba(233,224,236,0.13);">
+      <span style="font-size:13px;flex:1;color:#1e1324;"><strong>${escapeHtml(a.nome)}</strong>${a.desc ? ` — <span style="color:#6c5a70;">${escapeHtml(a.desc)}</span>` : ""}</span>
+      <span onclick="${fnRemover}(${i})" style="cursor:pointer;color:#8f2222;font-size:16px;font-weight:bold;">✕</span>
+    </div>`).join("");
+  const hidden = document.getElementById(hiddenId);
+  if (hidden) hidden.value = arr.map(a => a.desc ? `${a.nome}: ${a.desc}` : a.nome).join(" | ");
+}
+
+// ===== SISTEMA DE ATAQUES E HABILIDADES DO FORM =====
+
+let _monstroAtaquesForm = [];
+let _monstroHabilidadesForm = [];
+
+function adicionarAtaqueMonstro() {
+  const nome = document.getElementById("monstroAtaqueNome")?.value.trim();
+  const desc = document.getElementById("monstroAtaqueDesc")?.value.trim();
+  if (!nome) return;
+  _monstroAtaquesForm.push({ nome, desc });
+  document.getElementById("monstroAtaqueNome").value = "";
+  document.getElementById("monstroAtaqueDesc").value = "";
+  renderAtaquesForm();
+}
+
+function removerAtaqueMonstro(i) {
+  _monstroAtaquesForm.splice(i, 1);
+  renderAtaquesForm();
+}
+
+function renderAtaquesForm() {
+  _renderItemForm("monstroAtaquesList", _monstroAtaquesForm, "removerAtaqueMonstro", "monstroAtaques");
+}
+
+function adicionarHabilidadeMonstro() {
+  const nome = document.getElementById("monstroHabilidadeNome")?.value.trim();
+  const desc = document.getElementById("monstroHabilidadeDesc")?.value.trim();
+  if (!nome) return;
+  _monstroHabilidadesForm.push({ nome, desc });
+  document.getElementById("monstroHabilidadeNome").value = "";
+  document.getElementById("monstroHabilidadeDesc").value = "";
+  renderHabilidadesForm();
+}
+
+function removerHabilidadeMonstro(i) {
+  _monstroHabilidadesForm.splice(i, 1);
+  renderHabilidadesForm();
+}
+
+function renderHabilidadesForm() {
+  _renderItemForm("monstroHabilidadesList", _monstroHabilidadesForm, "removerHabilidadeMonstro", "monstroHabilidades");
+}
+
+function limparFormMonstro() {
+  editandoMonstroMestre = -1;
+  imagemMonstroBase64 = "";
+  _monstroAtaquesForm = [];
+  _monstroHabilidadesForm = [];
+  renderAtaquesForm();
+  renderHabilidadesForm();
+
+  const campos = [
+    "monstroNome",
+    "monstroTipo",
+    "monstroRegiao",
+    "monstroHpMax",
+    "monstroHpAtual",
+    "monstroCa",
+    "monstroLore",
+    "monstroHabilidades","monstroAtaques","monstroReacoes","monstroResistencias",
+    "monstroVelocidade","monstroSaves","monstroSentidos","monstroIdiomas",
+    "monstroImunidades","monstroVulnerabilidades",
+    "monstroDialogos",
+    "monstroEncontros"
+  ];
+
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+
+  const statusPadrao = {
+    monstroFor: 10,
+    monstroDes: 10,
+    monstroCon: 10,
+    monstroInt: 10,
+    monstroSab: 10,
+    monstroCar: 10
+  };
+
+  Object.keys(statusPadrao).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = statusPadrao[id];
+  });
+
+  const inputImagem = document.getElementById("monstroImagemInput");
+  if (inputImagem) inputImagem.value = "";
+
+  const preview = document.getElementById("previewMonstro");
+  if (preview) {
+    preview.src = "";
+    preview.style.display = "none";
+  }
+
+  const titulo = document.getElementById("tituloFormMonstro");
+  if (titulo) titulo.textContent = "Criar Monstro";
+}
+
+function renderMonstrosMestre() {
+  const lista = document.getElementById("listaMonstrosMestre");
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  const campanha = campanhasMaster?.[campanhaAtualMaster] || {};
+
+    const monstrosBase = [...(compendioPadrao || []), ...(monstrosMestre || []).filter(m => !m._tipo)];
+  const bossesBase   = [...(bossesPadrao || []), ...(monstrosMestre || []).filter(m => m._tipo === "boss")];
+  const itensBase    = [...(itensPadrao || []), ...(monstrosMestre || []).filter(m => m._tipo === "item")];
+  const npcsBase = [...(npcsPadrao || []), ...(monstrosMestre || []).filter(m => m._tipo === "npc")];
+  const mapasBase = (monstrosMestre || []).filter(m => m._tipo === "mapa");
+
+  let listaCompleta;
+  switch (_filtroCompendio) {
+    case "monstros": listaCompleta = monstrosBase; break;
+    case "bosses":   listaCompleta = bossesBase;   break;
+    case "itens":    listaCompleta = itensBase;    break;
+    case "npcs":     listaCompleta = npcsBase;     break;
+    case "mapas":    listaCompleta = mapasBase;    break;
+    default:         listaCompleta = [...monstrosBase, ...bossesBase, ...itensBase, ...npcsBase, ...mapasBase];
+  }
+
+  const pesquisa = document.getElementById("pesquisaMonstro")?.value?.toLowerCase().trim() || "";
+  let listaFiltrada = pesquisa
+    ? listaCompleta.filter(e =>
+        (e.nome   || "").toLowerCase().includes(pesquisa) ||
+        (e.tipo   || "").toLowerCase().includes(pesquisa) ||
+        (e.regiao || "").toLowerCase().includes(pesquisa) ||
+        (e.classe || "").toLowerCase().includes(pesquisa)
+      )
+    : [...listaCompleta];
+
+  const ordenacao = document.getElementById("ordenarMonstros")?.value || "az";
+  listaFiltrada.sort((a, b) => {
+    if (ordenacao === "az")      return (a.nome || "").localeCompare(b.nome || "");
+    if (ordenacao === "za")      return (b.nome || "").localeCompare(a.nome || "");
+    if (ordenacao === "hpMaior") return (b.hpMax || 0) - (a.hpMax || 0);
+    if (ordenacao === "hpMenor") return (a.hpMax || 0) - (b.hpMax || 0);
+    if (ordenacao === "caMaior") return (b.ca || 0) - (a.ca || 0);
+    if (ordenacao === "caMenor") return (a.ca || 0) - (b.ca || 0);
+    if (ordenacao === "criaturas") {
+      const ordemTipo = { boss: 0 };
+      const ta = ordemTipo[a._tipo] ?? 1;
+      const tb = ordemTipo[b._tipo] ?? 1;
+      return ta !== tb ? ta - tb : (a.nome || "").localeCompare(b.nome || "");
+    }
+    if (ordenacao === "npcs") {
+      const ordemRel = { inimigo: 0, neutro: 1, aliado: 2 };
+      const ra = ordemRel[a.relacao] ?? 1;
+      const rb = ordemRel[b.relacao] ?? 1;
+      return ra !== rb ? ra - rb : (a.nome || "").localeCompare(b.nome || "");
+    }
+    if (ordenacao === "itens") {
+      const ordemRar = { lendario: 0, muitoraro: 1, raro: 2, incomum: 3, comum: 4 };
+      const ra = ordemRar[a.raridade] ?? 4;
+      const rb = ordemRar[b.raridade] ?? 4;
+      return ra !== rb ? ra - rb : (a.nome || "").localeCompare(b.nome || "");
+    }
+    return 0;
+  });
+
+  listaSheetCompendio = listaFiltrada;
+
+  if (!listaFiltrada.length) {
+    const msgs = {
+      todos:    "Nenhum resultado encontrado.",
+      monstros: "Nenhum monstro ainda.",
+      bosses:   "Nenhum boss criado.\nCrie um na aba ✍️ Criar.",
+      itens:    "Nenhum item criado.\nCrie um na aba ✍️ Criar.",
+      npcs:     "Nenhum NPC criado.\nCrie um na aba ✍️ Criar.",
+      mapas:    "Nenhum mapa criado.\nCrie um na aba ✍️ Criar.",
+    };
+    lista.innerHTML = `<p style="text-align:center;color:#d5cbd8;grid-column:1/-1;padding:24px 0;white-space:pre-line;">${msgs[_filtroCompendio] || msgs.todos}</p>`;
+    return;
+  }
+
+  listaFiltrada.forEach((entry, index) => {
+    const card = document.createElement("div");
+    card.className = "compendio-card";
+    card.style.backgroundImage = `url("${entry.imagem || "icon-192.png"}")`;
+
+    card.onclick = () => {
+      const tipo = entry._tipo;
+      if (!tipo) {
+      const idxNaLista = listaFiltrada.findIndex(e => e.id === entry.id);
+      abrirSheetMonstroPorObjeto(entry, idxNaLista, listaFiltrada);
+      }
+      else if (tipo === "boss") { sheetMonstroIndexAtual = index; listaSheetCompendio = listaFiltrada; _abrirPopupBossCompendio(entry); }
+      else if (tipo === "item") { sheetMonstroIndexAtual = index; listaSheetCompendio = listaFiltrada; _abrirPopupItemCompendio(entry); }
+      else if (tipo === "npc")  { sheetMonstroIndexAtual = index; listaSheetCompendio = listaFiltrada; _abrirPopupNPCCompendio(entry); }
+      else if (tipo === "mapa") { sheetMonstroIndexAtual = index; listaSheetCompendio = listaFiltrada; _abrirPopupMapaCompendio(entry); }
+    };
+
+    const badge = { boss:"💀 Boss", item:"⚔️ Item", npc:"🧙 NPC", mapa:"🗺️ Mapa" }[entry._tipo] || "👹 Criatura";
+    const subtitulo = entry._tipo === "item"
+      ? [entry.tipo, ({comum:"Comum",incomum:"Incomum",raro:"Raro",muitoraro:"Muito Raro",lendario:"Lendário"})[entry.raridade], entry.classificacao === "artefato" ? "Artefato" : ""].filter(Boolean).join(" · ")
+      : entry._tipo === "npc"
+        ? [entry.raca, entry.classe].filter(Boolean).join(" · ")
+        : (entry.tipo || "Tipo não definido");
+    const stats = entry._tipo === "item"
+      ? (entry.sintonia === "sim" ? "✦ Sintonização" : "")
+      : entry._tipo === "npc"
+        ? (entry.regiao || "")
+        : `HP ${entry.hpAtual ?? entry.hpMax ?? 0}/${entry.hpMax ?? 0} • CA ${entry.ca || 0}`;
+
+    const ehCriado = entry._tipo === "boss" || entry._tipo === "item" || entry._tipo === "npc" || (!entry._tipo && monstrosMestre.includes(entry));
+
+    card.innerHTML = `
+      <div class="compendio-info">
+        <small style="opacity:0.7">${badge}</small>
+        <strong>${escapeHtml(entry.nome || "Sem nome")}</strong>
+        <small>${escapeHtml(subtitulo)}</small>
+        <span>${escapeHtml(stats)}</span>
+
+      </div>
+    `;
+
+    lista.appendChild(card);
+  });
+}
+
+function selecionarDificuldade(valor, btn) {
+  document.querySelectorAll('.criar-dif-btn').forEach(b => b.classList.remove('ativo'));
+  btn.classList.add('ativo');
+  document.getElementById('encontroDificuldade').value = valor;
+}
+
+/* ================= MAPAS ================= */
+
+function previewMapaImagem() {
+  const input = document.getElementById("mapaImagem");
+  const preview = document.getElementById("mapaPreview");
+  const box = document.getElementById("mapaPreviewBox");
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    mapaBase64Temp = e.target.result;
+    preview.src = mapaBase64Temp;
+    box.style.display = "block";
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function addMapa() {
+  const nome = document.getElementById("mapaNome").value.trim();
+  const desc = document.getElementById("mapaDesc").value.trim();
+
+  if (!nome) { alertBonito("Coloque o nome do mapa."); return; }
+  if (!mapaBase64Temp) { alertBonito("Escolha uma imagem para o mapa."); return; }
+
+  if (mapas.length >= 15) { alertBonito("Limite de 15 mapas por personagem."); return; }
+
+  const btn = document.querySelector("#boxMapasForm .inv-add-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "..."; }
+
+  let imagemUrl = "";
+  let imagemDeleteUrl = "";
+
+  const resultado = await uploadImagemFirebase(mapaBase64Temp, "mapa");
+  if (resultado.erro || !resultado.url) {
+    alertBonito(_mensagemErroUpload("O mapa foi salvo sem imagem."))
+    if (btn) { btn.disabled = false; btn.textContent = "Adicionar mapa"; }
+    return;
+  }
+  imagemUrl = resultado.url;
+  imagemDeleteUrl = resultado.deleteUrl;
+
+  mapas.push({ nome, desc, imagemUrl, imagemDeleteUrl, anotacoes: [] });
+
+  document.getElementById("mapaNome").value = "";
+  document.getElementById("mapaDesc").value = "";
+  document.getElementById("mapaImagem").value = "";
+  document.getElementById("mapaPreviewBox").style.display = "none";
+  mapaBase64Temp = "";
+
+  if (btn) { btn.disabled = false; btn.textContent = "Adicionar mapa"; }
+
+  salvarTudo();
+  renderMapas();
+}
+
+function renderMapas() {
+  const ul = document.getElementById("listaMapas");
+  if (!ul) return;
+  ul.innerHTML = "";
+
+  mapas.forEach((mapa, index) => {
+    const li = document.createElement("li");
+    li.className = "mapa-card";
+
+    const thumbHTML = mapa.imagemUrl
+      ? `<img class="mapa-card-thumb" src="${mapa.imagemUrl}" />`
+      : `<div class="mapa-card-thumb-placeholder">🗺</div>`;
+
+    li.innerHTML = `
+      ${thumbHTML}
+      <div class="mapa-card-info" onclick="verMapa(${index})">
+        <div class="mapa-card-nome">${esc(mapa.nome)}</div>
+        <div class="mapa-card-desc">${esc(mapa.desc) || "Sem descrição"}</div>
+        <div class="mapa-card-desc" style="color:#efe7ef;margin-top:4px">${(mapa.anotacoes||[]).length}/30 anotações</div>
+      </div>
+      <div class="mapa-card-acoes">
+        <button class="btn-abrir-mapa" onclick="event.stopPropagation(); verMapa(${index})">Ver</button>
+        <button class="btn-remover-mapa" onclick="event.stopPropagation(); removerMapa(${index})">X</button>
+      </div>
+    `;
+
+    ul.appendChild(li);
+  });
+}
+
+function verMapa(index) {
+  const mapa = mapas[index];
+  if (!mapa) return;
+
+  const thumbHTML = mapa.imagemUrl
+    ? `<img src="${mapa.imagemUrl}" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px;border:1px solid rgba(233,224,236,0.13)" />`
+    : "";
+
+  const html = `
+    <div class="popup-bloco">
+      ${thumbHTML}
+      <div>
+        <span class="popup-label">Descrição</span>
+        <div class="popup-descricao" style="min-height:auto;padding:10px 12px">${mapa.desc || "Sem descrição"}</div>
+      </div>
+      <div style="margin-top:14px;text-align:center">
+        <span class="popup-label" style="color:#efe7ef">${(mapa.anotacoes||[]).length}/30 anotações</span>
+      </div>
+      <button
+        onclick="fecharPopup(); abrirMapaViewer(${index})"
+        style="margin-top:14px;width:100%;padding:11px;border-radius:12px;background:#a3334d;color:#16101a;font-weight:bold;border:none;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:1px"
+      >
+        Abrir Mapa
+      </button>
+    </div>
+  `;
+
+  abrirPopup(mapa.nome, html, true, () => editarMapa(index));
+}
+
+function editarMapa(index) {
+  const mapa = mapas[index];
+  if (!mapa) return;
+
+  const html = `
+    <div class="popup-bloco">
+      <input id="editMapaNome" value="${mapa.nome}" placeholder="Nome do mapa" style="margin-bottom:8px" />
+      <textarea id="editMapaDesc" placeholder="Descrição">${mapa.desc || ""}</textarea>
+      <button
+        onclick="salvarEdicaoMapa(${index})"
+        style="margin-top:10px;width:100%;padding:11px;border-radius:12px;background:#a3334d;color:#16101a;font-weight:bold;border:none;cursor:pointer"
+      >
+        Salvar
+      </button>
+    </div>
+  `;
+
+  abrirPopup("Editar Mapa", html, true, null);
+}
+
+function salvarEdicaoMapa(index) {
+  const nome = document.getElementById("editMapaNome")?.value.trim();
+  const desc = document.getElementById("editMapaDesc")?.value.trim();
+  if (!nome) { alertBonito("Nome obrigatório."); return; }
+  mapas[index].nome = nome;
+  mapas[index].desc = desc;
+  salvarTudo();
+  renderMapas();
+  fecharPopup();
+}
+
+async function removerMapa(index) {
+  if (!(await confirmBonito("Remover este mapa?"))) return;
+  mapas.splice(index, 1);
+  salvarTudo();
+  renderMapas();
+}
+
+
+/* ================= VISUALIZADOR DE IMAGEM COM ZOOM ================= */
+
+let _zoomEstado = null;
+
+function abrirImagemZoom(url) {
+  fecharImagemZoom();
+
+  const ov = document.createElement("div");
+  ov.id = "imagemZoomOverlay";
+  ov.className = "zoom-overlay";
+  ov.innerHTML = `
+    <div class="zoom-barra">
+      <button type="button" onclick="zoomImagem(1.4)" aria-label="Aumentar">＋</button>
+      <button type="button" onclick="zoomImagem(1 / 1.4)" aria-label="Diminuir">－</button>
+      <button type="button" onclick="resetarZoomImagem()" aria-label="Ajustar">⤢</button>
+      <button type="button" onclick="fecharImagemZoom()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="zoom-palco" id="zoomPalco">
+      <img id="zoomImg" class="zoom-img" src="${esc(url)}" alt="" draggable="false" />
+    </div>
+    <div class="zoom-dica">Pinça ou roda do mouse para dar zoom · arraste para mover · toque duplo amplia</div>`;
+  document.body.appendChild(ov);
+
+  _zoomEstado = { escala: 1, x: 0, y: 0, ponteiros: new Map(), distInicial: 0, escalaInicial: 1, ultimoToque: 0 };
+
+  const palco = document.getElementById("zoomPalco");
+  const aplicar = () => {
+    const img = document.getElementById("zoomImg");
+    if (img && _zoomEstado)
+      img.style.transform = `translate(${_zoomEstado.x}px, ${_zoomEstado.y}px) scale(${_zoomEstado.escala})`;
+  };
+  _zoomEstado.aplicar = aplicar;
+
+  palco.addEventListener("pointerdown", (e) => {
+    palco.setPointerCapture(e.pointerId);
+    _zoomEstado.ponteiros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (_zoomEstado.ponteiros.size === 2) {
+      const [a, b] = [..._zoomEstado.ponteiros.values()];
+      _zoomEstado.distInicial = Math.hypot(a.x - b.x, a.y - b.y);
+      _zoomEstado.escalaInicial = _zoomEstado.escala;
+    }
+
+    const agora = Date.now();
+    if (_zoomEstado.ponteiros.size === 1 && agora - _zoomEstado.ultimoToque < 300) {
+      if (_zoomEstado.escala > 1.2) resetarZoomImagem();
+      else zoomImagem(2.5 / _zoomEstado.escala);
+    }
+    _zoomEstado.ultimoToque = agora;
+  });
+
+  palco.addEventListener("pointermove", (e) => {
+    const s = _zoomEstado;
+    if (!s || !s.ponteiros.has(e.pointerId)) return;
+
+    const anterior = s.ponteiros.get(e.pointerId);
+    s.ponteiros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (s.ponteiros.size === 2) {
+      const [a, b] = [...s.ponteiros.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if (s.distInicial > 0) {
+        s.escala = Math.min(8, Math.max(0.5, s.escalaInicial * (dist / s.distInicial)));
+      }
+    } else if (s.ponteiros.size === 1) {
+      s.x += e.clientX - anterior.x;
+      s.y += e.clientY - anterior.y;
+    }
+    s.aplicar();
+  });
+
+  const soltar = (e) => {
+    if (!_zoomEstado) return;
+    _zoomEstado.ponteiros.delete(e.pointerId);
+    _zoomEstado.distInicial = 0;
+    if (_zoomEstado.escala < 1) resetarZoomImagem();
+  };
+  palco.addEventListener("pointerup", soltar);
+  palco.addEventListener("pointercancel", soltar);
+
+  palco.addEventListener(
+    "wheel",
+    (e) => {
+      e.preventDefault();
+      zoomImagem(e.deltaY < 0 ? 1.15 : 1 / 1.15);
+    },
+    { passive: false },
+  );
+}
+
+function zoomImagem(fator) {
+  const s = _zoomEstado;
+  if (!s) return;
+  s.escala = Math.min(8, Math.max(0.5, s.escala * fator));
+  if (s.escala <= 1) { s.x = 0; s.y = 0; }
+  s.aplicar();
+}
+
+function resetarZoomImagem() {
+  const s = _zoomEstado;
+  if (!s) return;
+  s.escala = 1; s.x = 0; s.y = 0;
+  s.aplicar();
+}
+
+function fecharImagemZoom() {
+  document.getElementById("imagemZoomOverlay")?.remove();
+  _zoomEstado = null;
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") fecharImagemZoom();
+});
+
+/* ================= DOCUMENTOS ================= */
+
+const ICONE_TIPO_DOC = {
+  "Documento": "📄", "Carta": "✉️", "Relatório": "📋", "Pista": "🔎",
+  "Contrato": "📜", "Diário": "📖", "Código / Cifra": "🔐", "Outro": "📁",
+};
+
+function previewDocImagem() {
+  const input = document.getElementById("docImagem");
+  const preview = document.getElementById("docPreview");
+  const box = document.getElementById("docPreviewBox");
+  if (!input?.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    docBase64Temp = e.target.result;
+    preview.src = docBase64Temp;
+    box.style.display = "block";
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function addDocumento() {
+  const nome = document.getElementById("docNome").value.trim();
+  const tipo = document.getElementById("docTipo").value || "Documento";
+  const texto = document.getElementById("docTexto").value.trim();
+
+  if (!nome) { alertBonito("Coloque o título do documento."); return; }
+  if (!texto && !docBase64Temp) { alertBonito("Escreva o conteúdo ou anexe uma imagem."); return; }
+  if (documentos.length >= 40) { alertBonito("Limite de 40 documentos por personagem."); return; }
+
+  const btn = document.querySelector("#boxDocumentosForm .inv-add-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "..."; }
+
+  let imagemUrl = "";
+  let imagemDeleteUrl = "";
+
+  if (docBase64Temp) {
+    const resultado = await uploadImagemFirebase(docBase64Temp, "documento");
+    if (resultado.erro || !resultado.url) {
+      alertBonito(_mensagemErroUpload("O documento não foi salvo."));
+      if (btn) { btn.disabled = false; btn.textContent = "Adicionar documento"; }
+      return;
+    }
+    imagemUrl = resultado.url;
+    imagemDeleteUrl = resultado.deleteUrl;
+  }
+
+  documentos.push({ nome, tipo, texto, imagemUrl, imagemDeleteUrl });
+
+  document.getElementById("docNome").value = "";
+  document.getElementById("docTexto").value = "";
+  document.getElementById("docImagem").value = "";
+  document.getElementById("docTipo").value = "Documento";
+  document.getElementById("docPreviewBox").style.display = "none";
+  docBase64Temp = "";
+
+  if (btn) { btn.disabled = false; btn.textContent = "Adicionar documento"; }
+
+  salvarTudo();
+  renderDocumentos();
+}
+
+function renderDocumentos() {
+  const ul = document.getElementById("listaDocumentos");
+  if (!ul) return;
+  ul.innerHTML = "";
+
+  documentos.forEach((doc, index) => {
+    const li = document.createElement("li");
+    li.className = "veiculo-card doc-card";
+    li.onclick = () => verDocumento(index);
+
+    const previa = (doc.texto || "").trim();
+
+    li.innerHTML = `
+      <div class="doc-card-linha">
+        ${
+          doc.imagemUrl
+            ? `<img class="doc-card-thumb" src="${esc(doc.imagemUrl)}" alt="" loading="lazy" />`
+            : `<div class="doc-card-thumb doc-card-thumb-icone">${ICONE_TIPO_DOC[doc.tipo] || "📄"}</div>`
+        }
+
+        <div class="doc-card-info">
+          <div class="doc-card-nome">${esc(doc.nome)}</div>
+          <div class="doc-card-tipo">${esc(doc.tipo || "Documento")}</div>
+          ${previa ? `<p class="doc-card-previa">${esc(previa)}</p>` : ""}
+        </div>
+
+        <button class="item-remover" type="button"
+          onclick="event.stopPropagation(); removerDocumento(${index})">×</button>
+      </div>`;
+
+    ul.appendChild(li);
+  });
+}
+
+function verDocumento(index) {
+  const doc = documentos[index];
+  if (!doc) return;
+
+  const img = doc.imagemUrl
+    ? `<div class="doc-imagem-wrap" onclick="abrirImagemZoom('${esc(doc.imagemUrl)}')">
+         <img src="${esc(doc.imagemUrl)}" class="doc-imagem" alt="" />
+         <span class="doc-imagem-dica">🔍 Toque para ampliar</span>
+       </div>`
+    : "";
+
+  const html = `
+    <div class="popup-bloco">
+      <div class="doc-tipo-tag">${ICONE_TIPO_DOC[doc.tipo] || "📄"} ${esc(doc.tipo || "Documento")}</div>
+      ${img}
+      ${
+        doc.texto
+          ? `<div class="popup-descricao doc-texto">${esc(doc.texto)}</div>`
+          : ""
+      }
+    </div>`;
+
+  abrirPopup(doc.nome, html, true, () => editarDocumento(index));
+}
+
+function editarDocumento(index) {
+  const doc = documentos[index];
+  if (!doc) return;
+
+  const tipos = Object.keys(ICONE_TIPO_DOC);
+  const html = `
+    <div class="popup-bloco">
+      <input id="editDocNome" value="${esc(doc.nome)}" placeholder="Título" style="margin-bottom:8px" />
+      <select id="editDocTipo" class="input-personagem" style="margin-bottom:8px">
+        ${tipos.map((t) => `<option value="${esc(t)}" ${t === doc.tipo ? "selected" : ""}>${ICONE_TIPO_DOC[t]} ${esc(t)}</option>`).join("")}
+      </select>
+      <textarea id="editDocTexto" placeholder="Conteúdo" style="min-height:160px">${esc(doc.texto || "")}</textarea>
+      <button onclick="salvarEdicaoDocumento(${index})"
+        style="margin-top:10px;width:100%;padding:11px;border-radius:12px;background:#a3334d;color:#16101a;font-weight:bold;border:none;cursor:pointer">
+        Salvar
+      </button>
+    </div>`;
+
+  abrirPopup("Editar documento", html, true, null);
+}
+
+function salvarEdicaoDocumento(index) {
+  const nome = document.getElementById("editDocNome")?.value.trim();
+  if (!nome) { alertBonito("Título obrigatório."); return; }
+  const doc = documentos[index];
+  if (!doc) return;
+
+  doc.nome = nome;
+  doc.tipo = document.getElementById("editDocTipo")?.value || doc.tipo;
+  doc.texto = document.getElementById("editDocTexto")?.value.trim() || "";
+
+  salvarTudo();
+  renderDocumentos();
+  fecharPopup();
+}
+
+async function removerDocumento(index) {
+  if (!(await confirmBonito("Remover este documento?"))) return;
+  documentos.splice(index, 1);
+  salvarTudo();
+  renderDocumentos();
+}
+
+function abrirMapaViewer(index) {
+  mapaAtual = index;
+  const mapa = mapas[index];
+  if (!mapa) return;
+
+  document.getElementById("mapaViewerNome").textContent = mapa.nome;
+  document.getElementById("mapaViewer").classList.remove("fechado");
+  document.body.style.overflow = "hidden";
+
+  mapaZoom = 1;
+  mapaOffsetX = 0;
+  mapaOffsetY = 0;
+  mapaAnotacoes = JSON.parse(JSON.stringify(mapa.anotacoes || []));
+  mapaHistorico = [];
+
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    mapaImagemObj = img;
+    redimensionarMapaCanvas();
+    desenharMapa();
+    ativarEventosMapaCanvas();
+  };
+  img.src = mapa.imagemUrl;
+}
+
+function fecharMapaViewer() {
+  document.getElementById("mapaViewer").classList.add("fechado");
+  document.body.style.overflow = "";
+  document.getElementById("mapaInputTexto").classList.add("fechado");
+  mapaImagemObj = null;
+  mapaAtual = null;
+}
+
+function redimensionarMapaCanvas() {
+  const canvas = document.getElementById("mapaCanvas");
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+
+function mapaGetTransform() {
+  const canvas = document.getElementById("mapaCanvas");
+  const W = canvas.width;
+  const H = canvas.height;
+  const escala = Math.min(W / mapaImagemObj.width, H / mapaImagemObj.height) * mapaZoom;
+  const imgW = mapaImagemObj.width * escala;
+  const imgH = mapaImagemObj.height * escala;
+  const originX = W / 2 - imgW / 2 + mapaOffsetX;
+  const originY = H / 2 - imgH / 2 + mapaOffsetY;
+  return { originX, originY, imgW, imgH, escala };
+}
+
+function mapaRelParaCanvas(rx, ry) {
+  const t = mapaGetTransform();
+  return [t.originX + rx * t.imgW, t.originY + ry * t.imgH];
+}
+
+function mapaCanvasParaRel(cx, cy) {
+  const t = mapaGetTransform();
+  return [(cx - t.originX) / t.imgW, (cy - t.originY) / t.imgH];
+}
+
+function desenharMapa() {
+  const canvas = document.getElementById("mapaCanvas");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+
+  if (!mapaImagemObj) return;
+
+  const t = mapaGetTransform();
+  ctx.drawImage(mapaImagemObj, t.originX, t.originY, t.imgW, t.imgH);
+
+  mapaAnotacoes.forEach(a => {
+    ctx.save();
+    ctx.strokeStyle = a.cor;
+    ctx.fillStyle = a.cor;
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    if (a.tipo === "pincel" && a.pontos && a.pontos.length > 1) {
+      const [x0, y0] = mapaRelParaCanvas(a.pontos[0][0], a.pontos[0][1]);
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      for (let i = 1; i < a.pontos.length; i++) {
+        const [xi, yi] = mapaRelParaCanvas(a.pontos[i][0], a.pontos[i][1]);
+        ctx.lineTo(xi, yi);
+      }
+      ctx.stroke();
+    } else {
+      const [cx, cy] = mapaRelParaCanvas(a.x, a.y);
+      if (a.tipo === "texto") {
+        ctx.font = "bold 16px Arial";
+        ctx.fillText(a.texto, cx, cy);
+      } else if (a.tipo === "seta") {
+        desenharSetaMapa(ctx, cx, cy, a.cor);
+      } else if (a.tipo === "x") {
+        ctx.font = "bold 28px Arial";
+        ctx.fillText("✗", cx - 10, cy + 10);
+      } else if (a.tipo === "caveira") {
+        ctx.font = "26px Arial";
+        ctx.fillText("☠", cx - 10, cy + 10);
+      } else if (a.tipo === "pergaminho") {
+        ctx.font = "24px Arial";
+        ctx.fillText("📜", cx - 10, cy + 10);
+      } else if (a.tipo === "interrogacao") {
+        ctx.font = "bold 26px Arial";
+        ctx.fillText("?", cx - 6, cy + 10);
+      }
+    }
+
+    ctx.restore();
+  });
+}
+
+function desenharSetaMapa(ctx, x, y, cor) {
+  ctx.strokeStyle = cor;
+  ctx.fillStyle = cor;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x - 15, y + 15);
+  ctx.lineTo(x + 10, y - 10);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + 10, y - 10);
+  ctx.lineTo(x - 2, y - 10);
+  ctx.lineTo(x + 10, y + 2);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function ativarEventosMapaCanvas() {
+  const canvas = document.getElementById("mapaCanvas");
+  let tracoAtual = null;
+
+  function posCanvas(e) {
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    return [touch.clientX - rect.left, touch.clientY - rect.top];
+  }
+
+  function iniciar(e) {
+    const [x, y] = posCanvas(e);
+    if (mapaFerramentaAtiva === "pan") {
+      mapaPintando = true;
+      mapaPanUltimoX = x;
+      mapaPanUltimoY = y;
+      return;
+    }
+    if (mapaFerramentaAtiva === "texto") {
+      mapaTextoX = x;
+      mapaTextoY = y;
+      document.getElementById("mapaInputTexto").classList.remove("fechado");
+      document.getElementById("mapaTextoValor").focus();
+      return;
+    }
+    if (mapaFerramentaAtiva === "borracha") {
+      const clicado = mapaAnotacoes.findIndex(a => {
+        if (a.tipo === "pincel") {
+          return a.pontos.some(([px, py]) => {
+            const [cx, cy] = mapaRelParaCanvas(px, py);
+            return Math.hypot(cx - x, cy - y) < 18;
+          });
+        } else {
+          const [cx, cy] = mapaRelParaCanvas(a.x, a.y);
+          return Math.hypot(cx - x, cy - y) < 40;
+        }
+      });
+      if (clicado !== -1) {
+        mapaHistorico.push(JSON.parse(JSON.stringify(mapaAnotacoes)));
+        mapaAnotacoes.splice(clicado, 1);
+        desenharMapa();
+      }
+      return;
+    }
+
+    if (["seta","x","caveira","pergaminho","interrogacao"].includes(mapaFerramentaAtiva)) {
+      if (mapaAnotacoes.length >= 30) { alertBonito("Limite de 30 anotações atingido."); return; }
+      mapaHistorico.push(JSON.parse(JSON.stringify(mapaAnotacoes)));
+      const [rx, ry] = mapaCanvasParaRel(x, y);
+      mapaAnotacoes.push({ tipo: mapaFerramentaAtiva, x: rx, y: ry, cor: mapaCorAtiva });
+      desenharMapa();
+      return;
+    }
+    if (mapaFerramentaAtiva === "pincel") {
+      if (mapaAnotacoes.length >= 30) { alertBonito("Limite de 30 anotações atingido."); return; }
+      mapaPintando = true;
+      tracoAtual = { tipo: "pincel", pontos: [[x, y]], cor: mapaCorAtiva };
+      mapaHistorico.push(JSON.parse(JSON.stringify(mapaAnotacoes)));
+    }
+  }
+
+  function mover(e) {
+    if (!mapaPintando) return;
+    e.preventDefault();
+    const [x, y] = posCanvas(e);
+    if (mapaFerramentaAtiva === "pan") {
+      mapaOffsetX += x - mapaPanUltimoX;
+      mapaOffsetY += y - mapaPanUltimoY;
+      mapaPanUltimoX = x;
+      mapaPanUltimoY = y;
+      desenharMapa();
+      return;
+    }
+    if (tracoAtual) {
+      tracoAtual.pontos.push([x, y]);
+      desenharMapa();
+      // desenha traço atual em tempo real
+      const ctx = canvas.getContext("2d");
+      ctx.strokeStyle = tracoAtual.cor;
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      const pts = tracoAtual.pontos;
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.stroke();
+    }
+  }
+
+  function finalizar() {
+    if (!mapaPintando) return;
+    mapaPintando = false;
+    if (tracoAtual) {
+      // simplifica pontos para economizar espaço
+      tracoAtual.pontos = simplificarPontos(tracoAtual.pontos, 4).map(([px, py]) => mapaCanvasParaRel(px, py));
+      mapaAnotacoes.push(tracoAtual);
+      tracoAtual = null;
+      desenharMapa();
+    }
+  }
+
+  canvas.onmousedown = iniciar;
+  canvas.onmousemove = mover;
+  canvas.onmouseup = finalizar;
+  canvas.ontouchstart = (e) => { e.preventDefault(); iniciar(e); };
+  canvas.ontouchmove = (e) => { e.preventDefault(); mover(e); };
+  canvas.ontouchend = finalizar;
+
+  // pinch zoom
+  let pinchDist = null;
+  canvas.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 2) {
+      pinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  }, { passive: false });
+  canvas.addEventListener("touchmove", (e) => {
+    if (e.touches.length === 2 && pinchDist !== null) {
+      e.preventDefault();
+      const d = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      mapaZoom = Math.max(0.5, Math.min(5, mapaZoom * (d / pinchDist)));
+      pinchDist = d;
+      desenharMapa();
+    }
+  }, { passive: false });
+  canvas.addEventListener("touchend", () => { pinchDist = null; });
+}
+
+function simplificarPontos(pontos, tolerancia) {
+  if (pontos.length <= 2) return pontos;
+  const resultado = [pontos[0]];
+  for (let i = 1; i < pontos.length; i++) {
+    const prev = resultado[resultado.length - 1];
+    const dist = Math.hypot(pontos[i][0] - prev[0], pontos[i][1] - prev[1]);
+    if (dist >= tolerancia) resultado.push(pontos[i]);
+  }
+  resultado.push(pontos[pontos.length - 1]);
+  return resultado;
+}
+
+function zoomMapa(delta) {
+  mapaZoom = Math.max(0.5, Math.min(5, mapaZoom + delta));
+  desenharMapa();
+}
+
+function selecionarCorMapa(el) {
+  document.querySelectorAll(".mapa-cor").forEach(c => c.classList.remove("ativa"));
+  el.classList.add("ativa");
+  mapaCorAtiva = el.dataset.cor;
+}
+
+function selecionarFerramentaMapa(el) {
+  document.querySelectorAll(".mapa-tool").forEach(t => t.classList.remove("ativa"));
+  el.classList.add("ativa");
+  mapaFerramentaAtiva = el.dataset.tool;
+}
+
+function confirmarTextoMapa() {
+  const texto = document.getElementById("mapaTextoValor").value.trim();
+  if (!texto) { cancelarTextoMapa(); return; }
+  if (mapaAnotacoes.length >= 30) { alertBonito("Limite de 30 anotações atingido."); cancelarTextoMapa(); return; }
+  mapaHistorico.push(JSON.parse(JSON.stringify(mapaAnotacoes)));
+  const [rx, ry] = mapaCanvasParaRel(mapaTextoX, mapaTextoY);
+  mapaAnotacoes.push({ tipo: "texto", texto, x: rx, y: ry, cor: mapaCorAtiva });
+  document.getElementById("mapaTextoValor").value = "";
+  document.getElementById("mapaInputTexto").classList.add("fechado");
+  desenharMapa();
+}
+
+function cancelarTextoMapa() {
+  document.getElementById("mapaTextoValor").value = "";
+  document.getElementById("mapaInputTexto").classList.add("fechado");
+}
+
+function desfazerMapaAnotacao() {
+  if (mapaHistorico.length === 0) return;
+  mapaAnotacoes = mapaHistorico.pop();
+  desenharMapa();
+}
+
+function salvarAnotacoesMapa() {
+  if (mapaAtual === null) return;
+  mapas[mapaAtual].anotacoes = JSON.parse(JSON.stringify(mapaAnotacoes));
+  salvarTudo();
+  renderMapas();
+  alertBonito("Anotações salvas!");
+}
+
+function selecionarRaridade(valor, btn) {
+  document.querySelectorAll('.btn-raridade').forEach(b => b.classList.remove('ativo'));
+  btn.classList.add('ativo');
+  document.getElementById('itemMasterRaridade').value = valor;
+}
+
+async function excluirEntradaCompendio(tipo, id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!(await confirmBonito("Deseja excluir este item?"))) return;
+
+  // helper para deletar imagem do Storage
+  async function deletarImagem(deleteUrl) {
+    if (deleteUrl?.startsWith("https://")) {
+      try {
+        await fetch(deleteUrl, { method: "GET" }); // ImgBB deleta via GET no delete_url
+      } catch(e) { console.warn("Erro ao deletar imagem ImgBB:", e); }
+    }
+  }
+
+  if (tipo === "monstro") {
+    const idx = monstrosMestre.findIndex(m => m.id === id);
+    if (idx !== -1) {
+      await deletarImagem(monstrosMestre[idx].imagemDeleteUrl);
+      // deleta do Firebase também
+      if (window.usuarioAtual) {
+        try { deleteDoc(doc(db, "usuarios", window.usuarioAtual.uid, "monstros", String(id))); } catch(e) {}
+      }
+      monstrosMestre.splice(idx, 1);
+      salvarMonstrosMestreStorage();
+    }
+  } else if (tipo === "boss") {
+    // Verifica se é boss da campanha ou cópia em monstrosMestre
+    const idxMonstro = monstrosMestre.findIndex(m => m.id === id);
+    if (idxMonstro !== -1) {
+      await deletarImagem(monstrosMestre[idxMonstro].imagemDeleteUrl);
+      monstrosMestre.splice(idxMonstro, 1);
+      salvarMonstrosMestreStorage();
+    } else {
+      const boss = (campanha.bosses || []).find(b => b.id === id);
+      await deletarImagem(boss?.imagemDeleteUrl);
+      campanha.bosses = (campanha.bosses || []).filter(b => b.id !== id);
+      salvarCampanhasMaster();
+    }
+    } else if (tipo === "item") {
+    const idx = monstrosMestre.findIndex(m => m.id === id && m._tipo === "item");
+    if (idx !== -1) {
+      await deletarImagem(monstrosMestre[idx].imagemDeleteUrl);
+      monstrosMestre.splice(idx, 1);
+      salvarMonstrosMestreStorage();
+    }
+  } else if (tipo === "npc") {
+    const npc = (campanha.npcs || []).find(n => n.id === id);
+    await deletarImagem(npc?.imagemDeleteUrl);
+    campanha.npcs = (campanha.npcs || []).filter(n => n.id !== id);
+    salvarCampanhasMaster();
+  } else if (tipo === "mapa") {
+    const mapa = (campanha.mapasMaster || []).find(m => m.id === id);
+    await deletarImagem(mapa?.imagemDeleteUrl);
+    campanha.mapasMaster = (campanha.mapasMaster || []).filter(m => m.id !== id);
+    salvarCampanhasMaster();
+  }
+
+  renderMonstrosMestre();
+}
+
+function _abrirPopupEncontroCompendio(encontro) {
+  window._entradaSessaoAtual = encontro;
+  const bloco = (titulo, valor) => valor ? `
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${escapeHtml(valor)}</div>
+    </div>` : "";
+
+  const conteudo = `
+    <h2 class="sheet-titulo" style="text-align:center;margin-bottom:4px;">${escapeHtml(encontro.nome)}</h2>
+    <div class="sheet-meta" style="text-align:center;margin-bottom:12px;">${[encontro.regiao, encontro.localizacao].filter(Boolean).map(v => escapeHtml(v)).join(" · ")}</div>
+    ${bloco("Envolvidos", encontro.envolvidos)}
+    ${bloco("Objetivo", encontro.objetivo)}
+    ${bloco("Gatilho", encontro.gatilho)}
+    ${bloco("Ambiente", encontro.ambiente)}
+    ${bloco("Consequências", encontro.consequencias)}
+    ${bloco("Loot / Recompensa", encontro.loot)}
+    ${bloco("Notas do Mestre", encontro.notas)}
+  `;
+  _abrirSheetCustom(conteudo);
+}
+
+function _abrirPopupBossCompendio(boss) {
+  const mod = v => { const m = Math.floor(((v||10)-10)/2); return m >= 0 ? `+${m}` : `${m}`; };
+  window._entradaSessaoAtual = boss;
+
+  const bloco = (titulo, texto) => `
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
+    </div>`;
+
+  const conteudo = `
+    ${boss.imagem ? `<img src="${boss.imagem}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;">` : ""}
+    <h2 class="sheet-titulo" style="text-align:center;margin-bottom:4px;">${escapeHtml(boss.nome)}</h2>
+    <div class="sheet-meta" style="text-align:center;margin-bottom:8px;">${[boss.titulo, boss.tipo, boss.regiao].filter(Boolean).map(v => escapeHtml(v)).join(" • ")}</div>
+    ${boss.hpMax ? `<div class="sheet-hp-ca" style="text-align:center;margin-bottom:12px;">HP ${boss.hpMax} • CA ${boss.ca || 0}</div>` : ""}
+    ${(boss.status && Object.keys(boss.status).length) ? `
+    <div class="sheet-status-grid" style="margin-bottom:12px;">
+      ${["for","des","con","int","sab","car"].map(a => `
+        <div>${a.toUpperCase()}<br>${boss.status[a]||10}<small>${mod(boss.status[a]||10)}</small></div>`).join("")}
+    </div>` : ""}
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <button style="background:#7B1E28!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick='enviarMonstroPadraoParaCombate(${JSON.stringify(boss)})'>⚔️ Enviar para combate</button>
+      ${boss.origem !== "padrao" ? `` : `<button style="background:rgba(174,55,83,0.2)!important;border:1px solid rgba(233,224,236,0.26)!important;border-radius:8px;color:#efe7ef!important;padding:10px;font-size:13px;cursor:pointer;" onclick='criarCopiaEditavelMonstroPadrao(${JSON.stringify(boss)})'>✏️ Criar cópia editável</button>`}
+    </div>
+    ${boss.fases     ? bloco("Fases", escapeHtml(boss.fases)) : ""}
+    ${boss.mecanicas ? bloco("Mecânicas", escapeHtml(boss.mecanicas)) : ""}
+    ${boss.lore      ? bloco("Lore", escapeHtml(boss.lore)) : ""}
+    ${renderHabilidades(boss.habilidades)}
+    ${renderAtaques(boss.ataques)}
+    ${boss.reacoes     ? bloco("Reações", escapeHtml(boss.reacoes)) : ""}
+    ${boss.resistencias ? bloco("Resistências / Imunidades", escapeHtml(boss.resistencias)) : ""}
+    ${boss.fraquezas ? bloco("Fraquezas", escapeHtml(boss.fraquezas)) : ""}
+    ${boss.dialogos?.length ? bloco("Diálogos", boss.dialogos.map(f => `"${escapeHtml(f)}"`).join("<br>")) : ""}
+    ${boss.encontros ? bloco("Pontos de Encontro", escapeHtml(boss.encontros)) : ""}
+    <button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirEntradaCompendio('${boss.origem === 'padrao' ? 'boss' : 'monstro'}',${boss.id})">🗑 Excluir Boss</button>
+  `;
+  _abrirSheetCustom(conteudo);
+}
+
+function _abrirPopupItemCompendio(item) {
+  window._entradaSessaoAtual = item;
+  const r = {comum:"Comum", incomum:"Incomum", raro:"Raro", muitoraro:"Muito Raro", lendario:"Lendário"};
+
+  const bloco = (titulo, texto) => `
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
+    </div>`;
+
+  const conteudo = `
+    ${item.imagem ? `<img src="${item.imagem}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;">` : ""}
+    <h2 class="sheet-titulo" style="text-align:center;margin-bottom:4px;">${escapeHtml(item.nome)}</h2>
+    <div class="sheet-meta" style="text-align:center;margin-bottom:8px;">${[item.tipo, r[item.raridade], item.classificacao === "artefato" ? "✦ Artefato" : ""].filter(Boolean).join(" • ")}</div>
+    ${item.sintonia === "sim" ? `<div class="sheet-meta" style="text-align:center;margin-bottom:12px;">✦ Requer sintonização</div>` : ""}
+    ${item.efeito    ? bloco("Efeito", escapeHtml(item.efeito)) : ""}
+    ${item.descricao ? bloco("Descrição", escapeHtml(item.descricao)) : ""}
+    ${item.historia  ? bloco("História", escapeHtml(item.historia)) : ""}
+    ${item.origem    ? bloco("Origem", escapeHtml(item.origem)) : ""}
+    ${item._origem === "usuario" ? `<button style="width:100%;margin-top:4px;background:rgba(174,55,83,0.2)!important;border:1px solid rgba(233,224,236,0.26)!important;border-radius:8px;color:#efe7ef!important;padding:10px;font-size:13px;cursor:pointer;" onclick="editarItemMestre(${item.id})">✏️ Editar</button>` : ""}
+    <button style="width:100%;margin-top:4px;margin-bottom:8px;background:#ae3753!important;border:none!important;border-radius:8px;color:#100a13!important;font-weight:bold;padding:10px;font-size:13px;cursor:pointer;" onclick="window.abrirDarItemMestre('${item.id}')">🎁 Dar pra jogador</button>
+    <button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirEntradaCompendio('item',${item.id})">🗑 Excluir Item</button>  `;
+  _abrirSheetCustom(conteudo);
+}
+
+function _abrirPopupMapaCompendio(mapa) {
+  window._entradaSessaoAtual = mapa;
+
+  const conteudo = `
+    ${mapa.imagem ? `<img src="${mapa.imagem}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;">` : ""}
+    <h2 class="sheet-titulo" style="text-align:center;margin-bottom:4px;">${escapeHtml(mapa.nome)}</h2>
+    ${mapa.desc ? `
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Descrição</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${escapeHtml(mapa.desc)}</div>
+    </div>` : ""}
+    <button style="width:100%;margin-top:4px;margin-bottom:8px;background:#ae3753!important;border:none!important;border-radius:8px;color:#100a13!important;font-weight:bold;padding:10px;font-size:13px;cursor:pointer;" onclick="window.abrirDarItemMestre('${mapa.id}')">🎁 Dar pra jogador</button>
+    <button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirEntradaCompendio('mapa',${mapa.id})">🗑 Excluir Mapa</button>
+  `;
+  _abrirSheetCustom(conteudo);
+}
+
+window._darItemMestreContexto = null;
+
+window.abrirDarItemMestre = async function (itemId) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  if (!campanha.grupoVinculado) {
+    alertBonito("Essa campanha não tem grupo vinculado. Edite a campanha e escolha um grupo primeiro.");
+    return;
+  }
+
+  let item = (campanha.itensMaster || []).find(i => String(i.id) === String(itemId));
+  if (!item) item = (itensPadrao || []).find(i => String(i.id) === String(itemId));
+  if (!item) item = (campanha.mapasMaster || []).find(i => String(i.id) === String(itemId));
+  if (!item) return;
+
+  window._darItemMestreContexto = item;
+
+  document.getElementById("modalDarItemMestreOverlay").style.display = "block";
+  document.getElementById("modalDarItemMestre").style.display = "block";
+
+  const lista = document.getElementById("listaDarItemMestre");
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Carregando...</p>`;
+
+  try {
+    const grupoSnap = await getDoc(doc(db, "grupos", campanha.grupoVinculado));
+    if (!grupoSnap.exists()) {
+      lista.innerHTML = `<p style="color:#e07a7a;font-size:12px;text-align:center;">Esse grupo não existe mais.</p>`;
+      return;
+    }
+    const g = grupoSnap.data();
+    const meuUid = window.usuarioAtual.uid;
+    const jogadores = g.membros.filter(m => m.uid !== meuUid && m.fichaId);
+
+    if (jogadores.length === 0) {
+      lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Nenhum jogador do grupo tem ficha vinculada ainda.</p>`;
+      return;
+    }
+
+    lista.innerHTML = jogadores.map(m => `
+      <button onclick="window.confirmarDarItemMestre('${m.uid}', '${m.fichaId}', '${escapeHtml(m.nickname)}')" style="width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid rgba(233,224,236,0.13);background:rgba(255,255,255,0.03);color:#F8F4E3;font-size:13px;cursor:pointer;">
+        ${escapeHtml(m.nickname)}<span style="opacity:.5;">#${escapeHtml(m.tag)}</span>
+      </button>
+    `).join("");
+  } catch (e) {
+    console.error(e);
+    lista.innerHTML = `<p style="color:#e07a7a;font-size:12px;text-align:center;">Erro: ${e.code || e.message}</p>`;
+  }
+};
+
+window.fecharDarItemMestre = function () {
+  document.getElementById("modalDarItemMestreOverlay").style.display = "none";
+  document.getElementById("modalDarItemMestre").style.display = "none";
+  window._darItemMestreContexto = null;
+};
+
+window.confirmarDarItemMestre = async function (uidDestino, fichaIdDestino, nomeDestino) {
+  const itemOriginal = window._darItemMestreContexto;
+  if (!itemOriginal) return;
+
+  if (!(await confirmBonito(`Dar "${itemOriginal.nome}" pra ${nomeDestino}?`))) return;
+
+  try {
+    const meuUid = window.usuarioAtual.uid;
+    const meuSnap = await getDoc(doc(db, "usuarios", meuUid));
+    const meuDados = meuSnap.exists() ? meuSnap.data() : {};
+
+    const categoria = itemOriginal._tipo === "mapa" ? "mapas" : (itemOriginal.categoria || "inventario");
+
+    // monta o item no formato que a ficha do jogador espera, dependendo da categoria
+    let itemParaJogador;
+    if (categoria === "mapas") {
+      itemParaJogador = {
+        nome: itemOriginal.nome,
+        desc: itemOriginal.desc || "",
+        imagemUrl: itemOriginal.imagem || "",
+        imagemDeleteUrl: "",
+        anotacoes: []
+      };
+    } else if (categoria === "armas") {
+      itemParaJogador = {
+        nome: itemOriginal.nome,
+        dano: itemOriginal.dano || "",
+        desc: itemOriginal.descricao || itemOriginal.efeito || "",
+        temCargas: false
+      };
+    } else if (categoria === "armaduras") {
+      itemParaJogador = {
+        nome: itemOriginal.nome,
+        ca: itemOriginal.ca || "",
+        desc: itemOriginal.descricao || itemOriginal.efeito || "",
+        temCargas: false
+      };
+    } else {
+      itemParaJogador = {
+        nome: itemOriginal.nome,
+        qtd: 1,
+        desc: itemOriginal.descricao || itemOriginal.efeito || ""
+      };
+    }
+
+    await setDoc(doc(collection(db, "usuarios", uidDestino, "itensRecebidos")), {
+      tipo: categoria,
+      item: itemParaJogador,
+      deUid: meuUid,
+      deNickname: meuDados.nickname || "",
+      deTag: meuDados.tag || "",
+      fichaDestinoId: fichaIdDestino,
+      automatico: false,
+      criadoEm: new Date().toISOString()
+    });
+
+    window.fecharDarItemMestre();
+    alertBonito("Item enviado!");
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao dar item: " + (e.code || e.message));
+  }
+};
+
+function _abrirPopupNPCCompendio(npc) {
+  const mod = v => { const m = Math.floor(((v||10)-10)/2); return m >= 0 ? `+${m}` : `${m}`; };
+  window._entradaSessaoAtual = npc;
+
+  const bloco = (titulo, texto) => `
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
+    </div>`;
+
+  const conteudo = `
+    ${npc.imagem ? `<img src="${npc.imagem}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;">` : ""}
+    <h2 class="sheet-titulo" style="text-align:center;margin-bottom:4px;">${escapeHtml(npc.nome)}</h2>
+    <div class="sheet-meta" style="text-align:center;margin-bottom:8px;">${[npc.raca, npc.classe, npc.regiao].filter(Boolean).map(v => escapeHtml(v)).join(" • ")}</div>
+    ${(npc.status && Object.keys(npc.status).length) ? `
+    <div class="sheet-status-grid" style="margin-bottom:12px;">
+      ${["for","des","con","int","sab","car"].map(a => `
+        <div>${a.toUpperCase()}<br>${npc.status[a]||10}<small>${mod(npc.status[a]||10)}</small></div>`).join("")}
+    </div>` : ""}
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <button style="background:#7B1E28!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="adicionarNPCAoMundo()">🌍 Adicionar ao Mundo</button>
+    </div>
+    ${npc.personalidade ? bloco("Personalidade", escapeHtml(npc.personalidade)) : ""}
+    ${npc.relacoes      ? bloco("Relações", escapeHtml(npc.relacoes)) : ""}
+    ${npc.pericias      ? bloco("Perícias", escapeHtml(npc.pericias)) : ""}
+    ${npc.religiao      ? bloco("Religião", escapeHtml(npc.religiao)) : ""}
+    ${renderAtaques(npc.ataques)}
+    ${renderHabilidades(npc.habilidades)}
+    ${npc.observacoes   ? bloco("Observações", escapeHtml(npc.observacoes)) : ""}
+    ${npc.reacoes     ? bloco("Reações", escapeHtml(npc.reacoes)) : ""}
+    ${npc.resistencias ? bloco("Resistências / Imunidades", escapeHtml(npc.resistencias)) : ""}
+    ${npc.fraquezas   ? bloco("Fraquezas", escapeHtml(npc.fraquezas)) : ""}
+    <button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirEntradaCompendio('npc',${npc.id})">🗑 Excluir NPC</button>
+  `;
+  _abrirSheetCustom(conteudo);
+}
+
+function _abrirSheetCustom(conteudo) {
+  const sheetOverlay = document.getElementById("sheetMonstroOverlay");
+  const sheet        = document.getElementById("sheetMonstro");
+  const conteudoDiv  = document.getElementById("conteudoSheetMonstro");
+  if (!sheet || !conteudoDiv) return;
+
+  conteudoDiv.innerHTML = conteudo;
+  sheetOverlay.style.display = "block";
+  sheet.style.display        = "block";
+  sheet.classList.remove("full", "aberto");
+  requestAnimationFrame(() => sheet.classList.add("aberto"));
+  document.body.classList.add("master-sheet-aberto");
+  ativarGestosSheetMonstro();
+}
+
+
+function criarCopiaEditavelMonstroPadrao(monstro) {
+  const copia = JSON.parse(JSON.stringify(monstro));
+
+  fecharSheetMonstro();
+
+  document.getElementById("bossNome").value =
+    `${monstro.nome} personalizado`;
+
+  document.getElementById("bossTipo").value =
+    monstro.tipo || "";
+
+  document.getElementById("bossRegiao").value =
+    monstro.regiao || "";
+
+  document.getElementById("bossHpMax").value =
+    monstro.hpMax || 0;
+
+  document.getElementById("bossHpAtual").value =
+    monstro.hpAtual || monstro.hpMax || 0;
+
+  document.getElementById("bossCa").value =
+    monstro.ca || 0;
+
+  document.getElementById("bossFor").value =
+    monstro.status?.for || 10;
+
+  document.getElementById("bossDes").value =
+    monstro.status?.des || 10;
+
+  document.getElementById("bossCon").value =
+    monstro.status?.con || 10;
+
+  document.getElementById("bossInt").value =
+    monstro.status?.int || 10;
+
+  document.getElementById("bossSab").value =
+    monstro.status?.sab || 10;
+
+  document.getElementById("bossCar").value =
+    monstro.status?.car || 10;
+
+  document.getElementById("bossVelocidade").value =
+    monstro.velocidade || "";
+
+  document.getElementById("bossSaves").value =
+    monstro.saves || "";
+
+  document.getElementById("bossSentidos").value =
+    monstro.sentidos || "";
+
+  document.getElementById("bossIdiomas").value =
+    monstro.idiomas || "";
+
+  document.getElementById("bossLore").value =
+    monstro.lore || "";
+
+  document.getElementById("bossHabilidades").value =
+    monstro.habilidades || "";
+
+  document.getElementById("bossFraquezas").value =
+    monstro.fraquezas || "";
+
+  document.getElementById("bossAtaques").value =
+    monstro.ataques || "";
+
+  document.getElementById("bossReacoes").value =
+    monstro.reacoes || "";
+
+  document.getElementById("bossResistencias").value =
+    monstro.resistencias || "";
+
+  document.getElementById("bossImunidades").value =
+    monstro.imunidades || "";
+
+  document.getElementById("bossVulnerabilidades").value =
+    monstro.vulnerabilidades || "";
+
+  window._imagemBossBase64 = "";
+  window._imagemBossCopiaOriginal = monstro.imagem || "";
+
+  const preview = document.getElementById("previewBoss");
+
+  if (preview && monstro.imagem) {
+    preview.src = monstro.imagem;
+    preview.style.display = "block";
+  }
+
+  _bossAtaquesForm = [];
+  _bossHabilidadesForm = [];
+
+  const btnBoss = document.querySelectorAll(".criar-tipo-btn")[1];
+
+  trocarTipoCriar("boss", btnBoss);
+
+  const btnCriar = document.querySelector(
+    '.master-tab-btn[title="Criar"]'
+  );
+
+  trocarAbaMaster("criar", btnCriar);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+  mostrarToastMundo(
+    "Cópia aberta para edição. Salve o Boss quando terminar."
+  );
+}
+
+function abrirSheetMonstroPadrao(monstro) {
+  const overlay  = document.getElementById("sheetMonstroOverlay");
+  const sheet    = document.getElementById("sheetMonstro");
+  const conteudo = document.getElementById("conteudoSheetMonstro");
+  const estavaAberto = sheet.classList.contains("aberto");
+  const estavaFull   = sheet.classList.contains("full");
+  if (!overlay || !sheet || !conteudo) return;
+  conteudo.innerHTML = "";
+
+  // Limpa antes de renderizar para evitar flash do conteúdo antigo
+  conteudo.innerHTML = "";
+
+  const imagem = monstro.imagem || "";
+  const bloco  = (titulo, texto) => `
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
+    </div>`;
+
+  conteudo.innerHTML = `
+    ${imagem ? `<img class="sheet-img" src="${imagem}" alt="${escapeHtml(monstro.nome)}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;transition:opacity 0.3s ease;" onload="this.style.opacity='1'" style="opacity:0">` : ""}
+
+    <h2 class="sheet-titulo" style="text-align:center;margin-bottom:4px;">${escapeHtml(monstro.nome)}</h2>
+    <div class="sheet-meta" style="text-align:center;margin-bottom:8px;">${escapeHtml(monstro.tipo || "Tipo não definido")} · ${escapeHtml(monstro.regiao || "Região não definida")}</div>
+    <div class="sheet-hp-ca" style="text-align:center;margin-bottom:12px;">HP ${monstro.hpAtual}/${monstro.hpMax} · CA ${monstro.ca || 0}${monstro.velocidade ? " · Vel " + escapeHtml(monstro.velocidade) : ""}</div>
+    ${monstro.saves ? `<div class="sheet-meta" style="text-align:center;margin-bottom:8px;">Testes: ${escapeHtml(monstro.saves)}</div>` : ""}
+
+    <div class="sheet-status-grid" style="margin-bottom:12px;">
+      <div>FOR<br>${monstro.status?.for||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.for||10))}</small></div>
+      <div>DES<br>${monstro.status?.des||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.des||10))}</small></div>
+      <div>CON<br>${monstro.status?.con||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.con||10))}</small></div>
+      <div>INT<br>${monstro.status?.int||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.int||10))}</small></div>
+      <div>SAB<br>${monstro.status?.sab||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.sab||10))}</small></div>
+      <div>CAR<br>${monstro.status?.car||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.car||10))}</small></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <button style="background:#7B1E28!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick='enviarMonstroPadraoParaCombate(${JSON.stringify(monstro)})'>⚔️ Enviar para combate</button>
+      <button style="background:rgba(174,55,83,0.2)!important;border:1px solid rgba(233,224,236,0.26)!important;border-radius:8px;color:#efe7ef!important;padding:10px;font-size:13px;cursor:pointer;" onclick='criarCopiaEditavelMonstroPadrao(${JSON.stringify(monstro)})'>✏️ Criar cópia editável</button>
+    </div>
+
+    ${bloco("Lore", formatarTexto(monstro.lore || "Sem lore cadastrada."))}
+    ${renderHabilidades(monstro.habilidades)}
+    ${renderAtaques(monstro.ataques)}
+    ${monstro.reacoes ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Reações</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.reacoes)}</div>
+    </div>` : ""}
+    ${monstro.resistencias ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Resistências</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.resistencias)}</div>
+    </div>` : ""}
+    ${monstro.imunidades ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Imunidades</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.imunidades)}</div>
+    </div>` : ""}
+    ${monstro.vulnerabilidades ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Vulnerabilidades</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.vulnerabilidades)}</div>
+    </div>` : ""}
+    ${(monstro.sentidos || monstro.idiomas) ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Sentidos e Idiomas</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${monstro.sentidos ? "Sentidos: " + escapeHtml(monstro.sentidos) : ""}${monstro.sentidos && monstro.idiomas ? "<br>" : ""}${monstro.idiomas ? "Idiomas: " + escapeHtml(monstro.idiomas) : ""}</div>
+    </div>` : ""}
+    ${monstro.fraquezas ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);"><div style="background:#ce9ede;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
+    ${bloco("Diálogos", monstro.dialogos?.length ? monstro.dialogos.map(f => `"${escapeHtml(f)}"`).join("<br>") : "Sem falas cadastradas.")}
+    ${bloco("Pontos de Encontro", formatarTexto(monstro.encontros || "Sem pontos de encontro cadastrados."))}
+    ${monstro.origem !== "padrao" ? `<button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirMonstroMestre(sheetMonstroIndexAtual)">🗑️ Excluir Monstro</button>` : ""}
+  `;
+
+  sheet.style.transition = "";
+  sheet.style.transform  = "";
+  sheet.style.opacity    = "";
+  sheet.style.height     = "";
+
+  overlay.style.display = "block";
+  sheet.style.display   = "block";
+
+  sheet.classList.remove("full", "aberto");
+  if (estavaFull) sheet.classList.add("full");
+
+  requestAnimationFrame(() => setTimeout(() => sheet.classList.add("aberto"), 10));
+  document.body.classList.add("master-sheet-aberto");
+  ativarGestosSheetMonstro();
+}
+
+function abrirSheetMonstroPorObjeto(monstro, index, lista = null) {
+  if (lista) listaSheetCompendio = lista;
+  sheetMonstroIndexAtual = index;
+  abrirSheetMonstroPadrao(monstro);
+}
+
+function abrirSheetMonstro(index) {
+  const monstro = monstrosMestre[index];
+  if (!monstro) return;
+
+  sheetMonstroIndexAtual = index;
+
+  const overlay  = document.getElementById("sheetMonstroOverlay");
+  const sheet    = document.getElementById("sheetMonstro");
+  const conteudo = document.getElementById("conteudoSheetMonstro");
+  if (!overlay || !sheet || !conteudo) return;
+
+  const imagem = monstro.imagem || "";
+  const bloco  = (titulo, texto) => `
+    <div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${texto}</div>
+    </div>`;
+
+  conteudo.innerHTML = `
+    ${imagem ? `<img class="sheet-img" src="${imagem}" alt="${escapeHtml(monstro.nome)}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;">` : ""}
+
+    <h2 class="sheet-titulo" style="text-align:center;margin-bottom:4px;">${escapeHtml(monstro.nome)}</h2>
+    <div class="sheet-meta" style="text-align:center;margin-bottom:8px;">${escapeHtml(monstro.tipo || "Tipo não definido")} · ${escapeHtml(monstro.regiao || "Região não definida")}</div>
+    <div class="sheet-hp-ca" style="text-align:center;margin-bottom:12px;">HP ${monstro.hpAtual}/${monstro.hpMax} · CA ${monstro.ca || 0}</div>
+
+    <div class="sheet-status-grid" style="margin-bottom:12px;">
+      <div>FOR<br>${monstro.status?.for||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.for||10))}</small></div>
+      <div>DES<br>${monstro.status?.des||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.des||10))}</small></div>
+      <div>CON<br>${monstro.status?.con||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.con||10))}</small></div>
+      <div>INT<br>${monstro.status?.int||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.int||10))}</small></div>
+      <div>SAB<br>${monstro.status?.sab||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.sab||10))}</small></div>
+      <div>CAR<br>${monstro.status?.car||10}<small>${formatarModMonstro(calcularModMonstro(monstro.status?.car||10))}</small></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <button style="background:#7B1E28!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="enviarMonstroParaCombate(${index})">⚔️ Enviar para combate</button>
+      <button style="background:rgba(174,55,83,0.2)!important;border:1px solid rgba(233,224,236,0.26)!important;border-radius:8px;color:#efe7ef!important;padding:10px;font-size:13px;cursor:pointer;" onclick="editarMonstroMestre(${index})">✏️ Editar</button>
+    </div>
+
+    ${bloco("Lore", formatarTexto(monstro.lore || "Sem lore cadastrada."))}
+    ${renderHabilidades(monstro.habilidades)}
+    ${renderAtaques(monstro.ataques)}
+    ${monstro.reacoes ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Reações</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.reacoes)}</div>
+    </div>` : ""}
+    ${monstro.resistencias ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+      <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+        <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Resistências / Imunidades</span>
+      </div>
+      <div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.resistencias)}</div>
+    </div>` : ""}
+${monstro.fraquezas ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);"><div style="background:#ce9ede;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
+${bloco("Diálogos", monstro.dialogos?.length ? monstro.dialogos.map(f => `"${escapeHtml(f)}"`).join("<br>") : "Sem falas cadastradas.")}
+${bloco("Pontos de Encontro", formatarTexto(monstro.encontros || "Sem pontos de encontro cadastrados."))}
+    <button style="width:100%;margin-top:4px;background:rgba(143,34,34,0.8)!important;border:none!important;border-radius:8px;color:#fff!important;padding:10px;font-size:13px;cursor:pointer;" onclick="excluirMonstroMestre(${index})">🗑️ Excluir Monstro</button>
+  `;
+
+  overlay.style.display = "block";
+  sheet.style.display = "block";
+  sheet.classList.remove("full", "aberto");
+  requestAnimationFrame(() => sheet.classList.add("aberto"));
+  document.body.classList.add("master-sheet-aberto");
+  ativarGestosSheetMonstro();
+}
+
+function ativarGestosSheetMonstro() {
+  const sheet = document.getElementById("sheetMonstro");
+  if (!sheet) return;
+
+ sheet.removeEventListener("touchstart", iniciarDragSheet);
+sheet.removeEventListener("touchmove", moverDragSheet);
+sheet.removeEventListener("touchend", finalizarDragSheet);
+sheet.removeEventListener("mousedown", iniciarDragSheet);
+
+  sheet.addEventListener("touchstart", iniciarDragSheet, { passive: true });
+  sheet.addEventListener("touchmove", moverDragSheet, { passive: false });
+  sheet.addEventListener("touchend", finalizarDragSheet);
+
+  sheet.addEventListener("mousedown", iniciarDragSheet);
+  window.addEventListener("mousemove", moverDragSheet);
+  window.addEventListener("mouseup", finalizarDragSheet);
+}
+
+function pegarPontoEvento(e) {
+  if (e.touches && e.touches.length > 0) {
+    return e.touches[0];
+  }
+
+  return e;
+}
+
+function iniciarDragSheet(e) {
+  const sheet = document.getElementById("sheetMonstro");
+  if (!sheet) return;
+
+  const ponto = pegarPontoEvento(e);
+
+  sheetDragInicioX = ponto.clientX;
+  sheetDragInicioY = ponto.clientY;
+
+  if (sheet.classList.contains("full")) {
+    const rect = sheet.getBoundingClientRect();
+    const toqueRelativo = ponto.clientY - rect.top;
+    const tocouNaImagem = e.target?.closest?.(".sheet-img") != null;
+    sheetArrastando = (toqueRelativo <= 60 || tocouNaImagem) ? "full-topo" : "full-conteudo";
+  } else {
+    sheetArrastando = true;
+  }
+
+  sheet.style.transition = "none";
+}
+
+
+function editarBossMestre(index) {
+  const boss = monstrosMestre[index];
+  if (!boss) return;
+
+  fecharSheetMonstro();
+
+  document.getElementById("bossNome").value = boss.nome || "";
+  document.getElementById("bossTipo").value = boss.tipo || "";
+  document.getElementById("bossRegiao").value = boss.regiao || "";
+  document.getElementById("bossHpMax").value = boss.hpMax || 0;
+  document.getElementById("bossHpAtual").value = boss.hpAtual || 0;
+  document.getElementById("bossCa").value = boss.ca || 0;
+
+  document.getElementById("bossFor").value = boss.status?.for || 10;
+  document.getElementById("bossDes").value = boss.status?.des || 10;
+  document.getElementById("bossCon").value = boss.status?.con || 10;
+  document.getElementById("bossInt").value = boss.status?.int || 10;
+  document.getElementById("bossSab").value = boss.status?.sab || 10;
+  document.getElementById("bossCar").value = boss.status?.car || 10;
+
+  document.getElementById("bossVelocidade").value = boss.velocidade || "";
+  document.getElementById("bossSaves").value = boss.saves || "";
+  document.getElementById("bossSentidos").value = boss.sentidos || "";
+  document.getElementById("bossIdiomas").value = boss.idiomas || "";
+  document.getElementById("bossLore").value = boss.lore || "";
+  document.getElementById("bossHabilidades").value = boss.habilidades || "";
+  document.getElementById("bossFraquezas").value = boss.fraquezas || "";
+  document.getElementById("bossAtaques").value = boss.ataques || "";
+  document.getElementById("bossReacoes").value = boss.reacoes || "";
+  document.getElementById("bossResistencias").value = boss.resistencias || "";
+  document.getElementById("bossImunidades").value = boss.imunidades || "";
+  document.getElementById("bossVulnerabilidades").value = boss.vulnerabilidades || "";
+
+  const preview = document.getElementById("previewBoss");
+  if (preview && boss.imagem) {
+    preview.src = boss.imagem;
+    preview.style.display = "block";
+  }
+
+  const btnBoss = document.querySelectorAll(".criar-tipo-btn")[1];
+  trocarTipoCriar("boss", btnBoss);
+
+  const btnCriar = document.querySelectorAll(".master-tab-btn")[3];
+  trocarAbaMaster("criar", btnCriar);
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function salvarBossMestre() {
+  const nome = document.getElementById("bossNome")?.value.trim();
+  if (!nome) { alertBonito("Coloque o nome do boss."); return; }
+
+  if (campanhaAtualMaster === null || campanhaAtualMaster === undefined) {
+    alertBonito("Nenhuma campanha selecionada."); return;
+  }
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) { alertBonito("Campanha não encontrada."); return; }
+
+    monstrosMestre.push({
+    id: Date.now(), _tipo: "boss", origem: "usuario", nome,
+    tipo:       document.getElementById("bossTipo")?.value.trim() || "",
+    regiao:     document.getElementById("bossRegiao")?.value.trim() || "",
+    hpMax:      parseInt(document.getElementById("bossHpMax")?.value) || 0,
+    hpAtual:    parseInt(document.getElementById("bossHpAtual")?.value) || 0,
+    ca:         parseInt(document.getElementById("bossCa")?.value) || 0,
+    status: {
+      for: parseInt(document.getElementById("bossFor")?.value) || 10,
+      des: parseInt(document.getElementById("bossDes")?.value) || 10,
+      con: parseInt(document.getElementById("bossCon")?.value) || 10,
+      int: parseInt(document.getElementById("bossInt")?.value) || 10,
+      sab: parseInt(document.getElementById("bossSab")?.value) || 10,
+      car: parseInt(document.getElementById("bossCar")?.value) || 10,
+    },
+    velocidade: document.getElementById("bossVelocidade")?.value.trim() || "",
+    saves:      document.getElementById("bossSaves")?.value.trim() || "",
+    sentidos:   document.getElementById("bossSentidos")?.value.trim() || "",
+    idiomas:    document.getElementById("bossIdiomas")?.value.trim() || "",
+    lore:        document.getElementById("bossLore")?.value.trim()        || "",
+    habilidades: document.getElementById("bossHabilidades")?.value.trim()  || "",
+    fraquezas:   document.getElementById("bossFraquezas")?.value.trim()    || "",
+    ataques:     document.getElementById("bossAtaques")?.value.trim()      || "",
+    reacoes:     document.getElementById("bossReacoes")?.value.trim()      || "",
+    resistencias:document.getElementById("bossResistencias")?.value.trim() || "",
+    imunidades: document.getElementById("bossImunidades")?.value.trim() || "",
+    vulnerabilidades: document.getElementById("bossVulnerabilidades")?.value.trim() || "",
+    ...(window._imagemBossBase64
+    ? await uploadImagemFirebase(window._imagemBossBase64, `bosses/${Date.now()}.jpg`).then(r => ({ imagem: r.url, imagemDeleteUrl: r.deleteUrl }))
+    : { imagem: "", imagemDeleteUrl: "" }),
+  });
+
+  salvarMonstrosMestreStorage();
+  renderMonstrosMestre();
+
+  _bossAtaquesForm = []; _bossHabilidadesForm = [];
+  _renderItemForm("bossAtaquesList",[],"removerAtaqueBoss","bossAtaques");
+  _renderItemForm("bossHabilidadesList",[],"removerHabilidadeBoss","bossHabilidades");
+  ["bossNome","bossTipo","bossRegiao","bossHpMax","bossHpAtual","bossCa",
+   "bossVelocidade","bossSaves","bossSentidos","bossIdiomas",
+   "bossLore","bossHabilidades","bossFraquezas","bossAtaques","bossReacoes","bossResistencias",
+   "bossImunidades","bossVulnerabilidades", "bossPontoEncontro"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = "";
+  });
+  const preview = document.getElementById("previewBoss");
+  if (preview) { preview.src = ""; preview.style.display = "none"; }
+
+  mostrarToastMundo("Boss salvo!");
+}
+
+async function migrarCompendioParaGlobal() {
+  if (localStorage.getItem("compendioMigrado") === "sim") return;
+
+  let migrouAlgo = false;
+
+  for (const campanha of campanhasMaster) {
+    const tipos = [
+      { chave: "bosses", tipo: "boss" },
+      { chave: "itensMaster", tipo: "item" },
+      { chave: "npcs", tipo: "npc" },
+      { chave: "mapasMaster", tipo: "mapa" },
+    ];
+
+    for (const { chave, tipo } of tipos) {
+      const lista = campanha[chave] || [];
+      lista.forEach((entrada) => {
+        entrada._tipo = tipo;
+        entrada.origem = entrada.origem || "usuario";
+        monstrosMestre.push(entrada);
+        migrouAlgo = true;
+      });
+      campanha[chave] = [];
+    }
+  }
+
+  if (migrouAlgo) {
+    salvarMonstrosMestreStorage();
+    salvarCampanhasMaster();
+  }
+
+  localStorage.setItem("compendioMigrado", "sim");
+}
+
+async function salvarMapaMestre() {
+  const nome = document.getElementById("mapaMasterNome")?.value.trim();
+  if (!nome) { alertBonito("Coloque o nome do mapa."); return; }
+
+  if (campanhaAtualMaster === null || campanhaAtualMaster === undefined) {
+    alertBonito("Nenhuma campanha selecionada."); return;
+  }
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) { alertBonito("Campanha não encontrada."); return; }
+
+    monstrosMestre.push({
+    id: Date.now(), _tipo: "mapa", _origem: "usuario", nome,
+    desc: document.getElementById("mapaMasterDesc")?.value.trim() || "",
+    ...(window._imagemMapaMestreBase64
+    ? await uploadImagemFirebase(window._imagemMapaMestreBase64, `mapas/${Date.now()}.jpg`).then(r => ({ imagem: r.url, imagemDeleteUrl: r.deleteUrl }))
+    : { imagem: "", imagemDeleteUrl: "" }),
+  });
+
+    salvarMonstrosMestreStorage();
+  renderMonstrosMestre();
+
+  document.getElementById("mapaMasterNome").value = "";
+  document.getElementById("mapaMasterDesc").value = "";
+  document.getElementById("mapaMasterImagemInput").value = "";
+  window._imagemMapaMestreBase64 = "";
+  const preview = document.getElementById("previewMapaMaster");
+  if (preview) { preview.src = ""; preview.style.display = "none"; }
+
+  mostrarToastMundo("Mapa salvo!");
+}
+
+async function salvarItemMestre() {
+  const nome = document.getElementById("itemMasterNome")?.value.trim();
+  if (!nome) { alertBonito("Coloque o nome do item."); return; }
+
+  if (campanhaAtualMaster === null || campanhaAtualMaster === undefined) {
+    alertBonito("Nenhuma campanha selecionada."); return;
+  }
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) { alertBonito("Campanha não encontrada."); return; }
+
+   const itemAnterior = editandoItemMestre >= 0 ? monstrosMestre[editandoItemMestre] : null;
+
+  const novoItem = {
+    id: itemAnterior ? itemAnterior.id : Date.now(),
+    _tipo: "item", _origem: "usuario", nome,
+    tipo:      document.getElementById("itemMasterTipo")?.value.trim() || "",
+    raridade:  document.getElementById("itemMasterRaridade")?.value || "normal",
+    sintonia:  document.getElementById("itemMasterSintonia")?.value || "nao",
+    efeito:    document.getElementById("itemMasterEfeito")?.value.trim() || "",
+    descricao: document.getElementById("itemMasterDescricao")?.value.trim() || "",
+    historia:  document.getElementById("itemMasterHistoria")?.value.trim() || "",
+    origem:    document.getElementById("itemMasterOrigem")?.value.trim() || "",
+    imagem: itemAnterior?.imagem || "",
+    imagemDeleteUrl: itemAnterior?.imagemDeleteUrl || "",
+  };
+
+  if (window._imagemItemBase64) {
+    const resultado = await uploadImagemFirebase(window._imagemItemBase64, `itens/${Date.now()}.jpg`);
+    novoItem.imagem = resultado.url;
+    novoItem.imagemDeleteUrl = resultado.deleteUrl;
+  }
+
+  if (editandoItemMestre >= 0) {
+    monstrosMestre[editandoItemMestre] = novoItem;
+    editandoItemMestre = -1;
+  } else {
+    monstrosMestre.push(novoItem);
+  }
+
+  salvarMonstrosMestreStorage();
+  renderMonstrosMestre();
+
+  ["itemMasterNome","itemMasterTipo","itemMasterEfeito","itemMasterDescricao",
+   "itemMasterHistoria","itemMasterOrigem"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = "";
+  });
+  const preview = document.getElementById("previewItemMaster");
+  if (preview) { preview.src = ""; preview.style.display = "none"; }
+  window._imagemItemBase64 = "";
+
+  mostrarToastMundo(editandoItemMestre >= 0 ? "Item atualizado!" : "Item salvo!");
+}
+
+function editarItemMestre(id) {
+  const index = monstrosMestre.findIndex(m => m.id === id && m._tipo === "item");
+  const item = monstrosMestre[index];
+  if (!item) return;
+
+  fecharSheetMonstro();
+
+  editandoItemMestre = index;
+  window._imagemItemBase64 = "";
+
+  document.getElementById("itemMasterNome").value = item.nome || "";
+  document.getElementById("itemMasterTipo").value = item.tipo || "";
+  document.getElementById("itemMasterRaridade").value = item.raridade || "normal";
+  document.getElementById("itemMasterSintonia").value = item.sintonia || "nao";
+  document.getElementById("itemMasterEfeito").value = item.efeito || "";
+  document.getElementById("itemMasterDescricao").value = item.descricao || "";
+  document.getElementById("itemMasterHistoria").value = item.historia || "";
+  document.getElementById("itemMasterOrigem").value = item.origem || "";
+
+  const preview = document.getElementById("previewItemMaster");
+  if (preview && item.imagem) {
+    preview.src = item.imagem;
+    preview.style.display = "block";
+  }
+
+  const btnTipoItem = document.querySelectorAll(".criar-tipo-btn")[3];
+  trocarTipoCriar("item", btnTipoItem);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function moverDragSheet(e) {
+  if (!sheetArrastando) return;
+
+  const sheet = document.getElementById("sheetMonstro");
+  if (!sheet) return;
+
+  const ponto = pegarPontoEvento(e);
+
+  const diffX = ponto.clientX - sheetDragInicioX;
+  const diffY = ponto.clientY - sheetDragInicioY;
+
+  const movimentoHorizontal = Math.abs(diffX) > Math.abs(diffY);
+
+  if (sheetArrastando === "full-conteudo") {
+    if (movimentoHorizontal) {
+      if (e.cancelable) e.preventDefault();
+      sheet.style.transform = `translateX(${diffX}px)`;
+      sheet.style.opacity = String(1 - Math.min(Math.abs(diffX) / 500, 0.45));
+      return;
+    }
+
+    // já rolou até o topo do conteúdo e continua puxando pra baixo:
+    // vira o gesto de encolher a sheet, capturando o toque antes que o
+    // navegador tente interpretar isso como "puxar pra atualizar" (F5)
+    if (diffY > 0 && sheet.scrollTop <= 0) {
+      sheetArrastando = "full-topo";
+    } else {
+      return;
+    }
+  }
+
+  if (movimentoHorizontal) {
+    if (e.cancelable) e.preventDefault();
+    sheet.style.transform = `translateX(${diffX}px)`;
+    sheet.style.opacity = String(1 - Math.min(Math.abs(diffX) / 500, 0.45));
+    return;
+  }
+
+  if (e.cancelable) e.preventDefault();
+
+  if (diffY < 0 && !sheet.classList.contains("full")) {
+    const aumento = Math.min(Math.abs(diffY), window.innerHeight * 0.28);
+    sheet.style.height = `calc(72vh + ${aumento}px)`;
+  }
+
+  if (diffY > 0) {
+    sheet.style.transform = `translateY(${Math.min(diffY, 220)}px)`;
+    sheet.style.opacity = String(1 - Math.min(diffY / 450, 0.45));
+  }
+}
+
+window.confirmBonito = function (mensagem) {
+  return new Promise(resolve => {
+    document.getElementById("confirmBonitoTexto").textContent = mensagem;
+    document.getElementById("modalConfirmBonitoOverlay").style.display = "block";
+    document.getElementById("modalConfirmBonito").style.display = "block";
+    window._confirmBonitoResolve = (valor) => {
+      document.getElementById("modalConfirmBonitoOverlay").style.display = "none";
+      document.getElementById("modalConfirmBonito").style.display = "none";
+      window._confirmBonitoResolve = null;
+      resolve(valor);
+    };
+  });
+};
+
+window.alertBonito = function (mensagem) {
+  return new Promise(resolve => {
+    document.getElementById("alertBonitoTexto").textContent = mensagem;
+    document.getElementById("modalAlertBonitoOverlay").style.display = "block";
+    document.getElementById("modalAlertBonito").style.display = "block";
+    window._alertBonitoResolve = () => {
+      document.getElementById("modalAlertBonitoOverlay").style.display = "none";
+      document.getElementById("modalAlertBonito").style.display = "none";
+      window._alertBonitoResolve = null;
+      resolve();
+    };
+  });
+};
+
+window.promptBonito = function (mensagem, valorPadrao) {
+  return new Promise(resolve => {
+    document.getElementById("promptBonitoTexto").textContent = mensagem;
+    const input = document.getElementById("promptBonitoInput");
+    input.value = valorPadrao != null ? valorPadrao : "";
+    document.getElementById("modalPromptBonitoOverlay").style.display = "block";
+    document.getElementById("modalPromptBonito").style.display = "block";
+    setTimeout(() => input.focus(), 50);
+    window._promptBonitoResolve = (valor) => {
+      document.getElementById("modalPromptBonitoOverlay").style.display = "none";
+      document.getElementById("modalPromptBonito").style.display = "none";
+      window._promptBonitoResolve = null;
+      resolve(valor);
+    };
+  });
+};
+
+function finalizarDragSheet(e) {
+  if (!sheetArrastando) return;
+
+  const sheet = document.getElementById("sheetMonstro");
+  if (!sheet) return;
+
+  const ponto = pegarPontoEvento(e.changedTouches ? e.changedTouches[0] : e);
+
+  const diffX = ponto.clientX - sheetDragInicioX;
+  const diffY = ponto.clientY - sheetDragInicioY;
+
+  const wasFullConteudo = sheetArrastando === "full-conteudo";
+  sheetArrastando = false;
+
+  sheet.style.transition =
+    "transform 0.28s ease, opacity 0.22s ease, height 0.25s ease";
+
+  if (Math.abs(diffX) > 90 && Math.abs(diffX) > Math.abs(diffY)) {
+    diffX < 0 ? trocarMonstroSheet(1) : trocarMonstroSheet(-1);
+    return;
+  }
+
+  if (wasFullConteudo) {
+    sheet.style.transform = "";
+    sheet.style.opacity = "";
+    return;
+  }
+
+  if (diffY < -80) {
+    sheet.classList.add("full");
+  }
+
+  if (diffY > 120 && sheet.classList.contains("full")) {
+    sheet.classList.remove("full");
+  } else if (diffY > 170 && !sheet.classList.contains("full")) {
+    fecharSheetMonstro();
+    return;
+  }
+
+  sheet.style.transform = "";
+  sheet.style.opacity = "";
+  sheet.style.height = "";
+}
+
+function trocarMonstroSheet(direcao) {
+  if (!listaSheetCompendio.length) return;
+
+  // Encontrar o índice atual correto na lista
+  const indexNaLista = listaSheetCompendio.findIndex((_, i) => i === sheetMonstroIndexAtual);
+  let base = indexNaLista >= 0 ? indexNaLista : 0;
+  let novoIndex = base + direcao;
+
+  if (novoIndex < 0) novoIndex = listaSheetCompendio.length - 1;
+  if (novoIndex >= listaSheetCompendio.length) novoIndex = 0;
+
+  const sheet = document.getElementById("sheetMonstro");
+  if (!sheet) return;
+
+  const estavaFull = sheet.classList.contains("full");
+
+  sheet.style.transition =
+    "transform 0.22s ease, opacity 0.18s ease, height 0.25s ease";
+
+  sheet.style.transform =
+    direcao > 0 ? "translateX(-100%)" : "translateX(100%)";
+
+  sheet.style.opacity = "0";
+
+  setTimeout(() => {
+    sheetMonstroIndexAtual = novoIndex;
+
+    // troca o conteúdo certo dependendo do tipo do próximo item
+    const proximaEntrada = listaSheetCompendio[novoIndex];
+    const tipoProximo = proximaEntrada._tipo;
+
+    if (tipoProximo === "boss") {
+      _abrirPopupBossCompendio(proximaEntrada);
+    } else if (tipoProximo === "item") {
+      _abrirPopupItemCompendio(proximaEntrada);
+    } else if (tipoProximo === "npc") {
+      _abrirPopupNPCCompendio(proximaEntrada);
+    } else {
+      abrirSheetMonstroPadrao(proximaEntrada);
+    }
+
+    if (estavaFull) {
+      sheet.classList.add("full");
+    }
+
+    sheet.classList.add("aberto");
+
+    sheet.style.transition = "none";
+    sheet.style.transform =
+      direcao > 0 ? "translateX(100%)" : "translateX(-100%)";
+    sheet.style.opacity = "0";
+
+    requestAnimationFrame(() => {
+      sheet.style.transition =
+        "transform 0.28s ease, opacity 0.22s ease, height 0.25s ease";
+
+      sheet.style.transform = "";
+      sheet.style.opacity = "";
+      sheet.style.height = "";
+    });
+  }, 180);
+}
+
+function enviarMonstroPadraoParaCombate(monstro) {
+  const copia = JSON.parse(JSON.stringify(monstro));
+
+  copia.instanciaId = Date.now() + Math.floor(Math.random() * 9999);
+  copia.monstroBaseId = monstro.id;
+  copia.origem = "combate";
+  copia.nome = gerarNomeInstanciaCombate(monstro.nome);
+
+  combatesMestre.push(copia);
+
+  salvarCombatesMestreStorage();
+  renderCombatesMestre();
+
+  alertBonito(`${monstro.nome} foi enviado para o combate.`);
+}
+
+function fecharSheetMonstro() {
+  const overlay = document.getElementById("sheetMonstroOverlay");
+  const sheet = document.getElementById("sheetMonstro");
+
+  if (sheet) {
+    sheet.classList.remove("aberto");
+
+    setTimeout(() => {
+  sheet.style.display = "none";
+
+  sheet.style.transition = "";
+  sheet.style.transform = "";
+  sheet.style.opacity = "";
+  sheet.style.height = "";
+  sheet.classList.remove("full");
+  sheet.classList.remove("aberto");
+
+  if (overlay) overlay.style.display = "none";
+}, 380);
+  }
+
+  document.body.classList.remove("master-sheet-aberto");
+
+  sheetMonstroIndexAtual = null;
+}
+
+function alternarSheetFull() {
+  const sheet = document.getElementById("sheetMonstro");
+  if (sheet) sheet.classList.toggle("full");
+}
+
+function editarMonstroMestre(index) {
+  const monstro = monstrosMestre[index];
+  if (!monstro) return;
+
+  fecharSheetMonstro();
+
+  editandoMonstroMestre = index;
+  imagemMonstroBase64 = monstro.imagem || "";
+
+  document.getElementById("monstroNome").value = monstro.nome || "";
+  document.getElementById("monstroTipo").value = monstro.tipo || "";
+  document.getElementById("monstroRegiao").value = monstro.regiao || "";
+  document.getElementById("monstroHpMax").value = monstro.hpMax || 0;
+  document.getElementById("monstroHpAtual").value = monstro.hpAtual || 0;
+  document.getElementById("monstroCa").value = monstro.ca || 0;
+
+  document.getElementById("monstroFor").value = monstro.status?.for || 10;
+  document.getElementById("monstroDes").value = monstro.status?.des || 10;
+  document.getElementById("monstroCon").value = monstro.status?.con || 10;
+  document.getElementById("monstroInt").value = monstro.status?.int || 10;
+  document.getElementById("monstroSab").value = monstro.status?.sab || 10;
+  document.getElementById("monstroCar").value = monstro.status?.car || 10;
+
+  document.getElementById("monstroLore").value = monstro.lore || "";
+
+  // Popular listas de ataques e habilidades
+  _monstroAtaquesForm = (monstro.ataques || "").split("|").map(a => a.trim()).filter(Boolean).map(a => {
+    const partes = a.split(":"); return { nome: partes[0]?.trim() || a, desc: partes.slice(1).join(":").trim() };
+  });
+  _monstroHabilidadesForm = (monstro.habilidades || "").split("|").map(h => h.trim()).filter(Boolean).map(h => {
+    const partes = h.split(":"); return { nome: partes[0]?.trim() || h, desc: partes.slice(1).join(":").trim() };
+  });
+  renderAtaquesForm();
+  renderHabilidadesForm();
+
+  const elHab = document.getElementById("monstroHabilidades");
+if (elHab) elHab.value = monstro.habilidades || "";
+const elDia = document.getElementById("monstroDialogos");
+if (elDia) elDia.value = Array.isArray(monstro.dialogos) ? monstro.dialogos.join("\n") : "";
+const elEnc = document.getElementById("monstroEncontros");
+if (elEnc) elEnc.value = monstro.encontros || "";
+
+  const preview = document.getElementById("previewMonstro");
+  if (preview && monstro.imagem) {
+    preview.src = monstro.imagem;
+    preview.style.display = "block";
+  }
+
+  const titulo = document.getElementById("tituloFormMonstro");
+  if (titulo) titulo.textContent = "Editar Monstro";
+
+  const btnCriar = document.querySelectorAll(".master-tab-btn")[1];
+  trocarAbaMaster("criar", btnCriar);
+  atualizarModsMonstro();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function excluirMonstroMestre(index) {
+  const monstro = monstrosMestre[index];
+  if (!monstro) return;
+
+  const confirmar = await confirmBonito(`Deseja excluir "${monstro.nome}"?`);
+  if (!confirmar) return;
+
+  // apaga do Firebase
+  if (window.usuarioAtual && monstro.id && window.db && window.deleteDoc) {
+    try {
+      const uid = window.usuarioAtual.uid;
+      await window.deleteDoc(window.doc(window.db, "usuarios", uid, "monstros", String(monstro.id)));
+    } catch (e) {
+      console.warn("Erro ao deletar monstro da nuvem:", e);
+    }
+  }
+
+  monstrosMestre.splice(index, 1);
+  salvarMonstrosMestreStorage();
+  renderMonstrosMestre();
+  fecharSheetMonstro();
+}
+
+function enviarMonstroParaCombate(index) {
+  const monstro = monstrosMestre[index];
+  if (!monstro) return;
+
+  const copia = JSON.parse(JSON.stringify(monstro));
+
+  copia.instanciaId = Date.now() + Math.floor(Math.random() * 9999);
+  copia.monstroBaseId = monstro.id;
+  copia.nome = gerarNomeInstanciaCombate(monstro.nome);
+
+  combatesMestre.push(copia);
+
+  salvarCombatesMestreStorage();
+  renderCombatesMestre();
+
+  alertBonito(`${monstro.nome} foi enviado para o combate.`);
+}
+
+function gerarNomeInstanciaCombate(nomeBase) {
+  const quantidade = combatesMestre.filter(m =>
+    (m.nome || "").startsWith(nomeBase)
+  ).length + 1;
+
+  return `${nomeBase} ${quantidade}`;
+}
+
+function toggleMinimizarCombate(index) {
+  const monstro = combatesMestre[index];
+  if (!monstro) return;
+
+  monstro.minimizado = !monstro.minimizado;
+
+  const card = document.querySelectorAll(".combate-card")[index];
+  if (!card) return;
+
+  if (monstro.minimizado) {
+    card.classList.add("minimizado");
+  } else {
+    card.classList.remove("minimizado");
+  }
+
+  salvarCombatesMestreStorage();
+}
+
+
+async function salvarTudoForcado() {
+  const btn = document.getElementById("btnSalvarFlutuante");
+  if (btn) { btn.textContent = "⏳"; btn.disabled = true; }
+
+  try {
+    if (personagemAtual !== null && typeof salvarTudo === "function") {
+      salvarTudo();
+    }
+    if (typeof window.salvarFichasNaNuvem === "function") {
+      await window.salvarFichasNaNuvem();
+    }
+    if (typeof salvarMonstrosMestreStorage === "function") {
+      salvarMonstrosMestreStorage();
+    }
+    if (typeof salvarCombatesMestreStorage === "function") {
+      salvarCombatesMestreStorage();
+    }
+    if (typeof salvarCampanhasMaster === "function") {
+      salvarCampanhasMaster();
+    }
+    if (typeof window.salvarMonstrosNaNuvem === "function") {
+      await window.salvarMonstrosNaNuvem();
+    }
+
+    if (btn) { btn.textContent = "✅"; }
+    mostrarToastSalvarFlutuante("Tudo salvo!");
+  } catch (erro) {
+    console.error("Erro ao salvar tudo:", erro);
+    if (btn) { btn.textContent = "❌"; }
+    mostrarToastSalvarFlutuante("Erro ao salvar. Tente de novo.");
+  }
+
+  setTimeout(() => {
+    if (btn) { btn.textContent = "💾"; btn.disabled = false; }
+  }, 1500);
+}
+
+function mostrarToastSalvarFlutuante(msg) {
+  const btn = document.getElementById("btnSalvarFlutuante");
+  const t = document.createElement("div");
+  t.textContent = msg;
+
+  let top = "20%";
+  let left = "calc(100% - 120px)";
+
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    top = (rect.bottom + 8) + "px";
+    left = Math.max(8, rect.left - 30) + "px";
+  }
+
+  t.style.cssText = `
+    position:fixed;top:${top};left:${left};z-index:99999;
+    background:#140c18;color:#F8F4E3;border:1px solid rgba(233,224,236,0.26);
+    border-radius:10px;padding:8px 14px;font-size:13px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.5);
+    opacity:0;transition:opacity 0.25s;
+    white-space:nowrap;
+  `;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.style.opacity = "1");
+  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 2000);
+}
+
+function renderAtaques(texto) {
+  if (!texto) return "";
+  const itens = texto.split("|").map(a => a.trim()).filter(Boolean);
+  const linhas = itens.map(ataque => {
+    const partes = ataque.split(":");
+    const nome = partes[0]?.trim() || ataque;
+    const desc = partes.slice(1).join(":").trim();
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(233,224,236,0.12);">
+      <span style="font-size:14px;flex-shrink:0;margin-top:1px;">⚔️</span>
+      <div>
+        <div style="font-size:13px;font-weight:bold;color:#1e1324;">${escapeHtml(nome)}</div>
+        ${desc ? `<div style="font-size:12px;color:#6c5a70;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+  return `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+    <div style="background:#ce9ede;padding:7px 12px;display:flex;align-items:center;gap:6px;justify-content:center;">
+      <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Ataques</span>
+    </div>
+    <div style="padding:4px 12px 4px;">${linhas}</div>
+  </div>`;
+}
+
+(function ativarDisqueteArrastavel() {
+  function iniciar() {
+    const btn = document.getElementById("btnSalvarFlutuante");
+    if (!btn) return;
+
+    let arrastando = false;
+    let moveu = false;
+    let offsetX = 0, offsetY = 0;
+
+    const posSalva = JSON.parse(localStorage.getItem("posDisqueteFlutuante") || "null");
+    if (posSalva) {
+      btn.style.top = posSalva.top;
+      btn.style.left = posSalva.left;
+      btn.style.right = "auto";
+    }
+
+    function pegarPonto(e) {
+      return e.touches ? e.touches[0] : e;
+    }
+
+    function aoIniciar(e) {
+      const p = pegarPonto(e);
+      const rect = btn.getBoundingClientRect();
+      offsetX = p.clientX - rect.left;
+      offsetY = p.clientY - rect.top;
+      arrastando = true;
+      moveu = false;
+      btn.style.cursor = "grabbing";
+    }
+
+    function aoMover(e) {
+      if (!arrastando) return;
+      moveu = true;
+      const p = pegarPonto(e);
+      let novoX = p.clientX - offsetX;
+      let novoY = p.clientY - offsetY;
+
+      novoX = Math.max(4, Math.min(window.innerWidth - 52, novoX));
+      novoY = Math.max(4, Math.min(window.innerHeight - 52, novoY));
+
+      btn.style.left = novoX + "px";
+      btn.style.top = novoY + "px";
+      btn.style.right = "auto";
+    }
+
+    function aoSoltar() {
+      if (!arrastando) return;
+      arrastando = false;
+      btn.style.cursor = "grab";
+
+      if (moveu) {
+        localStorage.setItem("posDisqueteFlutuante", JSON.stringify({
+          top: btn.style.top,
+          left: btn.style.left
+        }));
+      } else {
+        salvarTudoForcado();
+      }
+    }
+
+      btn.addEventListener("mousedown", aoIniciar);
+    document.addEventListener("mousemove", aoMover);
+    document.addEventListener("mouseup", aoSoltar);
+
+    btn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      aoIniciar(e);
+    }, { passive: false });
+
+    document.addEventListener("touchmove", (e) => {
+      if (arrastando) e.preventDefault();
+      aoMover(e);
+    }, { passive: false });
+
+    document.addEventListener("touchend", (e) => {
+      aoSoltar(e);
+    }, { passive: false });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", iniciar);
+  } else {
+    iniciar();
+  }
+})();
+
+function renderHabilidades(texto) {
+  if (!texto) return "";
+  const itens = texto.split("|").map(a => a.trim()).filter(Boolean);
+  const linhas = itens.map(hab => {
+    const partes = hab.split(":");
+    const nome = partes[0]?.trim() || hab;
+    const desc = partes.slice(1).join(":").trim();
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(233,224,236,0.12);">
+      <span style="font-size:14px;flex-shrink:0;margin-top:1px;">✨</span>
+      <div>
+        <div style="font-size:13px;font-weight:bold;color:#1e1324;">${escapeHtml(nome)}</div>
+        ${desc ? `<div style="font-size:12px;color:#6c5a70;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+  return `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+    <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+      <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Habilidades Especiais</span>
+    </div>
+    <div style="padding:4px 12px 4px;">${linhas}</div>
+  </div>`;
+}
+
+function renderCombatesMestre() {
+  const lista = document.getElementById("listaCombateMestre");
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  if (!combatesMestre.length) {
+    lista.innerHTML = `
+      <p style="text-align:center; color:#d5cbd8;">
+        Nenhum monstro no combate ainda.
+      </p>
+    `;
+    return;
+  }
+
+  combatesMestre.forEach((monstro, index) => {
+
+    const card = document.createElement("div");
+
+    const minimizado = monstro.minimizado ? "minimizado" : "";
+    card.className = `combate-card ${minimizado}`;
+
+    const imagem = monstro.imagem || "icon-192.png";
+
+    card.innerHTML = `
+
+      <!-- TOPO -->
+      <div class="combate-topo">
+
+        <img
+          class="combate-img"
+          src="${imagem}"
+          alt="${escapeHtml(monstro.nome)}"
+        >
+
+        <div class="combate-info">
+
+          <strong>${escapeHtml(monstro.nome)}</strong>
+
+          <small>
+            ${escapeHtml(monstro.tipo || "Tipo não definido")}
+            • CA ${monstro.ca || 0}
+          </small>
+
+          <div class="combate-hp">
+  ❤️ HP ${monstro.hpAtual}/${monstro.hpMax}
+  <div class="combate-hp-barra">
+    <div class="combate-hp-fill" style="width:${Math.max(0,Math.min(100,Math.round((monstro.hpAtual/monstro.hpMax)*100)))}%;background:${monstro.hpAtual/monstro.hpMax > 0.5 ? '#2a7a40' : monstro.hpAtual/monstro.hpMax > 0.25 ? '#6c263b' : '#8f2222'};"></div>
+  </div>
+</div>
+
+        </div>
+
+        <button
+          class="btn-minimizar-combate"
+          onclick="toggleMinimizarCombate(${index})"
+        >
+          ${monstro.minimizado ? "▼" : "▲"}
+        </button>
+
+      </div>
+
+      <!-- DETALHES -->
+      <div class="combate-detalhes">
+
+        <!-- STATUS -->
+        <div class="sheet-status-grid" style="margin-top:12px;">
+
+          <div>
+            FOR<br>
+            ${monstro.status?.for || 10}
+            <small>
+              ${formatarModMonstro(
+                calcularModMonstro(monstro.status?.for || 10)
+              )}
+            </small>
+          </div>
+
+          <div>
+            DES<br>
+            ${monstro.status?.des || 10}
+            <small>
+              ${formatarModMonstro(
+                calcularModMonstro(monstro.status?.des || 10)
+              )}
+            </small>
+          </div>
+
+          <div>
+            CON<br>
+            ${monstro.status?.con || 10}
+            <small>
+              ${formatarModMonstro(
+                calcularModMonstro(monstro.status?.con || 10)
+              )}
+            </small>
+          </div>
+
+          <div>
+            INT<br>
+            ${monstro.status?.int || 10}
+            <small>
+              ${formatarModMonstro(
+                calcularModMonstro(monstro.status?.int || 10)
+              )}
+            </small>
+          </div>
+
+          <div>
+            SAB<br>
+            ${monstro.status?.sab || 10}
+            <small>
+              ${formatarModMonstro(
+                calcularModMonstro(monstro.status?.sab || 10)
+              )}
+            </small>
+          </div>
+
+          <div>
+            CAR<br>
+            ${monstro.status?.car || 10}
+            <small>
+              ${formatarModMonstro(
+                calcularModMonstro(monstro.status?.car || 10)
+              )}
+            </small>
+          </div>
+
+        </div>
+
+        <!-- BOTÕES RÁPIDOS -->
+        <div class="combate-botoes">
+  <div class="combate-botoes-linha">
+    <button class="btn-hp-dano" onclick="alterarHpCombate(${index}, -1)">Dano -1</button>
+    <button class="btn-hp-dano" onclick="alterarHpCombate(${index}, -5)">Dano -5</button>
+    <button class="btn-hp-dano" onclick="alterarHpCombate(${index}, -10)">Dano -10</button>
+  </div>
+  <div class="combate-botoes-linha">
+    <button class="btn-hp-cura" onclick="alterarHpCombate(${index}, 1)">Cura +1</button>
+    <button class="btn-hp-cura" onclick="alterarHpCombate(${index}, 5)">Cura +5</button>
+    <button class="btn-hp-cura" onclick="alterarHpCombate(${index}, 10)">Cura +10</button>
+  </div>
+</div>
+
+        <!-- MANUAL -->
+        <div class="combate-manual">
+
+          <input
+            id="danoCombate${index}"
+            type="number"
+            placeholder="Dano recebido"
+          >
+
+          <input
+            id="curaCombate${index}"
+            type="number"
+            placeholder="Cura recebida"
+          >
+
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="combate-acoes">
+
+          <button
+            class="btn-master-perigo"
+            onclick="aplicarDanoCombate(${index})"
+          >
+            Aplicar dano
+          </button>
+
+          <button
+            class="btn-master-principal"
+            onclick="aplicarCuraCombate(${index})"
+          >
+            Aplicar cura
+          </button>
+
+        </div>
+
+        <!-- LORE -->
+        ${monstro.lore ? `
+          <div class="sheet-bloco">
+            <strong>Lore</strong>
+            <p>${formatarTexto(monstro.lore)}</p>
+          </div>
+        ` : ""}
+
+        ${renderHabilidades(monstro.habilidades)}
+
+        <!-- ENCONTROS -->
+        ${monstro.encontros ? `
+          <div class="sheet-bloco">
+            <strong>Pontos de encontro</strong>
+            <p>${formatarTexto(monstro.encontros)}</p>
+          </div>
+        ` : ""}
+
+        <!-- ATAQUES -->
+        ${renderAtaques(monstro.ataques)}
+
+        <!-- REAÇÕES -->
+        ${monstro.reacoes ? `
+          <div class="sheet-bloco">
+            <strong>Reações</strong>
+            <p style="white-space:pre-line;">${formatarTexto(monstro.reacoes)}</p>
+          </div>
+        ` : ""}
+
+        <!-- RESISTÊNCIAS -->
+        ${monstro.resistencias ? `
+          <div class="sheet-bloco">
+            <strong>Resistências / Imunidades</strong>
+            <p>${formatarTexto(monstro.resistencias)}</p>
+          </div>
+        ` : ""}
+
+        <!-- FRAQUEZAS (boss) -->
+        ${monstro.fraquezas ? `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);"><div style="background:#ce9ede;padding:7px 12px;text-align:center;"><span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Fraquezas</span></div><div style="padding:10px 14px;font-size:13px;color:#1e1324;line-height:1.6;">${formatarTexto(monstro.fraquezas)}</div></div>` : ""}
+
+          <!-- LOG -->
+${monstro.log && monstro.log.length > 0 ? `
+  <div class="combate-log">
+    <div class="combate-log-titulo">Log de combate</div>
+    ${monstro.log.map(e => `
+      <div class="combate-log-item combate-log-${e.tipo}">
+        <span class="combate-log-hora">${e.hora}</span>
+        <span>${e.texto}</span>
+      </div>
+    `).join("")}
+  </div>
+` : ""}
+
+        <!-- REMOVER -->
+        <button
+          class="btn-master-secundario"
+          style="width:100%; margin-top:10px;"
+          onclick="removerDoCombate(${index})"
+        >
+          Remover do combate
+        </button>
+
+      </div>
+    `;
+
+    lista.appendChild(card);
+  });
+}
+
+function alterarHpCombate(index, valor) {
+  const monstro = combatesMestre[index];
+  if (!monstro) return;
+
+  const hpAntes = monstro.hpAtual;
+  monstro.hpAtual += valor;
+  if (monstro.hpAtual < 0) monstro.hpAtual = 0;
+  if (monstro.hpAtual > monstro.hpMax) monstro.hpAtual = monstro.hpMax;
+
+  const diff = monstro.hpAtual - hpAntes;
+  if (diff !== 0) {
+    if (!monstro.log) monstro.log = [];
+    const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    if (diff < 0) {
+      monstro.log.unshift({ tipo: "dano", texto: `${monstro.nome} tomou ${Math.abs(diff)} de dano — HP: ${monstro.hpAtual}/${monstro.hpMax}`, hora });
+    } else {
+      monstro.log.unshift({ tipo: "cura", texto: `${monstro.nome} recebeu ${diff} de cura — HP: ${monstro.hpAtual}/${monstro.hpMax}`, hora });
+    }
+    if (monstro.log.length > 20) monstro.log.pop();
+  }
+
+  salvarCombatesMestreStorage();
+  renderCombatesMestre();
+}
+
+function aplicarDanoCombate(index) {
+  const input = document.getElementById(`danoCombate${index}`);
+  const dano = parseInt(input?.value) || 0;
+  if (dano <= 0) return;
+  alterarHpCombate(index, -dano);
+  if (input) input.value = "";
+}
+
+function aplicarCuraCombate(index) {
+  const input = document.getElementById(`curaCombate${index}`);
+  const cura = parseInt(input?.value) || 0;
+  if (cura <= 0) return;
+  alterarHpCombate(index, cura);
+  if (input) input.value = "";
+}
+
+function aplicarDanoCombate(index) {
+  const input = document.getElementById(`danoCombate${index}`);
+  const dano = parseInt(input?.value) || 0;
+
+  if (dano <= 0) return;
+
+  alterarHpCombate(index, -dano);
+}
+
+function aplicarCuraCombate(index) {
+  const input = document.getElementById(`curaCombate${index}`);
+  const cura = parseInt(input?.value) || 0;
+
+  if (cura <= 0) return;
+
+  alterarHpCombate(index, cura);
+}
+
+async function removerDoCombate(index) {
+  const monstro = combatesMestre[index];
+  if (!monstro) return;
+
+  const confirmar = await confirmBonito(`Remover "${monstro.nome}" do combate?`);
+  if (!confirmar) return;
+
+  combatesMestre.splice(index, 1);
+  salvarCombatesMestreStorage();
+  renderCombatesMestre();
+}
+
+function sortearFalaMonstro(index) {
+  const monstro = monstrosMestre[index];
+  const alvo = document.getElementById("falaAleatoriaTexto");
+
+  if (!monstro || !alvo) return;
+
+  if (!monstro.dialogos || monstro.dialogos.length === 0) {
+    alvo.textContent = "Esse monstro ainda não tem falas cadastradas.";
+    return;
+  }
+
+  const fala = monstro.dialogos[Math.floor(Math.random() * monstro.dialogos.length)];
+  alvo.textContent = `“${fala}”`;
+}
+
+function calcularModMonstro(valor) {
+  if (valor <= 1) return -5;
+  if (valor <= 3) return -4;
+  if (valor <= 5) return -3;
+  if (valor <= 7) return -2;
+  if (valor <= 9) return -1;
+  if (valor <= 11) return 0;
+  if (valor <= 13) return 1;
+  if (valor <= 15) return 2;
+  if (valor <= 17) return 3;
+  if (valor <= 19) return 4;
+  if (valor <= 21) return 5;
+  if (valor <= 23) return 6;
+  if (valor <= 25) return 7;
+  if (valor <= 27) return 8;
+  if (valor <= 29) return 9;
+  return 10;
+}
+
+function formatarModMonstro(mod) {
+  return mod >= 0 ? `+${mod}` : `${mod}`;
+}
+
+function atualizarModsMonstro() {
+
+  const atributos = [
+    ["For", "monstroFor"],
+    ["Des", "monstroDes"],
+    ["Con", "monstroCon"],
+    ["Int", "monstroInt"],
+    ["Sab", "monstroSab"],
+    ["Car", "monstroCar"]
+  ];
+
+  atributos.forEach(([sigla, id]) => {
+
+    const valor =
+      parseInt(document.getElementById(id)?.value) || 10;
+
+    const mod = calcularModMonstro(valor);
+
+    const el = document.getElementById(`modMonstro${sigla}`);
+
+    if (el) {
+      el.textContent = formatarModMonstro(mod);
+    }
+  });
+}
+
+function escapeHtml(texto) {
+  return String(texto)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function formatarTexto(texto) {
+  return escapeHtml(texto).replace(/\n/g, "<br>");
+}
+
+/* ================= INIT ================= */
+
+let editandoEventoLore = -1;
+
+function salvarSessaoLore() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+  const nome = document.getElementById("sessaoNome")?.value.trim();
+  if (!nome) { alertBonito("Digite o nome da sessão."); return; }
+
+  campanha.sessoes ||= [];
+  campanha.sessoes.push({
+    id:        Date.now(),
+    nome,
+    status:    document.getElementById("sessaoStatus")?.value || "planejada",
+    descricao: document.getElementById("sessaoDescricao")?.value.trim() || "",
+    data:      new Date().toLocaleDateString("pt-BR"),
+  });
+
+  salvarCampanhasMaster();
+  document.getElementById("sessaoNome").value = "";
+  document.getElementById("sessaoDescricao").value = "";
+  renderSessoesLore();
+}
+
+function renderHabilidades(texto) {
+  if (!texto) return "";
+  const itens = texto.split("|").map(a => a.trim()).filter(Boolean);
+  const linhas = itens.map(hab => {
+    const partes = hab.split(":");
+    const nome = partes[0]?.trim() || hab;
+    const desc = partes.slice(1).join(":").trim();
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(233,224,236,0.12);">
+      <span style="font-size:14px;flex-shrink:0;margin-top:1px;">✨</span>
+      <div>
+        <div style="font-size:13px;font-weight:bold;color:#1e1324;">${escapeHtml(nome)}</div>
+        ${desc ? `<div style="font-size:12px;color:#6c5a70;margin-top:2px;">${escapeHtml(desc)}</div>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+  return `<div style="background:#e2d2e2;border-radius:10px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+    <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+      <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">Habilidades Especiais</span>
+    </div>
+    <div style="padding:4px 12px 4px;">${linhas}</div>
+  </div>`;
+}
+
+function salvarEventoLore() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+  const nome = document.getElementById("eventoNome")?.value.trim();
+  if (!nome) { alertBonito("Digite o nome do evento."); return; }
+
+  campanha.eventos ||= [];
+  campanha.eventos.push({
+    id:        Date.now(),
+    nome,
+    tipo:      document.getElementById("eventoTipo")?.value || "outro",
+    descricao: document.getElementById("eventoDescricao")?.value.trim() || "",
+    data:      new Date().toLocaleDateString("pt-BR"),
+  });
+
+  salvarCampanhasMaster();
+  document.getElementById("eventoNome").value = "";
+  document.getElementById("eventoDescricao")?.value && (document.getElementById("eventoDescricao").value = "");
+  renderEventosLore();
+}
+ 
+function init() {
+  atualizarTudo();
+  renderPersonagens();
+  atualizarHP();
+  atualizarTemp();
+  atualizarMorte();
+  atualizarSaves();
+  atualizarBadgesSaves();
+  ativarDragVida();
+  ativarDragTemp();
+  limparFocoBotoesVida();
+
+  const nome = document.getElementById("nome");
+  const raca = document.getElementById("racaSelect");
+  const classe = document.getElementById("classe");
+  const ca = document.getElementById("ca");
+  const deslocamento = document.getElementById("deslocamento");
+  const idade = document.getElementById("idade");
+  const altura = document.getElementById("altura");
+  const nivel = document.getElementById("nivel");
+  const vidaMax = document.getElementById("vidaMax");
+
+  [nome, raca, classe, ca, deslocamento, idade, altura, nivel].forEach((el) => {
+    if (el) el.addEventListener("input", salvarTudo);
+  });
+
+  if (vidaMax) {
+    vidaMax.addEventListener("input", () => {
+      const max = get("vidaMax");
+      if (vidaAtual > max) vidaAtual = max;
+      atualizarHP();
+      atualizarTemp();
+      salvarTudo();
+    });
+  }
+
+  const camposAutoSave = [
+    "classe",
+    "forca",
+    "destreza",
+    "constituicao",
+    "inteligencia",
+    "sabedoria",
+    "carisma",
+    "bonusProf",
+    "ca",
+    "deslocamento",
+    "idade",
+    "altura",
+    "nivel",
+    "pePorTurno",
+    "racaSelect",
+    "antecedentes",
+    "aliados",
+    "idiomas",
+  ];
+
+  camposAutoSave.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.addEventListener("input", () => {
+  atualizarTudo();
+  salvarTudo();
+});
+  });
+
+  const popup = document.getElementById("popup");
+  if (popup) {
+    popup.addEventListener("click", (e) => {
+      if (e.target.id === "popup") fecharPopup();
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") fecharPopup();
+  });
+
+  trocarAba("personagem");
+}
+
+document.addEventListener("DOMContentLoaded", init);
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("sw.js")
+    .then(() => console.log("SW registrado"))
+    .catch((err) => console.log("Erro SW:", err));
+}
+
+window.onload = function () {
+  restaurarSecoes();
+};
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", restaurarSecoes);
+} else {
+  restaurarSecoes();
+}
+
+atualizarDropdownRacas();
+
+
+/* ================= LORE MASTER ================= */
+
+function salvarHistoriaPrincipalLore() {
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  const texto = document.getElementById("historiaPrincipalLore").value;
+
+  campanha.historiaPrincipal = texto;
+
+  salvarCampanhasMaster();
+}
+
+/* ================= SESSÕES ================= */
+
+function salvarSessaoLore() {
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  const nome = document.getElementById("sessaoNome").value.trim();
+  const descricao = document.getElementById("sessaoDescricao").value.trim();
+
+  if (!nome || !descricao) return;
+
+  if (!campanha.sessoes) {
+    campanha.sessoes = [];
+  }
+
+  campanha.sessoes.unshift({
+    id: Date.now(),
+    nome,
+    descricao,
+    data: new Date().toLocaleDateString("pt-BR")
+  });
+
+  salvarCampanhasMaster();
+
+  document.getElementById("sessaoNome").value = "";
+  document.getElementById("sessaoDescricao").value = "";
+
+  renderSessoesLore();
+}
+
+
+function deletarSessaoLore(id) {
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  campanha.sessoes =
+    campanha.sessoes.filter(s => s.id !== id);
+
+  salvarCampanhasMaster();
+  renderSessoesLore();
+}
+
+/* ================= EVENTOS ================= */
+
+function salvarEventoLore() {
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  const nome = document.getElementById("eventoNome").value.trim();
+  const descricao = document.getElementById("eventoDescricao").value.trim();
+
+  if (!nome || !descricao) return;
+
+  if (!campanha.eventos) {
+    campanha.eventos = [];
+  }
+
+  campanha.eventos.unshift({
+    id: Date.now(),
+    nome,
+    descricao,
+    data: new Date().toLocaleDateString("pt-BR")
+  });
+
+  salvarCampanhasMaster();
+
+  document.getElementById("eventoNome").value = "";
+  document.getElementById("eventoDescricao").value = "";
+
+  renderEventosLore();
+}
+
+
+function deletarEventoLore(id) {
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  campanha.eventos =
+    campanha.eventos.filter(e => e.id !== id);
+
+  salvarCampanhasMaster();
+  renderEventosLore();
+}
+
+
+/* ================= LORE MASTER ================= */
+
+function salvarHistoriaPrincipalLore() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  campanha.historiaPrincipal =
+    document.getElementById("historiaPrincipalLore")?.value || "";
+
+  salvarCampanhasMaster();
+}
+
+function salvarSessaoLore() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  campanha.sessoes ||= [];
+
+  const nome = document.getElementById("sessaoNome").value.trim();
+  const descricao = document.getElementById("sessaoDescricao").value.trim();
+
+  if (!nome || !descricao) return;
+
+  campanha.sessoes.push({
+    id: Date.now(),
+    nome,
+    descricao,
+    data: new Date().toLocaleDateString("pt-BR"),
+  });
+
+  document.getElementById("sessaoNome").value = "";
+  document.getElementById("sessaoDescricao").value = "";
+
+  salvarCampanhasMaster();
+  renderSessoesLore();
+}
+
+function salvarEventoLore() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  campanha.eventos ||= [];
+
+  const nome = document.getElementById("eventoNome").value.trim();
+  const descricao = document.getElementById("eventoDescricao").value.trim();
+
+  if (!nome || !descricao) return;
+
+  campanha.eventos.push({
+    id: Date.now(),
+    nome,
+    descricao,
+    data: new Date().toLocaleDateString("pt-BR"),
+  });
+
+  document.getElementById("eventoNome").value = "";
+  document.getElementById("eventoDescricao").value = "";
+
+  salvarCampanhasMaster();
+  renderEventosLore();
+}
+
+function renderSessoesLore() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const lista = document.getElementById("listaSessoesLore");
+  if (!lista || !campanha) return;
+
+  campanha.sessoes ||= [];
+
+  if (!campanha.sessoes.length) {
+    lista.innerHTML = `<p class="master-desc" style="padding:12px 0;">Nenhuma sessão ainda.</p>`;
+    return;
+  }
+
+  const corStatus  = { completa:"#2a7a40", planejada:"#6c263b", cancelada:"#7a2020" };
+  const labelStatus = { completa:"Completa", planejada:"Planejada", cancelada:"Cancelada" };
+
+  lista.innerHTML = campanha.sessoes.map((s, i) => {
+    const status = s.status || "planejada";
+    const cor = corStatus[status] || "#682539";
+    return `
+    <div style="
+      background:#eadeea;
+      border:1px solid rgba(233,224,236,0.2);
+      border-left:3px solid ${cor};
+       border-radius:10px;
+      padding:14px 16px;
+      margin-bottom:12px;
+      cursor:pointer;
+    " onclick="abrirDetalheSessaoLore(${s.id})">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="
+          width:28px;height:28px;border-radius:50%;flex-shrink:0;
+          background:${cor}22;border:1.5px solid ${cor}66;
+          color:${cor};font-size:12px;font-weight:bold;
+          display:flex;align-items:center;justify-content:center;">
+          ${i + 1}
+        </div>
+        <strong style="flex:1;color:#1e1324;font-size:14px;">${escapeHtml(s.nome)}</strong>
+        <span style="
+          font-size:10px;font-weight:bold;padding:3px 9px;border-radius:20px;
+          background:${cor}22;color:${cor};border:1px solid ${cor}44;">
+          ${labelStatus[status] || status}
+        </span>
+      </div>
+      ${s.descricao ? `<p style="font-size:12px;color:#6c5a70;margin:0 0 10px 38px;line-height:1.5;">${escapeHtml(s.descricao)}</p>` : ""}
+      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(233,224,236,0.13);padding-top:8px;margin-top:4px;">
+        <button onclick="event.stopPropagation();editarSessaoLore(${s.id})" style="
+          background:transparent;border:1px solid rgba(233,224,236,0.26);border-radius:6px;
+          color:#6c5a70;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
+        <button onclick="event.stopPropagation();deletarSessaoLore(${s.id})" style="
+          background:transparent;border:1px solid rgba(143,34,34,0.3);border-radius:6px;
+          color:#8f2222;font-size:13px;padding:4px 10px;cursor:pointer;">🗑</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderEventosLore() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const lista = document.getElementById("listaEventosLore");
+  if (!lista || !campanha) return;
+
+  campanha.eventos ||= [];
+
+  if (!campanha.eventos.length) {
+    lista.innerHTML = `<p class="master-desc" style="padding:12px 0;">Nenhum evento ainda.</p>`;
+    return;
+  }
+
+  const tipoInfo = {
+    batalha:  { emoji:"⚔️", cor:"#8f2222" },
+    revelacao:{ emoji:"🔍", cor:"#1a5f8f" },
+    morte:    { emoji:"💀", cor:"#4a4a4a" },
+    alianca:  { emoji:"🤝", cor:"#2a7a40" },
+    outro:    { emoji:"📌", cor:"#6c263b" },
+  };
+
+  lista.innerHTML = campanha.eventos.map(e => {
+    const t = tipoInfo[e.tipo] || tipoInfo.outro;
+    return `
+    <div style="
+      background:#eadeea;
+      border:1px solid rgba(233,224,236,0.2);
+      border-left:3px solid ${t.cor};
+      border-radius:10px;
+      padding:14px 16px;
+      margin-bottom:12px;
+      cursor:pointer;
+    " onclick="abrirDetalheEventoLore(${e.id})">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="
+          font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;
+          padding:3px 9px;border-radius:20px;
+          background:${t.cor}22;color:${t.cor};border:1px solid ${t.cor}44;">
+          ${t.emoji} ${e.tipo || "outro"}
+        </span>
+        ${e.data ? `<span style="font-size:11px;color:#645367;margin-left:auto;">${e.data}</span>` : ""}
+      </div>
+      <strong style="color:#1e1324;font-size:14px;">${escapeHtml(e.nome)}</strong>
+      ${e.descricao ? `<p style="font-size:12px;color:#6c5a70;margin:6px 0 10px;line-height:1.5;">${escapeHtml(e.descricao)}</p>` : ""}
+      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(233,224,236,0.13);padding-top:8px;margin-top:4px;">
+        <button onclick="event.stopPropagation();editarEventoLore(${e.id})" style="
+          background:transparent;border:1px solid rgba(233,224,236,0.26);border-radius:6px;
+          color:#6c5a70;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
+        <button onclick="event.stopPropagation();deletarEventoLore(${e.id})" style="
+          background:transparent;border:1px solid rgba(143,34,34,0.3);border-radius:6px;
+          color:#8f2222;font-size:13px;padding:4px 10px;cursor:pointer;">🗑</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function deletarSessaoLore(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  campanha.sessoes =
+    campanha.sessoes.filter(s => s.id !== id);
+
+  salvarCampanhasMaster();
+  renderSessoesLore();
+}
+
+
+function deletarEventoLore(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  campanha.eventos =
+    campanha.eventos.filter(e => e.id !== id);
+
+  salvarCampanhasMaster();
+  renderEventosLore();
+}
+
+function editarSessaoLore(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+  const s = campanha.sessoes.find(s => s.id === id);
+  if (!s) return;
+
+  const modal = document.createElement("div");
+  modal.id = "modalEditarSessao";
+  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(14,8,16,0.85);display:flex;align-items:center;justify-content:center;padding:24px;`;
+  modal.innerHTML = `
+    <div style="background:#140c18;border:1px solid rgba(233,224,236,0.23);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;">
+      <button onclick="document.getElementById('modalEditarSessao').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#8e324e;font-size:20px;cursor:pointer;">✕</button>
+      <h3 style="color:#efe7ef;font-size:16px;margin:0 0 16px;font-family:'Cinzel',serif;">✏ Editar Sessão</h3>
+
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Nome</label>
+      <input id="editSessaoNome" value="${escapeHtml(s.nome)}" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Status</label>
+      <select id="editSessaoStatus" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+        <option value="planejada" ${s.status==='planejada'?'selected':''}>🟡 Planejada</option>
+        <option value="completa"  ${s.status==='completa' ?'selected':''}>✅ Completa</option>
+        <option value="cancelada" ${s.status==='cancelada'?'selected':''}>❌ Cancelada</option>
+      </select>
+
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Descrição</label>
+      <textarea id="editSessaoDescricao" rows="4" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:13px;margin:6px 0 16px;box-sizing:border-box;resize:vertical;">${escapeHtml(s.descricao || '')}</textarea>
+
+      <button onclick="salvarEdicaoSessaoLore(${id})" style="width:100%;background:#7B1E28;border:none;border-radius:8px;color:#F8F4E3;padding:12px;font-size:14px;font-family:'Cinzel',serif;cursor:pointer;">Salvar alterações</button>
+    </div>
+  `;
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function salvarEdicaoSessaoLore(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+  const sessao = campanha.sessoes.find(s => s.id === id);
+  if (!sessao) return;
+
+  sessao.nome      = document.getElementById("editSessaoNome").value;
+  sessao.descricao = document.getElementById("editSessaoDescricao").value;
+  sessao.status    = document.getElementById("editSessaoStatus").value;
+
+  salvarCampanhasMaster();
+  renderSessoesLore();
+  document.getElementById("modalEditarSessao")?.remove();
+}
+
+function editarEventoLore(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+  const e = campanha.eventos.find(e => e.id === id);
+  if (!e) return;
+
+  const tipoInfo = { batalha:"⚔️ Batalha", revelacao:"🔍 Revelação", morte:"💀 Morte", alianca:"🤝 Aliança", outro:"📌 Outro" };
+
+  const modal = document.createElement("div");
+  modal.id = "modalEditarEvento";
+  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(14,8,16,0.85);display:flex;align-items:center;justify-content:center;padding:24px;`;
+  modal.innerHTML = `
+    <div style="background:#140c18;border:1px solid rgba(233,224,236,0.23);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;">
+      <button onclick="document.getElementById('modalEditarEvento').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#8e324e;font-size:20px;cursor:pointer;">✕</button>
+      <h3 style="color:#efe7ef;font-size:16px;margin:0 0 16px;font-family:'Cinzel',serif;">✏ Editar Evento</h3>
+
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Nome</label>
+      <input id="editEventoNome" value="${escapeHtml(e.nome)}" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Tipo</label>
+      <select id="editEventoTipo" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+        ${Object.entries(tipoInfo).map(([val, label]) => `<option value="${val}" ${e.tipo===val?'selected':''}>${label}</option>`).join('')}
+      </select>
+
+      <label style="color:#6c5a70;font-size:11px;text-transform:uppercase;letter-spacing:1px;">Descrição</label>
+      <textarea id="editEventoDescricao" rows="4" style="width:100%;background:#1e1324;border:1px solid rgba(233,224,236,0.2);border-radius:8px;color:#F8F4E3;padding:10px 12px;font-size:13px;margin:6px 0 16px;box-sizing:border-box;resize:vertical;">${escapeHtml(e.descricao || '')}</textarea>
+
+      <button onclick="salvarEdicaoEventoLore(${id})" style="width:100%;background:#7B1E28;border:none;border-radius:8px;color:#F8F4E3;padding:12px;font-size:14px;font-family:'Cinzel',serif;cursor:pointer;">Salvar alterações</button>
+    </div>
+  `;
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function salvarEdicaoEventoLore(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+  const evento = campanha.eventos.find(e => e.id === id);
+  if (!evento) return;
+
+  evento.nome      = document.getElementById("editEventoNome").value;
+  evento.descricao = document.getElementById("editEventoDescricao").value;
+  evento.tipo      = document.getElementById("editEventoTipo").value;
+
+  salvarCampanhasMaster();
+  renderEventosLore();
+  fecharPopup();
+  document.getElementById("modalEditarEvento")?.remove();
+}
+
+/* ═══════════════════════════════════════════
+   ABA MUNDO — NPCs, Missões, Encontros
+═══════════════════════════════════════════ */
+
+function inicializarAbaMundo() {
+  document.querySelectorAll(".mundo-secao").forEach(s => s.style.display = "none");
+  document.querySelectorAll(".mundo-tab-btn").forEach(b => b.classList.remove("active"));
+
+  const missoes = document.getElementById("mundoSecaoMissoes");
+  if (missoes) missoes.style.display = "block";
+
+  const primeiroBtn = document.querySelector("#abaMaster-mundo .mundo-tab-btn");
+  if (primeiroBtn) primeiroBtn.classList.add("active");
+
+  renderMundoCampanha();
+}
+
+function renderMundoCampanha() {
+  renderMissoesMundo();
+}
+
+window._darItemContexto = null;
+
+window.abrirDarItem = async function (tipo, index) {
+  const ficha = window.personagens?.[personagemAtual];
+  if (!ficha) return;
+
+  if (!ficha.grupoAtivo) {
+    alertBonito("Essa ficha não está vinculada a nenhum grupo. Vá em Amigos → Grupos e escolha essa ficha num grupo primeiro.");
+    return;
+  }
+
+  window._darItemContexto = { tipo, index };
+
+  document.getElementById("modalDarItemOverlay").style.display = "block";
+  document.getElementById("modalDarItem").style.display = "block";
+
+  const lista = document.getElementById("listaDarItem");
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Carregando...</p>`;
+
+  try {
+    const grupoSnap = await getDoc(doc(db, "grupos", ficha.grupoAtivo));
+    if (!grupoSnap.exists()) {
+      lista.innerHTML = `<p style="color:#e07a7a;font-size:12px;text-align:center;">Esse grupo não existe mais.</p>`;
+      return;
+    }
+    const g = grupoSnap.data();
+    const meuUid = window.usuarioAtual.uid;
+    const outros = g.membros.filter(m => m.uid !== meuUid && m.fichaId);
+
+    if (outros.length === 0) {
+      lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Ninguém do grupo tem uma ficha vinculada ainda.</p>`;
+      return;
+    }
+
+    lista.innerHTML = outros.map(m => `
+      <button onclick="window.confirmarDarItem('${m.uid}', '${m.fichaId}', '${escapeHtml(m.nickname)}')" style="width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid rgba(233,224,236,0.13);background:rgba(255,255,255,0.03);color:#F8F4E3;font-size:13px;cursor:pointer;">
+        ${escapeHtml(m.nickname)}<span style="opacity:.5;">#${escapeHtml(m.tag)}</span>
+      </button>
+    `).join("");
+  } catch (e) {
+    console.error(e);
+    lista.innerHTML = `<p style="color:#e07a7a;font-size:12px;text-align:center;">Erro: ${e.code || e.message}</p>`;
+  }
+};
+
+window.fecharDarItem = function () {
+  document.getElementById("modalDarItemOverlay").style.display = "none";
+  document.getElementById("modalDarItem").style.display = "none";
+  window._darItemContexto = null;
+};
+
+window.confirmarDarItem = async function (uidDestino, fichaIdDestino, nomeDestino) {
+  const ctx = window._darItemContexto;
+  if (!ctx) return;
+
+  const ficha = window.personagens[personagemAtual];
+  const arrays = { inventario, armas, armaduras };
+  const arr = arrays[ctx.tipo];
+  const item = arr?.[ctx.index];
+  if (!item) return;
+
+  if (!(await confirmBonito(`Dar "${item.nome || "esse item"}" pra ${nomeDestino}?`))) return;
+
+  try {
+    const meuUid = window.usuarioAtual.uid;
+    const meuSnap = await getDoc(doc(db, "usuarios", meuUid));
+    const meuDados = meuSnap.exists() ? meuSnap.data() : {};
+
+    await setDoc(doc(collection(db, "usuarios", uidDestino, "itensRecebidos")), {
+      tipo: ctx.tipo,
+      item,
+      deUid: meuUid,
+      deNickname: meuDados.nickname || "",
+      deTag: meuDados.tag || "",
+      fichaDestinoId: fichaIdDestino,
+      automatico: false,
+      criadoEm: new Date().toISOString()
+    });
+
+    arr.splice(ctx.index, 1);
+    if (ctx.tipo === "inventario") { window.inventario = inventario; renderInv(); }
+    if (ctx.tipo === "armas") { window.armas = armas; renderArmas(); }
+    if (ctx.tipo === "armaduras") { window.armaduras = armaduras; renderArmaduras(); }
+    salvarTudo();
+
+    window.fecharDarItem();
+    alertBonito("Item enviado!");
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao dar item: " + (e.code || e.message));
+  }
+};
+
+window.abrirInboxItens = async function () {
+  document.getElementById("modalInboxItensOverlay").style.display = "block";
+  document.getElementById("modalInboxItens").style.display = "block";
+  await window.renderInboxItens();
+};
+
+window.fecharInboxItens = function () {
+  document.getElementById("modalInboxItensOverlay").style.display = "none";
+  document.getElementById("modalInboxItens").style.display = "none";
+};
+
+window.renderInboxItens = async function () {
+  const lista = document.getElementById("listaInboxItens");
+  const meuUid = window.usuarioAtual.uid;
+
+  lista.innerHTML = `<p style="color:#d5cbd8;font-size:12px;text-align:center;">Carregando...</p>`;
+
+  try {
+    const snap = await getDocs(collection(db, "usuarios", meuUid, "itensRecebidos"));
+
+    if (snap.empty) {
+      lista.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:16px 0;font-style:italic;">Nada por aqui.</p>`;
+      atualizarBadgeInboxItens(0);
+      return;
+    }
+
+    let html = "";
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      html += `
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:13px;color:#F8F4E3;font-weight:bold;">${escapeHtml(d.item?.nome || "Sem nome")}</div>
+          <div style="font-size:11px;color:#d5cbd8;margin:2px 0 8px;">de ${escapeHtml(d.deNickname)}<span style="opacity:.5;">#${escapeHtml(d.deTag)}</span> · ${d.tipo}</div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="window.aceitarItemRecebido('${docSnap.id}')" style="flex:1;padding:6px;border-radius:6px;border:none;background:#4a7c3a;color:#fff;font-size:12px;cursor:pointer;">Aceitar</button>
+            <button onclick="window.recusarItemRecebido('${docSnap.id}')" style="flex:1;padding:6px;border-radius:6px;border:none;background:#7B1E28;color:#fff;font-size:12px;cursor:pointer;">Recusar</button>
+          </div>
+        </div>`;
+    });
+    lista.innerHTML = html;
+    atualizarBadgeInboxItens(snap.size);
+  } catch (e) {
+    console.error(e);
+    lista.innerHTML = `<p style="color:#e07a7a;font-size:12px;text-align:center;">Erro: ${e.code || e.message}</p>`;
+  }
+};
+
+function atualizarBadgeInboxItens(n) {
+  const badge = document.getElementById("badgeInboxItens");
+  if (!badge) return;
+  if (n > 0) {
+    badge.style.display = "flex";
+    badge.textContent = n;
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+window.aceitarItemRecebido = async function (docId) {
+  const meuUid = window.usuarioAtual.uid;
+  try {
+    const ref = doc(db, "usuarios", meuUid, "itensRecebidos", docId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const d = snap.data();
+
+    const ficha = (window.personagens || []).find(f => String(f.id) === String(d.fichaDestinoId));
+    if (!ficha) {
+      alertBonito("A ficha que devia receber esse item não existe mais na sua conta.");
+      await deleteDoc(ref);
+      window.renderInboxItens();
+      return;
+    }
+
+    ficha[d.tipo] = ficha[d.tipo] || [];
+    ficha[d.tipo].push(d.item);
+
+    if (typeof salvarPersonagens === "function") salvarPersonagens();
+
+    if (personagemAtual !== null && window.personagens[personagemAtual]?.id === ficha.id) {
+      if (d.tipo === "inventario") { inventario = ficha.inventario; window.inventario = inventario; renderInv(); }
+      if (d.tipo === "armas") { armas = ficha.armas; window.armas = armas; renderArmas(); }
+      if (d.tipo === "armaduras") { armaduras = ficha.armaduras; window.armaduras = armaduras; renderArmaduras(); }
+      if (d.tipo === "mapas") { mapas = ficha.mapas; window.mapas = mapas; renderMapas(); }
+    }
+
+    await deleteDoc(ref);
+    window.renderInboxItens();
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao aceitar: " + (e.code || e.message));
+  }
+};
+
+window.recusarItemRecebido = async function (docId) {
+  const meuUid = window.usuarioAtual.uid;
+  try {
+    const ref = doc(db, "usuarios", meuUid, "itensRecebidos", docId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const d = snap.data();
+
+    const meuSnap = await getDoc(doc(db, "usuarios", meuUid));
+    const meuDados = meuSnap.exists() ? meuSnap.data() : {};
+
+    // devolve pra quem deu, marcado como automático (não precisa a pessoa aceitar de novo)
+    await setDoc(doc(collection(db, "usuarios", d.deUid, "itensRecebidos")), {
+      tipo: d.tipo,
+      item: d.item,
+      deUid: meuUid,
+      deNickname: meuDados.nickname || "",
+      deTag: meuDados.tag || "",
+      fichaDestinoId: null,
+      fichaOrigemDevolucao: true,
+      automatico: true,
+      criadoEm: new Date().toISOString()
+    });
+
+    await deleteDoc(ref);
+    window.renderInboxItens();
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao recusar: " + (e.code || e.message));
+  }
+};
+
+// processa devoluções automáticas assim que a conta carrega
+window.processarDevolucoesAutomaticas = async function () {
+  const meuUid = window.usuarioAtual?.uid;
+  if (!meuUid) return;
+
+  try {
+    const snap = await getDocs(collection(db, "usuarios", meuUid, "itensRecebidos"));
+    for (const docSnap of snap.docs) {
+      const d = docSnap.data();
+      if (!d.automatico) continue;
+
+      // devolução: acha a ficha de onde o item saiu originalmente (a que estava vinculada ao grupo na hora)
+      const fichaAlvo = (window.personagens || []).find(f => f.grupoAtivo) || window.personagens?.[0];
+      if (fichaAlvo) {
+        fichaAlvo[d.tipo] = fichaAlvo[d.tipo] || [];
+        fichaAlvo[d.tipo].push(d.item);
+      }
+
+      await deleteDoc(doc(db, "usuarios", meuUid, "itensRecebidos", docSnap.id));
+    }
+
+    if (typeof salvarPersonagens === "function") salvarPersonagens();
+    if (typeof renderInv === "function") renderInv();
+    if (typeof renderArmas === "function") renderArmas();
+    if (typeof renderArmaduras === "function") renderArmaduras();
+
+    const contagemSnap = await getDocs(collection(db, "usuarios", meuUid, "itensRecebidos"));
+    atualizarBadgeInboxItens(contagemSnap.size);
+  } catch (e) {
+    console.error("Erro ao processar devoluções:", e);
+  }
+};
+
+function trocarAbaLore(aba, btn) {
+  const mapa = {
+    historia: "loreSecaoHistoria",
+    sessoes:  "loreSecaoSessoes",
+    eventos:  "loreSecaoEventos",
+  };
+
+  const atual = document.querySelector("#abaMaster-lore .mundo-secao[style*='block']");
+  const proxEl = document.getElementById(mapa[aba]);
+  if (!proxEl) return;
+
+  document.querySelectorAll("#abaMaster-lore .mundo-tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  if (atual && atual !== proxEl) {
+    atual.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+    atual.style.opacity = "0";
+    atual.style.transform = "translateX(-12px)";
+    setTimeout(() => {
+      atual.style.display = "none";
+      atual.style.opacity = "";
+      atual.style.transform = "";
+      proxEl.style.display = "block";
+      proxEl.style.opacity = "0";
+      proxEl.style.transform = "translateX(12px)";
+      proxEl.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+      requestAnimationFrame(() => {
+        proxEl.style.opacity = "1";
+        proxEl.style.transform = "translateX(0)";
+      });
+    }, 200);
+  } else {
+    proxEl.style.display = "block";
+    proxEl.style.opacity = "0";
+    proxEl.style.transform = "translateX(12px)";
+    proxEl.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+    requestAnimationFrame(() => {
+      proxEl.style.opacity = "1";
+      proxEl.style.transform = "translateX(0)";
+    });
+  }
+
+  if (aba === "sessoes") renderSessoesLore();
+  if (aba === "eventos") renderEventosLore();
+}
+
+/* ── NPCs ── */
+function salvarNPCMundo() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  const nome = document.getElementById("mundoNPCNome")?.value.trim();
+  if (!nome) { alertBonito("Digite o nome do NPC."); return; }
+
+  campanha.npcsMundo ||= [];
+  campanha.npcsMundo.push({
+  id:      Date.now(),
+  nome,
+  classe:  document.getElementById("mundoNPCClasse")?.value.trim() || "",
+  regiao:  document.getElementById("mundoNPCRegiao")?.value.trim() || "",
+  relacao: document.getElementById("mundoNPCRelacao")?.value || "neutro",
+  desc:    document.getElementById("mundoNPCDesc")?.value.trim()   || "",
+});
+
+  salvarCampanhasMaster();
+  ["mundoNPCNome","mundoNPCClasse","mundoNPCRegiao","mundoNPCDesc"]
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  renderNPCsMundo();
+  mostrarToastMundo("NPC adicionado!");
+}
+
+async function salvarNPCMestre() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) { alertBonito("Nenhuma campanha selecionada."); return; }
+
+  const nome = document.getElementById("npcNome")?.value.trim();
+  if (!nome) { alertBonito("Digite o nome do NPC."); return; }
+
+   monstrosMestre.push({
+    id: Date.now(), _tipo: "npc", _origem: "usuario",
+    nome,
+    raca:          document.getElementById("npcRaca")?.value.trim()        || "",
+    idade:         document.getElementById("npcIdade")?.value.trim()       || "",
+    classe:        document.getElementById("npcClasse")?.value.trim()      || "",
+    regiao:        document.getElementById("npcRegiao")?.value.trim()      || "",
+    religiao:      document.getElementById("npcReligiao")?.value.trim()    || "",
+    localizacao:   document.getElementById("npcLocalizacao")?.value.trim() || "",
+    pericias:      document.getElementById("npcPericias")?.value.trim()    || "",
+    status: {
+      for: parseInt(document.getElementById("npcFor")?.value) || 10,
+      des: parseInt(document.getElementById("npcDes")?.value) || 10,
+      con: parseInt(document.getElementById("npcCon")?.value) || 10,
+      int: parseInt(document.getElementById("npcInt")?.value) || 10,
+      sab: parseInt(document.getElementById("npcSab")?.value) || 10,
+      car: parseInt(document.getElementById("npcCar")?.value) || 10,
+    },
+    personalidade: document.getElementById("npcPersonalidade")?.value.trim() || "",
+    relacoes:      document.getElementById("npcRelacoes")?.value.trim()      || "",
+    observacoes:   document.getElementById("npcObservacoes")?.value.trim()   || "",
+    hpMax:         parseInt(document.getElementById("npcHpMax")?.value)      || 20,
+    ca:            parseInt(document.getElementById("npcCa")?.value)         || 10,
+    velocidade:    document.getElementById("npcVelocidade")?.value.trim()    || "",
+    desafio:       document.getElementById("npcDesafio")?.value.trim()       || "",
+    habilidades:   document.getElementById("npcHabilidades")?.value.trim()   || "",
+    acoes:         document.getElementById("npcAcoes")?.value.trim()         || "",
+    reacoes:       document.getElementById("npcReacoes")?.value.trim()       || "",
+    resistencias:  document.getElementById("npcResistencias")?.value.trim()  || "",
+    ...(window._imagemNpcBase64
+    ? await uploadImagemFirebase(window._imagemNpcBase64, `npcs/${Date.now()}.jpg`).then(r => ({ imagem: r.url, imagemDeleteUrl: r.deleteUrl }))
+    : { imagem: "", imagemDeleteUrl: "" }),
+  });
+
+    salvarMonstrosMestreStorage();
+
+  /* limpa o form */
+  _npcAcoesForm = []; _npcHabilidadesForm = [];
+  _renderItemForm("npcAcoesList",[],"removerAcaoNpc","npcAcoes");
+  _renderItemForm("npcHabilidadesList",[],"removerHabilidadeNpc","npcHabilidades");
+  ["npcNome","npcRaca","npcIdade","npcClasse","npcRegiao","npcReligiao",
+   "npcLocalizacao","npcPericias","npcPersonalidade","npcRelacoes","npcObservacoes",
+   "npcHabilidades","npcAcoes","npcReacoes","npcResistencias","npcVelocidade","npcDesafio"]
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  ["npcFor","npcDes","npcCon","npcInt","npcSab","npcCar"]
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = "10"; });
+  const npcHpEl = document.getElementById("npcHpMax"); if (npcHpEl) npcHpEl.value = "20";
+  const npcCaEl = document.getElementById("npcCa"); if (npcCaEl) npcCaEl.value = "10";
+  window.imagemNPCBase64 = "";
+  const inp = document.getElementById("npcImagemInput"); if (inp) inp.value = "";
+  const pre = document.getElementById("previewNPC");
+  if (pre) { pre.src = ""; pre.style.display = "none"; }
+
+  renderMonstrosMestre();
+  mostrarToastMundo("NPC salvo no Compêndio! 👹");
+} 
+
+function renderNPCsMundo() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const lista    = document.getElementById("mundoNPCLista");
+  if (!lista) return;
+  campanha.npcsMundo ||= [];
+
+  if (!campanha.npcsMundo.length) {
+    lista.innerHTML = `<p class="master-desc">Nenhum NPC ainda.</p>`;
+    return;
+  }
+
+  const relInfo = {
+    aliado:  { cor:"#2a7a40", label:"Aliado"  },
+    neutro:  { cor:"#6c263b", label:"Neutro"  },
+    inimigo: { cor:"#8f2222", label:"Inimigo" },
+  };
+
+  lista.innerHTML = campanha.npcsMundo.map(n => {
+    const rel      = relInfo[n.relacao] || relInfo.neutro;
+    const iniciais = (n.nome||"?").split(" ").map(p=>p[0]).join("").slice(0,2).toUpperCase();
+    const cor      = _corAvatar(n.nome);
+    const d        = n.dadosCompletos || {};
+    const mod      = v => { const m = Math.floor(((v||10)-10)/2); return m>=0?`+${m}`:`${m}`; };
+    const hpMax    = n.hpMax || d.hpMax || d.hp || 20;
+    const hpAtual  = n.hpAtual !== undefined ? n.hpAtual : hpMax;
+    const hpPct    = Math.max(0, Math.min(100, Math.round((hpAtual/hpMax)*100)));
+    const hpCor    = hpPct > 60 ? "#2a7a40" : hpPct > 30 ? "#6c263b" : "#8f2222";
+
+    const bloco = (titulo, valor) => valor ? `
+      <div style="background:#eadeea;border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid rgba(233,224,236,0.13);">
+        <div style="background:#d9b3e6;padding:6px 12px;text-align:center;">
+          <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+        </div>
+        <p style="color:#1e1324;font-size:13px;margin:0;padding:10px 12px;line-height:1.5;text-align:center;">${escapeHtml(valor)}</p>
+      </div>` : "";
+
+    return `
+<div class="npc-card-mundo" id="npcMundo_${n.id}" style="background:#F8F4E3;border:1px solid rgba(233,224,236,0.2);border-left:3px solid ${rel.cor};border-radius:10px;margin-bottom:12px;">
+  <div class="npc-card-header" onclick="toggleNPCMundo(${n.id})" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;">
+    <div style="width:38px;height:38px;border-radius:50%;background:${cor};color:#fff;font-size:14px;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+  ${n.imagem ? `<img src="${n.imagem}" style="width:100%;height:100%;object-fit:cover;">` : iniciais}
+</div>
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <strong style="color:#1e1324;font-size:14px;">${escapeHtml(n.nome)}</strong>
+        <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${rel.cor}22;color:${rel.cor};border:1px solid ${rel.cor}44;">${rel.label}</span>
+        <span class="npc-toggle-seta" style="margin-left:auto;color:#6c5a70;font-size:12px;">▼</span>
+      </div>
+      <small style="color:#6c5a70;font-size:11px;">${[escapeHtml(n.classe||""), escapeHtml(n.regiao||"")].filter(Boolean).join(" · ")}</small>
+      <div style="margin-top:6px;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span id="npcHpCoracao_${n.id}" style="font-size:11px;color:${hpCor};font-weight:bold;">❤ ${hpAtual}/${hpMax}</span>
+    <div style="flex:1;height:6px;background:rgba(0,0,0,0.1);border-radius:4px;overflow:hidden;">
+      <div id="npcHpBarra_${n.id}" style="height:100%;width:${hpPct}%;background:${hpCor};border-radius:4px;transition:width 0.3s ease;"></div>
+    </div>
+  </div>
+  ${d.ca ? `<div style="font-size:11px;color:#6c5a70;font-weight:bold;margin-top:3px;">🛡️ CA ${d.ca}</div>` : ""}
+</div>
+    </div>
+  </div>
+
+  <div class="npc-card-detalhes" id="npcDetalhes_${n.id}" style="display:none;max-height:0;overflow:hidden;" data-aberto="0">
+    <div style="padding:0 16px 16px;">
+
+     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;padding:10px;background:#eadeea;border-radius:8px;border:1px solid rgba(233,224,236,0.13);">
+  <div style="display:flex;gap:4px;">
+    <button onclick="event.stopPropagation();alterarHpNPC(${n.id},-10)" style="flex:1;background:#6b1818!important;border:none!important;border-radius:6px;color:#fff!important;padding:8px 4px;font-size:12px;cursor:pointer;font-weight:bold;">-10</button>
+    <button onclick="event.stopPropagation();alterarHpNPC(${n.id},-5)"  style="flex:1;background:#8f2222!important;border:none!important;border-radius:6px;color:#fff!important;padding:8px 4px;font-size:12px;cursor:pointer;font-weight:bold;">-5</button>
+    <button onclick="event.stopPropagation();alterarHpNPC(${n.id},-1)"  style="flex:1;background:#8f2222!important;border:none!important;border-radius:6px;color:#fff!important;padding:8px 4px;font-size:12px;cursor:pointer;font-weight:bold;">-1</button>
+    <button onclick="event.stopPropagation();alterarHpNPC(${n.id},+1)"  style="flex:1;background:#2a7a40!important;border:none!important;border-radius:6px;color:#fff!important;padding:8px 4px;font-size:12px;cursor:pointer;font-weight:bold;">+1</button>
+    <button onclick="event.stopPropagation();alterarHpNPC(${n.id},+5)"  style="flex:1;background:#2a7a40!important;border:none!important;border-radius:6px;color:#fff!important;padding:8px 4px;font-size:12px;cursor:pointer;font-weight:bold;">+5</button>
+    <button onclick="event.stopPropagation();alterarHpNPC(${n.id},+10)" style="flex:1;background:#1a5c2e!important;border:none!important;border-radius:6px;color:#fff!important;padding:8px 4px;font-size:12px;cursor:pointer;font-weight:bold;">+10</button>
+  </div>
+</div>
+
+
+      ${(d.status && Object.keys(d.status).length) ? `
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px;">
+        ${["for","des","con","int","sab","car"].map(a=>`
+          <div style="background:#eadeea;border-radius:8px;padding:8px 4px;text-align:center;border:1px solid rgba(233,224,236,0.13);">
+            <div style="font-size:9px;color:#6c5a70;text-transform:uppercase;letter-spacing:0.5px;">${a}</div>
+            <div style="font-size:15px;font-weight:bold;color:#1e1324;">${d.status[a]||10}</div>
+            <div style="font-size:10px;color:#7B1E28;">${mod(d.status[a]||10)}</div>
+          </div>`).join("")}
+      </div>` : ""}
+
+      ${bloco("Personalidade", n.desc)}
+      ${bloco("Relações", d.relacoes)}
+      ${bloco("Perícias", d.pericias)}
+      ${bloco("Religião", d.religiao)}
+      ${bloco("Observações", d.observacoes)}
+
+      ${(d.velocidade || d.desafio) ? `
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        ${d.velocidade ? `<span style="background:#eadeea;border:1px solid rgba(233,224,236,0.2);border-radius:8px;padding:5px 10px;font-size:12px;color:#1e1324;"><strong>Vel</strong> ${escapeHtml(d.velocidade)}</span>` : ""}
+        ${d.desafio ? `<span style="background:#eadeea;border:1px solid rgba(233,224,236,0.2);border-radius:8px;padding:5px 10px;font-size:12px;color:#1e1324;"><strong>ND</strong> ${escapeHtml(d.desafio)}</span>` : ""}
+      </div>` : ""}
+
+      ${bloco("⚔️ Habilidades Especiais", d.habilidades)}
+      ${bloco("🎯 Ações", d.acoes)}
+      ${bloco("Reações", d.reacoes)}
+      ${bloco("Resistências / Imunidades", d.resistencias)}
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;">
+        <button onclick="event.stopPropagation();enviarNPCParaCombate(${n.id})" style="flex:1;background:#8f2222!important;border:none!important;border-radius:8px;color:#fff!important;padding:8px;font-size:12px;cursor:pointer;font-weight:bold;">⚔️ Enviar para Combate</button>
+        <span onclick="deletarNPCMundo(${n.id})" style="cursor:pointer;font-size:12px;color:#8f2222;opacity:0.8;white-space:nowrap;">🗑 Remover</span>
+      </div>
+    </div>
+  </div>
+</div>`;
+  }).join("");
+}
+
+function enviarNPCParaCombate(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const n = campanha?.npcsMundo?.find(x => x.id === id);
+  if (!n) return;
+
+  const d = n.dadosCompletos || {};
+  const hpMax = n.hpMax || d.hpMax || 20;
+
+  const copia = {
+    instanciaId:  Date.now() + Math.floor(Math.random() * 9999),
+    monstroBaseId: n.id,
+    origem:       "npc_mundo",
+    nome:         n.nome || "NPC",
+    tipo:         d.classe || d.raca || "NPC",
+    regiao:       n.regiao || "",
+    hpMax,
+    hpAtual:      n.hpAtual !== undefined ? n.hpAtual : hpMax,
+    ca:           d.ca || 10,
+    velocidade:   d.velocidade || "",
+    desafio:      d.desafio || "",
+    status: d.status || { for:10, des:10, con:10, int:10, sab:10, car:10 },
+    lore:         n.desc || "",
+    habilidades:  d.habilidades || "",
+    acoes:        d.acoes || "",
+    reacoes:      d.reacoes || "",
+    resistencias: d.resistencias || "",
+    imagem:       n.imagem || "",
+  };
+
+  combatesMestre.push(copia);
+  salvarCombatesMestreStorage();
+  renderCombatesMestre();
+
+  // Muda para aba de combate
+  const btnCombate = document.querySelector('.master-tab-btn[onclick*="combate"]');
+  if (btnCombate) btnCombate.click();
+
+  mostrarToastMundo(`${copia.nome} entrou no combate! ⚔️`);
+}
+
+function alterarHpNPC(id, delta) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const n = campanha?.npcsMundo?.find(x => x.id === id);
+  if (!n) return;
+
+  const hpMax   = n.hpMax || n.dadosCompletos?.hpMax || n.dadosCompletos?.hp || 20;
+  const hpAtual = Math.max(0, Math.min(hpMax, (n.hpAtual !== undefined ? n.hpAtual : hpMax) + delta));
+  n.hpAtual     = hpAtual;
+
+  const hpPct = Math.max(0, Math.min(100, Math.round((hpAtual/hpMax)*100)));
+  const hpCor = hpPct > 60 ? "#2a7a40" : hpPct > 30 ? "#6c263b" : "#8f2222";
+
+  const barra   = document.getElementById(`npcHpBarra_${id}`);
+  const valor   = document.getElementById(`npcHpValor_${id}`);
+  const coracao = document.getElementById(`npcHpCoracao_${id}`);
+
+  if (barra)   { barra.style.width = `${hpPct}%`; barra.style.background = hpCor; }
+  if (valor)   { valor.textContent = `${hpAtual}/${hpMax}`; }
+  if (coracao) { coracao.style.color = hpCor; coracao.textContent = `❤ ${hpAtual}/${hpMax}`; }
+
+  salvarCampanhasMaster();
+}
+
+function toggleNPCMundo(id) {
+  const detalhes = document.getElementById("npcDetalhes_" + id);
+  const card     = document.getElementById("npcMundo_" + id);
+  if (!detalhes) return;
+
+  const aberto = detalhes.getAttribute("data-aberto") === "1";
+
+  detalhes.style.transition = "max-height 0.3s ease, opacity 0.3s ease";
+  detalhes.style.overflow   = "hidden";
+
+  if (aberto) {
+    detalhes.style.maxHeight = "0";
+    detalhes.style.opacity   = "0";
+    detalhes.setAttribute("data-aberto", "0");
+    setTimeout(() => { detalhes.style.display = "none"; }, 300);
+  } else {
+    detalhes.style.display  = "block";
+    detalhes.style.maxHeight = "0";
+    detalhes.style.opacity   = "0";
+    detalhes.setAttribute("data-aberto", "1");
+    requestAnimationFrame(() => {
+      detalhes.style.maxHeight = "2000px";
+      detalhes.style.opacity   = "1";
+    });
+  }
+
+  const seta = card?.querySelector(".npc-toggle-seta");
+  if (seta) seta.textContent = aberto ? "▼" : "▲";
+}
+
+function _corAvatar(nome) {
+  const cores = ["#8f2222","#1a5f8f","#2a7a40","#6c263b","#5a2a8f","#7b2b43"];
+  let hash = 0;
+  for (let c of (nome||"")) hash += c.charCodeAt(0);
+  return cores[hash % cores.length];
+}
+
+function trocarAbaMundo(aba, btn) {
+  const mapa = {
+    missoes:   "mundoSecaoMissoes",
+    npcs:      "mundoSecaoNpcs",
+    encontros: "mundoSecaoEncontros",
+  };
+
+  const atual = document.querySelector(".mundo-secao[style*='block']");
+  const proxEl = document.getElementById(mapa[aba]);
+  if (!proxEl || atual === proxEl) return;
+
+  document.querySelectorAll(".mundo-tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  if (atual) {
+    atual.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+    atual.style.opacity = "0";
+    atual.style.transform = "translateX(-12px)";
+    setTimeout(() => {
+      atual.style.display = "none";
+      atual.style.opacity = "";
+      atual.style.transform = "";
+
+      proxEl.style.display = "block";
+      proxEl.style.opacity = "0";
+      proxEl.style.transform = "translateX(12px)";
+      proxEl.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+      requestAnimationFrame(() => {
+        proxEl.style.opacity = "1";
+        proxEl.style.transform = "translateX(0)";
+      });
+    }, 200);
+  } else {
+    proxEl.style.display = "block";
+    proxEl.style.opacity = "0";
+    proxEl.style.transform = "translateX(12px)";
+    proxEl.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+    requestAnimationFrame(() => {
+      proxEl.style.opacity = "1";
+      proxEl.style.transform = "translateX(0)";
+    });
+  }
+
+  if (aba === "encontros") renderEncontrosMundo();
+  if (aba === "npcs") renderNPCsMundo();
+}
+
+function editarNPCMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const npc = campanha?.npcsMundo?.find(n => n.id === id);
+  if (!npc) return;
+
+  abrirPopup("Editar NPC", `
+    <div class="popup-form">
+      <input id="editNPCNome"   value="${escapeHtml(npc.nome)}">
+      <input id="editNPCClasse" value="${escapeHtml(npc.classe || "")}">
+      <input id="editNPCRegiao" value="${escapeHtml(npc.regiao || "")}">
+      <textarea id="editNPCDesc">${escapeHtml(npc.desc || "")}</textarea>
+      <button class="popup-salvar-btn" onclick="salvarEdicaoNPCMundo(${id})">Salvar</button>
+    </div>`, true);
+}
+
+function salvarEdicaoNPCMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const npc = campanha?.npcsMundo?.find(n => n.id === id);
+  if (!npc) return;
+
+  npc.nome   = document.getElementById("editNPCNome")?.value.trim()   || npc.nome;
+  npc.classe = document.getElementById("editNPCClasse")?.value.trim() || "";
+  npc.regiao = document.getElementById("editNPCRegiao")?.value.trim() || "";
+  npc.desc   = document.getElementById("editNPCDesc")?.value.trim()   || "";
+
+  salvarCampanhasMaster();
+  renderNPCsMundo();
+  fecharPopup();
+}
+
+async function deletarNPCMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha || !(await confirmBonito("Remover este NPC?"))) return;
+  campanha.npcsMundo = campanha.npcsMundo.filter(n => n.id !== id);
+  salvarCampanhasMaster();
+  renderNPCsMundo();
+}
+
+/* ── Missões ── */
+function salvarMissaoMundo() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  const nome = document.getElementById("mundoMissaoNome")?.value.trim();
+  if (!nome) { alertBonito("Digite o nome da missão."); return; }
+
+  campanha.missoes ||= [];
+  campanha.missoes.push({
+    id:         Date.now(),
+    nome,
+    prioridade:  document.getElementById("mundoMissaoPrioridade")?.value || "andamento",
+    dificuldade: document.getElementById("mundoMissaoDificuldade")?.value || "medio",
+    desc:        document.getElementById("mundoMissaoDesc")?.value.trim() || "",
+    etapas:      _etapasForm.map(e => ({ nome: e.nome, feita: false })),
+  });
+
+  salvarCampanhasMaster();
+  document.getElementById("mundoMissaoNome").value = "";
+  document.getElementById("mundoMissaoDesc").value = "";
+  _etapasForm = [];
+  renderEtapasForm();
+  renderMissoesMundo();
+  mostrarToastMundo("Missão adicionada!");
+}
+
+function renderMissoesMundo() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const lista = document.getElementById("mundoMissaoLista");
+  if (!lista) return;
+  campanha.missoes ||= [];
+
+  if (!campanha.missoes.length) {
+    lista.innerHTML = `<p class="master-desc" style="padding:12px 0;">Nenhuma missão ainda.</p>`;
+    return;
+  }
+
+  const priorInfo = {
+    andamento:  { cor:"#6c263b", label:"Em andamento" },
+    concluida:  { cor:"#2a7a40", label:"Concluída"    },
+    abandonada: { cor:"#4a4a4a", label:"Abandonada"   },
+  };
+
+  const difInfo = {
+    facil:  { cor:"#2a7a40", label:"Fácil"  },
+    medio:  { cor:"#6c263b", label:"Médio"  },
+    dificil:{ cor:"#8f2222", label:"Difícil"},
+    epico:  { cor:"#5a1a7a", label:"Épico"  },
+  };
+
+  lista.innerHTML = campanha.missoes.map(m => {
+    const p = priorInfo[m.prioridade || m.status] || priorInfo.andamento;
+    const etapasTotal      = m.etapas?.length || 0;
+const etapasConcluidas = m.etapas?.filter(e => e.feita).length || 0;
+const pct = etapasTotal ? Math.min(100, Math.round((etapasConcluidas / etapasTotal) * 100)) : 0;
+
+const etapasHtml = (m.etapas || []).map((e, i) => `
+  <div class="missao-etapa" onclick="toggleEtapaMissao(${m.id}, ${i})" style="
+    display:flex;align-items:center;gap:8px;
+    padding:6px 0;border-bottom:1px solid rgba(233,224,236,0.12);
+    cursor:pointer;">
+    <span style="
+      width:18px;height:18px;border-radius:4px;flex-shrink:0;
+      border:1px solid ${e.feita ? p.cor : 'rgba(198,186,200,0.25)'};
+      background:${e.feita ? p.cor + '33' : 'transparent'};
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;color:${p.cor};">
+      ${e.feita ? '✓' : ''}
+    </span>
+    <span style="font-size:13px;color:${e.feita ? '#725e76' : '#c6bac8'};
+      text-decoration:${e.feita ? 'line-through' : 'none'};">
+      ${escapeHtml(e.nome)}
+    </span>
+  </div>`).join("");
+
+    return `
+    <div class="missao-card-mundo" id="missaoMundo_${m.id}">
+
+      <!-- cabeçalho clicável -->
+      <div class="missao-card-header" onclick="toggleMissaoMundo(${m.id})">
+        <div class="missao-card-topo">
+          <strong>${escapeHtml(m.nome)}</strong>
+          <span class="lore-badge" style="background:${p.cor}22;color:${p.cor};border:1px solid ${p.cor}44;font-size:10px;padding:2px 7px;">${p.label}</span>
+${m.dificuldade ? `<span class="lore-badge" style="background:${(difInfo[m.dificuldade]||difInfo.medio).cor}22;color:${(difInfo[m.dificuldade]||difInfo.medio).cor};border:1px solid ${(difInfo[m.dificuldade]||difInfo.medio).cor}44;font-size:10px;padding:2px 7px;">${(difInfo[m.dificuldade]||difInfo.medio).label}</span>` : ""}
+          <span class="npc-toggle-seta">▼</span>
+        </div>
+        <!-- barra de progresso sempre visível -->
+        <div class="missao-progresso" style="margin-top:8px;">
+          <div class="missao-barra-bg">
+            <div class="missao-barra-fill" style="width:${pct}%;background:${p.cor};"></div>
+          </div>
+          <small style="color:#725e76;font-size:11px;">${etapasConcluidas} de ${etapasTotal} etapas</small>
+        </div>
+      </div>
+
+      <!-- detalhes expansíveis -->
+      <div class="npc-card-detalhes" id="missaoDetalhes_${m.id}" style="display:none;max-height:0;overflow:hidden;" data-aberto="0">
+        ${m.desc ? `<p style="color:#d5cbd8;font-size:13px;margin:0 0 10px;">${escapeHtml(m.desc)}</p>` : ""}
+        <div style="margin-bottom:8px;">${etapasHtml}</div>
+        <div style="margin-top:10px;text-align:right;">
+          <span onclick="deletarMissaoMundo(${m.id})" style="cursor:pointer;font-size:12px;color:#8f2222;opacity:0.8;display:inline-block;">🗑 Remover missão</span>
+        </div>
+      </div>
+
+    </div>`;
+  }).join("");
+}
+
+  function toggleMissaoMundo(id) {
+  const detalhes = document.getElementById("missaoDetalhes_" + id);
+  const card     = document.getElementById("missaoMundo_" + id);
+  if (!detalhes) return;
+
+  const aberto = detalhes.getAttribute("data-aberto") === "1";
+
+  detalhes.style.transition = "max-height 0.3s ease, opacity 0.3s ease";
+  detalhes.style.overflow   = "hidden";
+
+  if (aberto) {
+    detalhes.style.maxHeight = "0";
+    detalhes.style.opacity   = "0";
+    detalhes.setAttribute("data-aberto", "0");
+    setTimeout(() => { detalhes.style.display = "none"; }, 300);
+  } else {
+    detalhes.style.display   = "block";
+    detalhes.style.maxHeight = "0";
+    detalhes.style.opacity   = "0";
+    detalhes.setAttribute("data-aberto", "1");
+    requestAnimationFrame(() => {
+      detalhes.style.maxHeight = "600px";
+      detalhes.style.opacity   = "1";
+    });
+  }
+
+  const seta = card?.querySelector(".npc-toggle-seta");
+  if (seta) seta.textContent = aberto ? "▼" : "▲";
+}
+
+function toggleEtapaMissao(missaoId, etapaIndex) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const m = campanha?.missoes?.find(x => x.id === missaoId);
+  if (!m || !m.etapas) return;
+
+  m.etapas[etapaIndex].feita = !m.etapas[etapaIndex].feita;
+
+  if (m.etapas.every(e => e.feita)) m.prioridade = "concluida";
+  else if (m.prioridade === "concluida") m.prioridade = "andamento";
+
+  salvarCampanhasMaster();
+
+  // salva quais estão abertos antes de re-renderizar
+  const abertos = [];
+  document.querySelectorAll(".npc-card-detalhes[data-aberto='1']").forEach(el => {
+    abertos.push(el.id);
+  });
+
+  renderMissoesMundo();
+
+  // reabre os que estavam abertos
+  abertos.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = "block";
+    el.style.maxHeight = "600px";
+    el.style.opacity = "1";
+    el.setAttribute("data-aberto", "1");
+    const missaoId = id.replace("missaoDetalhes_", "");
+    const seta = document.querySelector(`#missaoMundo_${missaoId} .npc-toggle-seta`);
+    if (seta) seta.textContent = "▲";
+  });
+}
+
+function editarMissaoMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const m = campanha?.missoes?.find(x => x.id === id);
+  if (!m) return;
+
+  abrirPopup("Editar Missão", `
+    <div class="popup-form">
+      <input id="editMissaoNome"   value="${escapeHtml(m.nome)}">
+      <input id="editMissaoStatus" value="${escapeHtml(m.status || "ativa")}">
+      <textarea id="editMissaoDesc">${escapeHtml(m.desc || "")}</textarea>
+      <button class="popup-salvar-btn" onclick="salvarEdicaoMissaoMundo(${id})">Salvar</button>
+    </div>`, true);
+}
+
+function salvarEdicaoMissaoMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const m = campanha?.missoes?.find(x => x.id === id);
+  if (!m) return;
+
+  m.nome   = document.getElementById("editMissaoNome")?.value.trim()   || m.nome;
+  m.status = document.getElementById("editMissaoStatus")?.value.trim() || "ativa";
+  m.desc   = document.getElementById("editMissaoDesc")?.value.trim()   || "";
+
+  salvarCampanhasMaster();
+  renderMissoesMundo();
+  fecharPopup();
+}
+
+async function deletarMissaoMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha || !(await confirmBonito("Remover esta missão?"))) return;
+  campanha.missoes = campanha.missoes.filter(m => m.id !== id);
+  salvarCampanhasMaster();
+  renderMissoesMundo();
+}
+
+async function salvarEncontroMundo() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  const nome = document.getElementById("encontroNome")?.value.trim();
+  if (!nome) { mostrarToastMundo("Digite o nome do encontro."); return; }
+
+  campanha.encontrosPlanejados ||= [];
+  campanha.encontrosPlanejados.push({
+    id:            Date.now(),
+    nome,
+    regiao:        document.getElementById("encontroRegiao")?.value.trim()        || "",
+    localizacao:   document.getElementById("encontroLocalizacao")?.value.trim()   || "",
+    envolvidos:    document.getElementById("encontroEnvolvidos")?.value.trim()    || "",
+    objetivo:      document.getElementById("encontroObjetivo")?.value.trim()      || "",
+    gatilho:       document.getElementById("encontroGatilho")?.value.trim()       || "",
+    ambiente:      document.getElementById("encontroAmbiente")?.value.trim()      || "",
+    consequencias: document.getElementById("encontroConsequencias")?.value.trim() || "",
+    loot:          document.getElementById("encontroLoot")?.value.trim()          || "",
+    notas:         document.getElementById("encontroNotas")?.value.trim()         || "",
+    dificuldade:   document.getElementById("encontroDificuldade")?.value          || "",
+    ...(window._imagemEncontroBase64
+    ? await uploadImagemFirebase(window._imagemEncontroBase64, `encontros/${Date.now()}.jpg`).then(r => ({ imagem: r.url, imagemDeleteUrl: r.deleteUrl }))
+    : { imagem: "", imagemDeleteUrl: "" }),
+  });
+
+  salvarCampanhasMaster();
+  ["encontroNome","encontroRegiao","encontroLocalizacao","encontroEnvolvidos",
+   "encontroObjetivo","encontroGatilho","encontroAmbiente","encontroConsequencias",
+   "encontroLoot","encontroNotas"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  renderEncontrosMundo();
+  mostrarToastMundo("Encontro adicionado!");
+}
+
+function renderEncontrosMundo() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const lista    = document.getElementById("mundoEncontroLista");
+  if (!lista) return;
+
+  campanha.encontrosPlanejados ||= [];
+
+  if (!campanha.encontrosPlanejados.length) {
+    lista.innerHTML = `<p class="master-desc">Nenhum encontro planejado ainda.</p>`;
+    return;
+  }
+
+  lista.innerHTML = campanha.encontrosPlanejados.map(e => {
+    const preview = e.objetivo
+      ? escapeHtml(e.objetivo).slice(0, 80) + (e.objetivo.length > 80 ? "…" : "")
+      : e.envolvidos
+        ? escapeHtml(e.envolvidos).slice(0, 80) + (e.envolvidos.length > 80 ? "…" : "")
+        : "Sem descrição.";
+
+    return `
+    <div style="
+      background:#eadeea;border:1px solid rgba(233,224,236,0.2);
+      border-left:3px solid #7B1E28;border-radius:10px;
+      padding:14px 16px;margin-bottom:12px;cursor:pointer;
+    " onclick="abrirDetalheEncontro(${e.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <strong style="color:#1e1324;font-size:14px;">${escapeHtml(e.nome)}</strong>
+          ${e.dificuldade ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${({facil:'rgba(60,140,40,0.15)',medio:'rgba(141,49,77,0.15)',dificil:'rgba(141,49,77,0.15)',lendario:'rgba(139,26,26,0.15)'}[e.dificuldade]||'transparent')};color:${({facil:'#2a6010',medio:'#40274c',dificil:'#492d57',lendario:'#6a1010'}[e.dificuldade]||'#8e324e')};">${e.dificuldade.charAt(0).toUpperCase()+e.dificuldade.slice(1)}</span>` : ""}
+        </div>
+        ${e.regiao ? `<span style="font-size:11px;color:#8e324e;background:rgba(174,55,83,0.15);padding:2px 8px;border-radius:20px;">${escapeHtml(e.regiao)}</span>` : ""}
+      </div>
+      <p style="font-size:12px;color:#6c5a70;margin:0 0 10px;line-height:1.5;">${preview}</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(233,224,236,0.13);padding-top:8px;">
+        <button onclick="event.stopPropagation();editarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(233,224,236,0.26);border-radius:6px;color:#8e324e;font-size:13px;padding:4px 10px;cursor:pointer;">✏</button>
+        <button onclick="event.stopPropagation();deletarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(143,34,34,0.3);border-radius:6px;color:#8f2222;font-size:13px;padding:4px 10px;cursor:pointer;">🗑</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function abrirDetalheEncontro(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const e = campanha?.encontrosPlanejados?.find(x => x.id === id);
+  if (!e) return;
+
+  const campo = (label, valor) => valor ? `
+    <div style="margin-bottom:12px;">
+      <span style="font-size:10px;color:#6c5a70;text-transform:uppercase;letter-spacing:1px;">${label}</span>
+      <p style="color:#d5cbd8;font-size:13px;line-height:1.6;margin:4px 0 0;background:#1e1324;border-radius:8px;padding:10px 12px;border:1px solid rgba(233,224,236,0.12);">${escapeHtml(valor)}</p>
+    </div>` : "";
+
+  const modal = document.createElement("div");
+  modal.id = "modalDetalheEncontro";
+  modal.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(14,8,16,0.85);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;`;
+  modal.innerHTML = `
+    <div style="background:#140c18;border:1px solid rgba(233,224,236,0.23);border-radius:14px;padding:24px;width:100%;max-width:420px;position:relative;margin:auto;">
+      <button onclick="document.getElementById('modalDetalheEncontro').remove()" style="position:absolute;top:12px;right:14px;background:transparent;border:none;color:#8e324e;font-size:20px;cursor:pointer;">✕</button>
+
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(123,30,40,0.2);color:#efe7ef;border:1px solid rgba(123,30,40,0.4);">🗺️ Encontro</span>
+        ${e.regiao ? `<span style="font-size:11px;color:#6c5a70;">${escapeHtml(e.regiao)}</span>` : ""}
+        ${e.localizacao ? `<span style="font-size:11px;color:#6c5a70;">· ${escapeHtml(e.localizacao)}</span>` : ""}
+      </div>
+
+      <h3 style="color:#efe7ef;font-size:18px;margin:0 0 16px;font-family:'Cinzel',serif;">${escapeHtml(e.nome)}</h3>
+
+      ${campo("Envolvidos", e.envolvidos)}
+      ${campo("Objetivo", e.objetivo)}
+      ${campo("Gatilho", e.gatilho)}
+      ${campo("Ambiente", e.ambiente)}
+      ${campo("Consequências", e.consequencias)}
+      ${campo("Loot / Recompensa", e.loot)}
+      ${campo("Notas do Mestre", e.notas)}
+
+      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+        <button onclick="document.getElementById('modalDetalheEncontro').remove();editarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(233,224,236,0.26);border-radius:8px;color:#efe7ef;padding:8px 16px;cursor:pointer;font-size:13px;">✏ Editar</button>
+        <button onclick="document.getElementById('modalDetalheEncontro').remove();deletarEncontroMundo(${e.id})" style="background:transparent;border:1px solid rgba(143,34,34,0.4);border-radius:8px;color:#8f2222;padding:8px 16px;cursor:pointer;font-size:13px;">🗑 Remover</button>
+      </div>
+    </div>
+  `;
+  modal.addEventListener("click", ev => { if (ev.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function editarEncontroMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const e = campanha?.encontrosPlanejados?.find(x => x.id === id);
+  if (!e) return;
+
+  abrirPopup("Editar Encontro", `
+    <div class="popup-form">
+      <input id="editEncontroNome"   value="${escapeHtml(e.nome)}">
+      <input id="editEncontroRegiao" value="${escapeHtml(e.regiao || "")}">
+      <textarea id="editEncontroDesc">${escapeHtml(e.desc || "")}</textarea>
+      <button class="popup-salvar-btn" onclick="salvarEdicaoEncontroMundo(${id})">Salvar</button>
+    </div>`, true);
+}
+
+function salvarEdicaoEncontroMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const e = campanha?.encontrosPlanejados?.find(x => x.id === id);
+  if (!e) return;
+
+  e.nome   = document.getElementById("editEncontroNome")?.value.trim()   || e.nome;
+  e.regiao = document.getElementById("editEncontroRegiao")?.value.trim() || "";
+  e.desc   = document.getElementById("editEncontroDesc")?.value.trim()   || "";
+
+  salvarCampanhasMaster();
+  renderEncontrosMundo();
+  fecharPopup();
+}
+
+async function deletarEncontroMundo(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha || !(await confirmBonito("Remover este encontro?"))) return;
+  campanha.encontrosPlanejados = campanha.encontrosPlanejados.filter(e => e.id !== id);
+  salvarCampanhasMaster();
+  renderEncontrosMundo();
+}
+
+/* ── render tudo junto ── */
+function renderMundoCampanha() {
+  renderNPCsMundo();
+  renderMissoesMundo();
+  renderEncontrosMundo();
+}
+
+/* ── toast leve ── */
+function mostrarToastMundo(msg) {
+  const t = document.createElement("div");
+  t.textContent = msg;
+  t.style.cssText = `
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);
+    background:linear-gradient(180deg,#5f1717,#2a0b0b);color:#d5cbd8;
+    border:1px solid rgba(233,224,236,0.14);border-radius:999px;
+    padding:9px 22px;font-size:14px;font-weight:bold;z-index:99999;
+    opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;
+  `;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity="1"; t.style.transform="translateX(-50%) translateY(0)"; });
+  setTimeout(() => { t.style.opacity="0"; setTimeout(() => t.remove(), 300); }, 2200);
+}
+
+function abrirDetalheSessaoLore(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+  const s = campanha.sessoes.find(s => s.id === id);
+  if (!s) return;
+
+  const corStatus = { completa:"#2a7a40", planejada:"#6c263b", cancelada:"#7a2020" };
+  const labelStatus = { completa:"Completa", planejada:"Planejada", cancelada:"Cancelada" };
+  const cor = corStatus[s.status] || "#6c263b";
+
+  const modal = document.createElement("div");
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(14,8,16,0.82);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  `;
+  modal.innerHTML = `
+    <div style="
+      background:#140c18;
+      border:1px solid rgba(233,224,236,0.23);
+      border-radius:14px;
+      padding:24px;
+      width:100%;max-width:420px;
+      position:relative;
+    ">
+      <button onclick="this.closest('[style*=fixed]').remove()" style="
+        position:absolute;top:12px;right:14px;
+        background:transparent;border:none;color:#8e324e;
+        font-size:20px;cursor:pointer;line-height:1;">✕</button>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <span style="
+          font-size:11px;font-weight:bold;padding:3px 10px;border-radius:20px;
+          background:${cor}22;color:${cor};border:1px solid ${cor}44;">
+          ${labelStatus[s.status] || "Planejada"}
+        </span>
+        ${s.data ? `<span style="font-size:11px;color:#6c5a70;">${s.data}</span>` : ""}
+      </div>
+
+      <h3 style="color:#efe7ef;font-size:18px;margin:0 0 12px;">${escapeHtml(s.nome)}</h3>
+
+      ${s.descricao ? `
+        <div style="
+          background:#1e1324;border-radius:8px;padding:14px;
+          border:1px solid rgba(233,224,236,0.12);
+        ">
+          <p style="color:#d5cbd8;font-size:13px;line-height:1.7;margin:0;">${escapeHtml(s.descricao)}</p>
+        </div>` : ""}
+
+      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+        <button onclick="this.closest('[style*=fixed]').remove();editarSessaoLore(${s.id})" style="
+          background:transparent;border:1px solid rgba(233,224,236,0.26);
+          border-radius:8px;color:#efe7ef;padding:8px 16px;cursor:pointer;font-size:13px;">
+          ✏ Editar
+        </button>
+        <button onclick="this.closest('[style*=fixed]').remove();deletarSessaoLore(${s.id})" style="
+          background:transparent;border:1px solid rgba(143,34,34,0.4);
+          border-radius:8px;color:#8f2222;padding:8px 16px;cursor:pointer;font-size:13px;">
+          🗑 Remover
+        </button>
+      </div>
+    </div>
+  `;
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function abrirDetalheEventoLore(id) {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+  const e = campanha.eventos.find(e => e.id === id);
+  if (!e) return;
+
+  const tipoInfo = {
+    batalha:  { emoji:"⚔️", cor:"#8f2222" },
+    revelacao:{ emoji:"🔍", cor:"#1a5f8f" },
+    morte:    { emoji:"💀", cor:"#4a4a4a" },
+    alianca:  { emoji:"🤝", cor:"#2a7a40" },
+    outro:    { emoji:"📌", cor:"#6c263b" },
+  };
+  const t = tipoInfo[e.tipo] || tipoInfo.outro;
+
+  const modal = document.createElement("div");
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(14,8,16,0.82);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  `;
+  modal.innerHTML = `
+    <div style="
+      background:#140c18;
+      border:1px solid rgba(233,224,236,0.23);
+      border-left:3px solid ${t.cor};
+      border-radius:14px;
+      padding:24px;
+      width:100%;max-width:420px;
+      position:relative;
+    ">
+      <button onclick="this.closest('[style*=fixed]').remove()" style="
+        position:absolute;top:12px;right:14px;
+        background:transparent;border:none;color:#8e324e;
+        font-size:20px;cursor:pointer;line-height:1;">✕</button>
+
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <span style="
+          font-size:11px;font-weight:bold;padding:3px 10px;border-radius:20px;
+          background:${t.cor}22;color:${t.cor};border:1px solid ${t.cor}44;">
+          ${t.emoji} ${e.tipo || "outro"}
+        </span>
+        ${e.data ? `<span style="font-size:11px;color:#6c5a70;">${e.data}</span>` : ""}
+      </div>
+
+      <h3 style="color:#efe7ef;font-size:18px;margin:0 0 12px;">${escapeHtml(e.nome)}</h3>
+
+      ${e.descricao ? `
+        <div style="
+          background:#1e1324;border-radius:8px;padding:14px;
+          border:1px solid rgba(233,224,236,0.12);
+        ">
+          <p style="color:#d5cbd8;font-size:13px;line-height:1.7;margin:0;">${escapeHtml(e.descricao)}</p>
+        </div>` : ""}
+
+      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+        <button onclick="this.closest('[style*=fixed]').remove();editarEventoLore(${e.id})" style="
+          background:transparent;border:1px solid rgba(233,224,236,0.26);
+          border-radius:8px;color:#efe7ef;padding:8px 16px;cursor:pointer;font-size:13px;">
+          ✏ Editar
+        </button>
+        <button onclick="this.closest('[style*=fixed]').remove();deletarEventoLore(${e.id})" style="
+          background:transparent;border:1px solid rgba(143,34,34,0.4);
+          border-radius:8px;color:#8f2222;padding:8px 16px;cursor:pointer;font-size:13px;">
+          🗑 Remover
+        </button>
+      </div>
+    </div>
+  `;
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function renderLoreCampanha() {
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  const loreInput = document.getElementById("historiaPrincipalLore");
+  if (loreInput) loreInput.value = campanha.historiaPrincipal || "";
+
+  // reseta abas — mostra só História
+  document.querySelectorAll("#abaMaster-lore .mundo-secao").forEach(s => s.style.display = "none");
+  const historia = document.getElementById("loreSecaoHistoria");
+  if (historia) historia.style.display = "block";
+  document.querySelectorAll("#abaMaster-lore .mundo-tab-btn").forEach(b => b.classList.remove("active"));
+  const primeiroBtn = document.querySelector("#abaMaster-lore .mundo-tab-btn");
+  if (primeiroBtn) primeiroBtn.classList.add("active");
+
+  renderSessoesLore();
+  renderEventosLore();
+}
+
+function trocarTipoCriar(tipo, btn) {
+  document.querySelectorAll(".criar-form-panel").forEach(p => p.style.display = "none");
+  document.querySelectorAll(".criar-tipo-btn").forEach(b => b.classList.remove("active"));
+  const painel = document.getElementById("criarForm-" + tipo);
+  if (painel) painel.style.display = "block";
+  if (btn) btn.classList.add("active");
+}
+
+function enviarEntradaSessao() {
+  const entry = window._entradaSessaoAtual;
+  if (!entry) return;
+  enviarParaSessao(entry);
+}
+
+function enviarParaSessao(entry) {
+  const copia = JSON.parse(JSON.stringify(entry));
+  copia.hpAtual = copia.hpMax || 10;
+  delete copia._tipo;
+
+  combatesMestre.push(copia);
+  salvarCombatesMestreStorage();
+  renderCombatesMestre();
+
+  const sheet   = document.getElementById("sheetMonstro");
+  const overlay = document.getElementById("sheetMonstroOverlay");
+  if (sheet)   { sheet.classList.remove("aberto"); sheet.style.display = "none"; }
+  if (overlay) { overlay.style.display = "none"; }
+  document.body.classList.remove("master-sheet-aberto");
+
+  const btnCombate = document.querySelector('[onclick*="combateMaster"]');
+  trocarAbaMaster("combateMaster", btnCombate);
+
+  mostrarToastMundo("Enviado para o combate! ⚔️");
+}
+
+function adicionarNPCAoMundo() {
+  const npc = window._entradaSessaoAtual;
+  if (!npc) return;
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  if (!campanha) return;
+
+  campanha.npcsMundo ||= [];
+
+  /* evita duplicata pelo id */
+  const jaExiste = campanha.npcsMundo.some(n => n.id === npc.id);
+  if (jaExiste) {
+    mostrarToastMundo("NPC já está no Mundo!");
+    return;
+  }
+
+  campanha.npcsMundo.push({
+  id:          Date.now() + Math.floor(Math.random() * 9999),
+  idOrigem:    npc.id,
+  nome:        npc.nome        || "",
+  classe:      npc.classe      || "",
+  regiao:      npc.regiao      || "",
+  relacao:     npc.relacao     || "neutro",
+  desc:        npc.personalidade || npc.observacoes || "",
+  imagem:      npc.imagem      || "",
+  hpMax:       npc.hpMax || npc.hp || 20,
+  hpAtual:     npc.hpMax || npc.hp || 20,
+  dadosCompletos: npc,
+});
+
+  salvarCampanhasMaster();
+
+  /* fecha o sheet */
+  _fecharSheetCustom();
+
+  /* vai para o Mundo */
+  const btnMundo = document.querySelector('.master-tab-btn[onclick*="mundo"]');
+  mostrarToastMundo("NPC adicionado ao Mundo! 🌍");
+}
+
+function _fecharSheetCustom() {
+  const sheet   = document.getElementById("sheetMonstro");
+  const overlay = document.getElementById("sheetMonstroOverlay");
+  if (sheet)   { sheet.classList.remove("aberto"); sheet.style.display = "none"; }
+  if (overlay) { overlay.style.display = "none"; }
+  document.body.classList.remove("master-sheet-aberto");
+}
+
+function previewImagemBoss() {
+  const input = document.getElementById("bossImagemInput");
+  const preview = document.getElementById("previewBoss");
+  if (!input?.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const scale = 500 / img.width;
+      canvas.width = 500;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._imagemBossBase64 = canvas.toDataURL("image/jpeg", 0.65);
+      if (preview) { preview.src = window._imagemBossBase64; preview.style.display = "block"; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function previewImagemNpc() {
+  const input = document.getElementById("npcImagemInput");
+  const preview = document.getElementById("previewNpc");
+  if (!input?.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const scale = 500 / img.width;
+      canvas.width = 500;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._imagemNpcBase64 = canvas.toDataURL("image/jpeg", 0.65);
+      if (preview) { preview.src = window._imagemNpcBase64; preview.style.display = "block"; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function previewImagemItem() {
+  const input = document.getElementById("itemMasterImagemInput");
+  const preview = document.getElementById("previewItemMaster");
+  if (!input?.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const scale = 500 / img.width;
+      canvas.width = 500;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._imagemItemBase64 = canvas.toDataURL("image/jpeg", 0.65);
+      if (preview) { preview.src = window._imagemItemBase64; preview.style.display = "block"; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function previewImagemItem() {
+  const input = document.getElementById("itemMasterImagemInput");
+  const preview = document.getElementById("previewItemMaster");
+  if (!input?.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const scale = 500 / img.width;
+      canvas.width = 500;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._imagemItemBase64 = canvas.toDataURL("image/jpeg", 0.65);
+      if (preview) { preview.src = window._imagemItemBase64; preview.style.display = "block"; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function previewImagemMapaMestre() {
+  const input = document.getElementById("mapaMasterImagemInput");
+  const preview = document.getElementById("previewMapaMaster");
+  if (!input?.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const scale = 700 / img.width;
+      canvas.width = 700;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._imagemMapaMestreBase64 = canvas.toDataURL("image/jpeg", 0.75);
+      if (preview) { preview.src = window._imagemMapaMestreBase64; preview.style.display = "block"; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function previewImagemEncontro() {
+  const input = document.getElementById("encontroImagemInput");
+  const preview = document.getElementById("previewEncontro");
+  if (!input?.files?.[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const scale = 500 / img.width;
+      canvas.width = 500;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      window._imagemEncontroBase64 = canvas.toDataURL("image/jpeg", 0.65);
+      if (preview) { preview.src = window._imagemEncontroBase64; preview.style.display = "block"; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function adicionarEtapaForm() {
+  const input = document.getElementById("mundoMissaoNovaEtapa");
+  const nome  = input?.value.trim();
+  if (!nome) return;
+
+  _etapasForm.push({ nome, feita: false });
+  input.value = "";
+  renderEtapasForm();
+}
+
+window._grupoAtualId = null;
+
+window.abrirDetalheGrupo = async function (grupoId) {
+  window._grupoAtualId = grupoId;
+  const meuUid = window.usuarioAtual.uid;
+
+  document.getElementById("modalGrupoDetalheOverlay").style.display = "block";
+  document.getElementById("modalGrupoDetalhe").style.display = "block";
+  document.getElementById("detalheGrupoRenomear").style.display = "none";
+
+  const grupoSnap = await getDoc(doc(db, "grupos", grupoId));
+  if (!grupoSnap.exists()) {
+    fecharDetalheGrupo();
+    return;
+  }
+  const g = grupoSnap.data();
+  const souMestre = g.criadoPor === meuUid;
+  const minhasFichas = window.personagens || [];
+
+  document.getElementById("detalheGrupoNome").textContent = g.nome;
+
+  const membrosDiv = document.getElementById("detalheGrupoMembros");
+  membrosDiv.innerHTML = g.membros.map(m => `
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:8px;padding:8px 10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+<div ${m.uid !== meuUid ? `onclick="abrirAcoesMembro('${m.uid}','${escapeHtml(m.nickname)}','${escapeHtml(m.tag)}')" style="cursor:pointer;flex:1;font-size:13px;"` : `style="flex:1;font-size:13px;"`}>${escapeHtml(m.nickname)}<span style="opacity:.5;">#${escapeHtml(m.tag)}</span></div>        ${souMestre && m.uid !== meuUid ? `
+          <button onclick="alternarPapelMembro('${m.uid}')" style="font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid rgba(233,224,236,0.2);background:transparent;color:#efe7ef;cursor:pointer;text-transform:uppercase;">${m.papel === "mestre" ? "Mestre" : "Jogador"}</button>
+          <button onclick="removerMembroGrupo('${m.uid}')" style="width:22px;height:22px;border-radius:50%;border:none;background:#7B1E28;color:#fff;cursor:pointer;font-size:11px;">✕</button>
+        ` : `<span style="font-size:10px;color:#d5cbd8;text-transform:uppercase;">${m.papel === "mestre" ? "Mestre" : "Jogador"}</span>`}
+      </div>
+      ${m.uid === meuUid ? `
+        <select id="selectFichaGrupo" style="margin-top:8px;width:100%;background:#150d18;border:1px solid rgba(233,224,236,0.16);border-radius:6px;padding:6px 8px;color:#F8F4E3;font-size:12px;">
+          <option value="">— minha ficha nesse grupo —</option>
+          ${minhasFichas.map(f => `<option value="${String(f.id)}" ${String(f.id) === String(m.fichaId) ? "selected" : ""}>${escapeHtml(f.nome || "Sem nome")}</option>`).join("")}
+        </select>
+        <button onclick="window.salvarFichaGrupoBotao(this)" style="margin-top:6px;width:100%;padding:7px;border-radius:6px;border:none;background:#ae3753;color:#100a13;font-weight:bold;font-size:12px;cursor:pointer;">Salvar vínculo</button>
+        <div id="statusFichaGrupo" style="font-size:11px;margin-top:4px;text-align:center;"></div>
+      ` : ""}
+    </div>
+  `).join("");
+
+  const acoesDiv = document.getElementById("detalheGrupoAcoes");
+  let acoesHtml = "";
+  if (souMestre) {
+    acoesHtml += `<button onclick="mostrarRenomearGrupo('${escapeHtml(g.nome)}')" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(233,224,236,0.2);background:transparent;color:#efe7ef;font-size:13px;cursor:pointer;">Renomear grupo</button>`;
+    acoesHtml += `<button onclick="excluirGrupo()" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(123,30,40,0.4);background:rgba(123,30,40,0.15);color:#e07a7a;font-size:13px;cursor:pointer;">Excluir grupo</button>`;
+  } else {
+    acoesHtml += `<button onclick="sairDoGrupo()" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(123,30,40,0.4);background:rgba(123,30,40,0.15);color:#e07a7a;font-size:13px;cursor:pointer;">Sair do grupo</button>`;
+  }
+  acoesDiv.innerHTML = acoesHtml;
+};
+
+window.salvarFichaGrupoBotao = async function (btn) {
+  const select = document.getElementById("selectFichaGrupo");
+  const status = document.getElementById("statusFichaGrupo");
+  if (!select) return;
+
+  const grupoId = window._grupoAtualId;
+  const fichaEscolhida = select.value;
+
+  btn.disabled = true;
+  btn.textContent = "Salvando...";
+  status.textContent = "";
+
+  try {
+    await window.escolherFichaGrupo(select);
+
+    if (!fichaEscolhida) {
+      status.textContent = "✓ Vínculo removido.";
+      status.style.color = "#4a7c3a";
+    } else {
+      // confere de verdade no Firestore, não confia só na memória
+      const confSnap = await getDoc(doc(db, "usuarios", window.usuarioAtual.uid, "fichas", fichaEscolhida));
+      const grupoAtivoSalvo = confSnap.exists() ? confSnap.data().grupoAtivo : null;
+
+      if (grupoAtivoSalvo === grupoId) {
+        status.textContent = "✓ Vínculo salvo e confirmado!";
+        status.style.color = "#4a7c3a";
+      } else {
+        status.textContent = "✗ Não confirmei o salvamento — tenta de novo.";
+        status.style.color = "#e07a7a";
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    status.textContent = "✗ Erro: " + (e.code || e.message);
+    status.style.color = "#e07a7a";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Salvar vínculo";
+  }
+};
+
+window.atualizarCamposCategoriaItem = function () {
+  const categoria = document.getElementById("itemMasterCategoria")?.value;
+  const campoDano = document.getElementById("itemMasterDano");
+  const campoCA = document.getElementById("itemMasterCA");
+  if (campoDano) campoDano.style.display = categoria === "armas" ? "block" : "none";
+  if (campoCA) campoCA.style.display = categoria === "armaduras" ? "block" : "none";
+};
+
+window.carregarGruposParaCampanha = async function (selectId = "novaCampanhaGrupo", valorSelecionado = "") {
+  const select = document.getElementById(selectId);
+  if (!select || !window.usuarioAtual) return;
+
+  try {
+    const meuUid = window.usuarioAtual.uid;
+    const q = query(collection(db, "grupos"), where("membrosUids", "array-contains", meuUid));
+    const snap = await getDocs(q);
+
+    const meusGrupos = snap.docs.filter(d => d.data().criadoPor === meuUid);
+
+    select.innerHTML = `<option value="">Sem grupo vinculado</option>` +
+      meusGrupos.map(d => `<option value="${d.id}" ${d.id === valorSelecionado ? "selected" : ""}>${escapeHtml(d.data().nome)}</option>`).join("");
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+window._campanhaEmEdicaoIndex = null;
+
+window.abrirEditarCampanha = async function (index) {
+  const campanha = campanhasMaster[index];
+  if (!campanha) return;
+
+  window._campanhaEmEdicaoIndex = index;
+
+  document.getElementById("modalEditarCampanhaOverlay").style.display = "block";
+  document.getElementById("modalEditarCampanha").style.display = "block";
+
+  document.getElementById("editCampanhaNome").value = campanha.nome || "";
+  document.getElementById("editCampanhaSistema").value = campanha.sistema || "";
+  document.getElementById("editCampanhaDescricao").value = campanha.descricao || "";
+
+  await window.carregarGruposParaCampanha("editCampanhaGrupo", campanha.grupoVinculado || "");
+};
+
+window.fecharEditarCampanha = function () {
+  document.getElementById("modalEditarCampanhaOverlay").style.display = "none";
+  document.getElementById("modalEditarCampanha").style.display = "none";
+  window._campanhaEmEdicaoIndex = null;
+};
+
+window.salvarEdicaoCampanha = function () {
+  const index = window._campanhaEmEdicaoIndex;
+  if (index === null || !campanhasMaster[index]) return;
+
+  const nome = document.getElementById("editCampanhaNome").value.trim();
+  if (!nome) {
+    alertBonito("Digite o nome da campanha.");
+    return;
+  }
+
+  campanhasMaster[index].nome = nome;
+  campanhasMaster[index].sistema = document.getElementById("editCampanhaSistema").value.trim();
+  campanhasMaster[index].descricao = document.getElementById("editCampanhaDescricao").value.trim();
+  campanhasMaster[index].grupoVinculado = document.getElementById("editCampanhaGrupo").value || "";
+
+  salvarCampanhasMaster();
+  renderCampanhasMaster();
+  window.fecharEditarCampanha();
+};
+
+window.escolherFichaGrupo = async function (selectEl) {
+  const grupoId = window._grupoAtualId;
+  const meuUid = window.usuarioAtual.uid;
+  const novoFichaId = selectEl.value;
+  if (!grupoId) return;
+
+  try {
+    const grupoRef = doc(db, "grupos", grupoId);
+    const snap = await getDoc(grupoRef);
+    const g = snap.data();
+
+    const membroAtual = g.membros.find(m => m.uid === meuUid);
+    const fichaAntigaNesteGrupo = membroAtual?.fichaId || "";
+
+    if (fichaAntigaNesteGrupo && fichaAntigaNesteGrupo !== novoFichaId) {
+      try {
+        await setDoc(doc(db, "usuarios", meuUid, "fichas", fichaAntigaNesteGrupo), { grupoAtivo: "" }, { merge: true });
+        const fichaLocalAntiga = (window.personagens || []).find(f => String(f.id) === String(fichaAntigaNesteGrupo));
+        if (fichaLocalAntiga) fichaLocalAntiga.grupoAtivo = "";
+      } catch (e) {
+        console.warn("Não consegui limpar a ficha antiga:", e);
+      }
+    }
+
+    let veioDeOutroGrupo = false;
+
+    if (novoFichaId) {
+      // varre TODOS os grupos que você participa, não só o que o campo grupoAtivo aponta
+      const meusGruposSnap = await getDocs(query(collection(db, "grupos"), where("membrosUids", "array-contains", meuUid)));
+
+      for (const outroDoc of meusGruposSnap.docs) {
+        if (outroDoc.id === grupoId) continue;
+
+        const outroGrupo = outroDoc.data();
+        const meuMembroLa = outroGrupo.membros.find(m => m.uid === meuUid);
+
+        if (meuMembroLa?.fichaId === novoFichaId) {
+          veioDeOutroGrupo = true;
+          try {
+            const membrosAtualizados = outroGrupo.membros.map(m =>
+              m.uid === meuUid ? { ...m, fichaId: "" } : m
+            );
+            await updateDoc(doc(db, "grupos", outroDoc.id), { membros: membrosAtualizados });
+          } catch (e) {
+            console.warn("Não consegui desvincular do grupo antigo:", e);
+          }
+        }
+      }
+
+      await setDoc(doc(db, "usuarios", meuUid, "fichas", novoFichaId), { grupoAtivo: grupoId }, { merge: true });
+
+      const fichaLocalNova = (window.personagens || []).find(f => String(f.id) === String(novoFichaId));
+      if (fichaLocalNova) fichaLocalNova.grupoAtivo = grupoId;
+    }
+
+    const novosMembros = g.membros.map(m => m.uid === meuUid ? { ...m, fichaId: novoFichaId } : m);
+    await updateDoc(grupoRef, { membros: novosMembros });
+
+    if (novoFichaId) {
+      const mestresUids = g.membros.filter(m => m.papel === "mestre").map(m => m.uid);
+      if (mestresUids.length > 0) {
+        await setDoc(doc(db, "usuarios", meuUid, "fichas", novoFichaId), {
+          mestresAutorizados: arrayUnion(...mestresUids)
+        }, { merge: true });
+      }
+    }
+
+    if (veioDeOutroGrupo) {
+      alertBonito("Essa ficha já estava vinculada a outro grupo — ela foi movida pra cá.");
+    }
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao vincular ficha: " + (e.code || e.message));
+  }
+};
+
+window._grupoMasterUnsubs = [];
+window._grupoMasterAbertos = {};
+
+window._grupoMasterUnsubs = [];
+window._grupoMasterAbertos = {};
+
+window.renderGrupoMaster = async function () {
+  const conteudo = document.getElementById("grupoMasterConteudo");
+  window._grupoMasterUnsubs.forEach(unsub => unsub());
+  window._grupoMasterUnsubs = [];
+
+  const campanha = campanhasMaster[campanhaAtualMaster];
+  const grupoId = campanha?.grupoVinculado;
+
+  if (!grupoId) {
+    conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Essa campanha não tem um grupo vinculado. Edite a campanha pra escolher um.</p>`;
+    return;
+  }
+
+  conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;">Carregando grupo...</p>`;
+
+  const grupoSnap = await getDoc(doc(db, "grupos", grupoId));
+  if (!grupoSnap.exists()) {
+    conteudo.innerHTML = `<p style="color:#e07a7a;font-size:13px;text-align:center;">Esse grupo não existe mais.</p>`;
+    return;
+  }
+  const g = grupoSnap.data();
+  const meuUid = window.usuarioAtual.uid;
+  const alvos = g.membros.filter(m => m.uid !== meuUid && m.fichaId);
+
+  window._grupoMasterAlvos = alvos;
+
+  if (alvos.length === 0) {
+    conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum jogador vinculou uma ficha a esse grupo ainda.</p>`;
+    return;
+  }
+
+  conteudo.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      ${alvos.map(m => `
+        <div id="dashCard-${m.uid}" onclick="window.abrirFichaFlutuante('${m.uid}')" style="cursor:pointer;aspect-ratio:1;border-radius:16px;overflow:hidden;position:relative;background:#160f19 center/cover no-repeat;border:1px solid rgba(233,224,236,0.16);box-shadow:0 4px 14px rgba(0,0,0,0.35);">
+          <p style="color:#d5cbd8;font-size:11px;padding:10px;">Carregando...</p>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  alvos.forEach(m => {
+    const ref = doc(db, "usuarios", m.uid, "fichas", m.fichaId);
+    const unsub = onSnapshot(ref, snap => {
+      const card = document.getElementById(`dashCard-${m.uid}`);
+      if (!card) return;
+
+      if (!snap.exists()) {
+        card.innerHTML = `<p style="color:#e07a7a;font-size:11px;padding:10px;">Ficha não encontrada.</p>`;
+        return;
+      }
+
+      const f = snap.data();
+      const vidaMax = f.vidaMax || 1;
+const vidaAtual = f.vidaAtual ?? vidaMax;
+const vidaTemp = f.vidaTemp ?? 0;
+const pctVida = Math.max(0, Math.min(100, (vidaAtual / vidaMax) * 100));
+const pctTemp = Math.max(0, Math.min(100, (vidaTemp / vidaMax) * 100));
+const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#983553" : "#4a6b32";
+
+      card.style.backgroundImage = f.imagem ? `url('${f.imagem}')` : "none";
+      card.innerHTML = `
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.88) 100%);"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:10px;">
+          <div style="font-family:'Cinzel',serif;font-weight:bold;font-size:13px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);line-height:1.2;">${escapeHtml(f.nome || "Sem nome")}</div>
+          <div style="font-size:10.5px;color:#d5cbd8;margin-top:1px;text-shadow:0 1px 4px rgba(0,0,0,0.8);">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""}</div>
+          <div style="height:5px;background:rgba(255,255,255,0.2);border-radius:99px;overflow:hidden;margin-top:6px;">
+            <div style="height:100%;width:${pctVida}%;background:${corVida};"></div>
+          </div>
+          <div style="font-size:9.5px;color:#d5cbd8;margin-top:2px;">HP ${vidaAtual}/${vidaMax}</div>
+        </div>
+      `;
+
+      if (window._fichaFlutuanteUid === m.uid) window._renderFichaFlutuanteConteudo(m, f);
+    }, err => {
+      console.error(err);
+      const card = document.getElementById(`dashCard-${m.uid}`);
+      if (card) card.innerHTML = `<p style="color:#e05050;font-size:11px;padding:10px;">Sem permissão pra ver essa ficha ainda.</p>`;
+    });
+
+    window._grupoMasterUnsubs.push(unsub);
+  });
+};
+
+/* ================= CARD FLUTUANTE DO JOGADOR (visão detalhada do mestre) ================= */
+
+function _fichaDashPillCirculo(c) {
+  if (c === "" || c == null) return "";
+  let texto = c === "talento" ? "Talento" : c === "passiva" ? "Passiva" : `Círculo ${c}`;
+  return `<span style="display:inline-block;font-size:9.5px;font-weight:bold;padding:2px 8px;border-radius:99px;background:#8a2c22;color:#efe7ef;margin-left:6px;letter-spacing:.02em;">${texto}</span>`;
+}
+
+function _fichaDashPillCargas(item) {
+  if (!item.temCargas) return "";
+  const gastas = (item.cargasGastas || []).filter(Boolean).length;
+  const max = item.maxCargas || 0;
+  const restantes = max - gastas;
+  const cor = restantes === 0 ? "#8a2c22" : "#71283e";
+  return `<span style="display:inline-block;font-size:9.5px;font-weight:bold;padding:2px 8px;border-radius:99px;background:rgba(113,40,62,0.15);border:1px solid ${cor};color:${cor};margin-left:6px;">${restantes}/${max}</span>`;
+}
+
+let _fichaDashContadorLinha = 0;
+function _fichaDashLinha(uid, nome, extra, pill, desc) {
+  const idLinha = `fichaFlutLinha-${uid}-${_fichaDashContadorLinha++}`;
+  return `
+  <div style="padding:8px 0;border-bottom:1px solid rgba(60,38,70,0.12);${desc ? "cursor:pointer;" : ""}" ${desc ? `onclick="window.alternarDescDash('${idLinha}')"` : ""}>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:13px;color:#1e1324;font-weight:600;">${escapeHtml(nome)}${extra ? ` <span style="color:#5d4d60;font-weight:normal;font-size:11.5px;">· ${escapeHtml(extra)}</span>` : ""}</span>
+      <span style="flex-shrink:0;">${pill}</span>
+    </div>
+    ${desc ? `<div id="${idLinha}" data-aberto="0" style="font-size:11.5px;color:#672438;margin-top:4px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(desc)}</div>` : ""}  </div>`;
+}
+
+function _fichaDashSecao(titulo, itens) {
+  return `
+  <div style="background:#e2d2e2;border-radius:10px;margin:10px 14px 0;overflow:hidden;border:1px solid rgba(233,224,236,0.16);">
+    <div style="background:#ce9ede;padding:7px 12px;text-align:center;">
+      <span style="font-size:10px;color:#3c2646;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;">${titulo}</span>
+    </div>
+    <div style="padding:8px 12px 10px;">
+      ${itens || `<p style="font-size:12px;color:#6c5a70;font-style:italic;padding:4px 0;text-align:center;">Nada aqui.</p>`}
+    </div>
+  </div>`;
+}
+
+window._renderFichaFlutuanteConteudo = function (m, f) {
+  const vidaMax = f.vidaMax || 1;
+const vidaAtual = f.vidaAtual ?? vidaMax;
+const vidaTemp = f.vidaTemp ?? 0;
+const pctVida = Math.max(0, Math.min(100, (vidaAtual / vidaMax) * 100));
+const pctTemp = Math.max(0, Math.min(100, (vidaTemp / vidaMax) * 100));
+const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#983553" : "#4a6b32";
+
+  const todosPoderes = f.poderes || [];
+  const poderesGerais = todosPoderes.filter(p => (p.circulo ?? "") === "").map(p => _fichaDashLinha(m.uid, p.nome || "Sem nome", "", _fichaDashPillCargas(p), p.desc)).join("");
+  const talentos = todosPoderes.filter(p => p.circulo === "talento").map(p => _fichaDashLinha(m.uid, p.nome || "Sem nome", "", _fichaDashPillCargas(p), p.desc)).join("");
+  const passivas = todosPoderes.filter(p => p.circulo === "passiva").map(p => _fichaDashLinha(m.uid, p.nome || "Sem nome", "", _fichaDashPillCargas(p), p.desc)).join("");
+
+  const gastos = f.gastosCirculos || {};
+  const bolinhasCirculo = (circulo) => {
+    const arr = gastos[circulo] || [];
+    if (arr.length === 0) return "";
+    return `<div style="display:flex;gap:6px;margin:6px 0 8px;justify-content:center;">${arr.map(gasta => `<span style="width:13px;height:13px;border-radius:50%;display:inline-block;background:${gasta ? "#8a2c22" : "transparent"};border:2px solid #8a2c22;"></span>`).join("")}</div>`;
+  };
+
+  let magias = "";
+  for (let c = 0; c <= 9; c++) {
+    const magiasDoCirculo = todosPoderes.filter(p => String(p.circulo) === String(c));
+    if (magiasDoCirculo.length === 0 && (!gastos[c] || gastos[c].length === 0)) continue;
+
+    magias += `
+      <div style="margin-top:10px;text-align:center;">
+        <div style="font-size:11px;color:#3c2646;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;">Círculo ${c}</div>
+        ${bolinhasCirculo(c)}
+        ${magiasDoCirculo.map(p => _fichaDashLinha(m.uid, p.nome || "Sem nome", "", _fichaDashPillCargas(p), p.desc)).join("") || `<p style="font-size:11px;color:#d5cbd8;font-style:italic;">Sem magias registradas.</p>`}
+      </div>`;
+  }
+
+  const armas = (f.armas || []).map(a => _fichaDashLinha(m.uid, a.nome || "Sem nome", a.dano || "", _fichaDashPillCargas(a), a.desc)).join("");
+  const armaduras = (f.armaduras || []).map(a => _fichaDashLinha(m.uid, a.nome || "Sem nome", a.ca ? "CA " + a.ca : "", _fichaDashPillCargas(a), a.desc)).join("");
+  const inventario = (f.inventario || []).map(i => _fichaDashLinha(m.uid, i.nome || "Sem nome", "", `<span style="font-size:11px;color:#5d4d60;">x${i.qtd || 1}</span>`, i.desc)).join("");
+
+  const dominioArr = f.dominio || [];
+  const dominioHtml = `
+    <div style="display:flex;gap:7px;flex-wrap:wrap;padding:10px 0 4px;justify-content:center;">
+      ${dominioArr.map(marcado => `<span style="width:16px;height:16px;border-radius:50%;display:inline-block;background:${marcado ? "#8a2c22" : "transparent"};border:2px solid #8a2c22;"></span>`).join("")}
+    </div>`;
+
+    const efeitosExaustaoDash = ["Sem exaustão","Desvantagem em testes de atributo","Deslocamento reduzido pela metade ","Desvantagem em jogadas de ataque e salvaguardas","Pontos de vida maximos reduzidos pela metade","Deslocamento reduzido a 0","Morte"];
+  const nivelExaustao = f.exaustao ?? 0;
+  const exaustaoHtml = `
+    <div style="font-size:12px;color:#1e1324;padding:10px 0 4px;">
+      Nível ${nivelExaustao} ${nivelExaustao > 0 ? `<span style="color:#5d4d60;">— ${escapeHtml(efeitosExaustaoDash[nivelExaustao] || "")}</span>` : ""}
+    </div>`;
+
+  const morteObj = f.morte || { sucessos: [false,false,false], falhas: [false,false,false] };
+  const morteHtml = `
+    <div style="display:flex;justify-content:center;gap:24px;padding:10px 0 4px;">
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:#5d4d60;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Sucessos</div>
+        <div style="display:flex;gap:6px;">
+          ${morteObj.sucessos.map(marcado => `<span style="width:16px;height:16px;border-radius:50%;display:inline-block;background:${marcado ? "#4a6b32" : "transparent"};border:2px solid #4a6b32;"></span>`).join("")}
+        </div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:#5d4d60;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Falhas</div>
+        <div style="display:flex;gap:6px;">
+          ${morteObj.falhas.map(marcado => `<span style="width:16px;height:16px;border-radius:50%;display:inline-block;background:${marcado ? "#8a2c22" : "transparent"};border:2px solid #8a2c22;"></span>`).join("")}
+        </div>
+      </div>
+    </div>`;
+
+  const alvos = window._grupoMasterAlvos || [];
+  document.getElementById("fichaFlutuanteContador").textContent = alvos.length > 1 ? `${window._fichaFlutuanteIndex + 1} / ${alvos.length}` : "";
+
+  document.getElementById("fichaFlutuanteConteudo").innerHTML = `
+    <div style="padding:14px 14px 0;">
+      <div style="font-family:'Cinzel',serif;font-weight:bold;font-size:17px;color:#3c2646;">${escapeHtml(f.nome || "Sem nome")}</div>
+      <div style="font-size:12px;color:#5d4d60;margin-top:2px;">${escapeHtml(m.nickname)} · ${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""} · CA ${escapeHtml(String(f.ca ?? "-"))}</div>
+    </div>
+    <div style="height:6px;background:rgba(60,38,70,0.15);margin:10px 14px 0;border-radius:99px;overflow:hidden;">
+      <div style="height:100%;width:${pctVida}%;background:${corVida};transition:width .4s ease;"></div>
+    </div>
+    <div style="font-size:11px;color:#5d4d60;padding:4px 14px 4px;">HP: ${vidaAtual} / ${vidaMax}</div>
+<div style="height:5px;background:rgba(60,38,70,0.12);margin:2px 14px 0;border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pctTemp}%;background:#4b8f9a;transition:width .4s ease;"></div></div>
+<div style="font-size:10px;color:#4b8f9a;padding:3px 14px 4px;">PV temporários: ${vidaTemp}</div>
+    ${_fichaDashSecao("Poderes", poderesGerais)}
+    ${_fichaDashSecao("Magias", magias)}
+    ${_fichaDashSecao("Talentos", talentos)}
+    ${_fichaDashSecao("Passivas", passivas)}
+    ${_fichaDashSecao("Armas", armas)}
+    ${_fichaDashSecao("Vestimentas", armaduras)}
+    ${_fichaDashSecao("Inventário", inventario)}
+     ${dominioArr.length ? _fichaDashSecao("Pontos de Domínio", dominioHtml) : ""}
+    ${_fichaDashSecao("Exaustão", exaustaoHtml)}
+    ${_fichaDashSecao("Testes de Morte", morteHtml)}
+    <div style="height:14px;"></div>
+  `;
+};
+
+window.abrirFichaFlutuante = function (uid) {
+  const idx = (window._grupoMasterAlvos || []).findIndex(m => m.uid === uid);
+  if (idx === -1) return;
+  window._fichaFlutuanteIndex = idx;
+  window._mostrarFichaFlutuanteAtual();
+};
+
+window._mostrarFichaFlutuanteAtual = function () {
+  const alvos = window._grupoMasterAlvos || [];
+  const m = alvos[window._fichaFlutuanteIndex];
+  if (!m) return;
+
+  window._fichaFlutuanteUid = m.uid;
+  if (window._fichaFlutuanteUnsub) window._fichaFlutuanteUnsub();
+
+  document.getElementById("fichaFlutuanteOverlay").style.display = "block";
+  document.getElementById("fichaFlutuante").style.display = "flex";
+  document.getElementById("fichaFlutuanteConteudo").innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;">Carregando ${escapeHtml(m.nickname)}...</p>`;
+
+  const ref = doc(db, "usuarios", m.uid, "fichas", m.fichaId);
+  window._fichaFlutuanteUnsub = onSnapshot(ref, snap => {
+    if (!snap.exists()) {
+      document.getElementById("fichaFlutuanteConteudo").innerHTML = `<p style="color:#e05050;font-size:13px;text-align:center;padding:20px 0;">Ficha não encontrada.</p>`;
+      return;
+    }
+    window._renderFichaFlutuanteConteudo(m, snap.data());
+  }, err => {
+    console.error(err);
+    document.getElementById("fichaFlutuanteConteudo").innerHTML = `<p style="color:#e05050;font-size:13px;text-align:center;padding:20px 0;">Sem permissão pra ver essa ficha ainda.</p>`;
+  });
+};
+
+
+window.fecharFichaFlutuante = function () {
+  document.getElementById("fichaFlutuanteOverlay").style.display = "none";
+  document.getElementById("fichaFlutuante").style.display = "none";
+  if (window._fichaFlutuanteUnsub) window._fichaFlutuanteUnsub();
+  window._fichaFlutuanteUnsub = null;
+  window._fichaFlutuanteUid = null;
+};
+
+window.trocarFichaFlutuante = function (direcao) {
+  const alvos = window._grupoMasterAlvos || [];
+  if (alvos.length <= 1) return;
+
+  const el = document.getElementById("fichaFlutuante");
+  const saida = direcao > 0 ? -60 : 60;
+
+  el.style.transition = "transform .22s ease, opacity .22s ease";
+  el.style.transform = `translate(-50%,-50%) translateX(${saida}px)`;
+  el.style.opacity = "0";
+
+  setTimeout(() => {
+    window._fichaFlutuanteIndex = (window._fichaFlutuanteIndex + direcao + alvos.length) % alvos.length;
+    window._mostrarFichaFlutuanteAtual();
+
+    el.style.transition = "none";
+    el.style.transform = `translate(-50%,-50%) translateX(${-saida}px)`;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.style.transition = "transform .22s ease, opacity .22s ease";
+        el.style.transform = "translate(-50%,-50%) translateX(0)";
+        el.style.opacity = "1";
+      });
+    });
+  }, 220);
+};
+
+(function ativarGestosFichaFlutuante() {
+  const el = document.getElementById("fichaFlutuante");
+  if (!el) return;
+  let inicioX = 0, inicioY = 0, arrastando = false;
+
+  el.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    inicioX = t.clientX; inicioY = t.clientY; arrastando = true;
+    el.style.transition = "none";
+  }, { passive: true });
+
+  el.addEventListener("touchmove", e => {
+    if (!arrastando) return;
+    const t = e.touches[0];
+    const diffX = t.clientX - inicioX;
+    const diffY = t.clientY - inicioY;
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      el.style.transform = `translate(-50%,-50%) translateX(${diffX}px)`;
+      el.style.opacity = String(1 - Math.min(Math.abs(diffX) / 400, 0.5));
+    }
+  }, { passive: true });
+
+  el.addEventListener("touchend", e => {
+    if (!arrastando) return;
+    arrastando = false;
+    const t = e.changedTouches[0];
+    const diffX = t.clientX - inicioX;
+    const diffY = t.clientY - inicioY;
+
+    if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
+      window.trocarFichaFlutuante(diffX < 0 ? 1 : -1);
+    } else {
+      el.style.transition = "transform .2s ease, opacity .2s ease";
+      el.style.transform = "translate(-50%,-50%) translateX(0)";
+      el.style.opacity = "1";
+    }
+  }, { passive: true });
+})();
+
+window.alternarDescDash = function (idLinha) {
+  const el = document.getElementById(idLinha);
+  if (!el) return;
+  const aberto = el.dataset.aberto === "1";
+  if (aberto) {
+    el.style.webkitLineClamp = "2";
+    el.style.overflow = "hidden";
+    el.dataset.aberto = "0";
+  } else {
+    el.style.webkitLineClamp = "unset";
+    el.style.overflow = "visible";
+    el.dataset.aberto = "1";
+  }
+};
+
+window.alternarDescDash = function (idLinha) {
+  const el = document.getElementById(idLinha);
+  if (!el) return;
+  const aberto = el.dataset.aberto === "1";
+  if (aberto) {
+    el.style.webkitLineClamp = "2";
+    el.style.overflow = "hidden";
+    el.dataset.aberto = "0";
+  } else {
+    el.style.webkitLineClamp = "unset";
+    el.style.overflow = "visible";
+    el.dataset.aberto = "1";
+  }
+};
+
+window._dashboardUnsubs = [];
+
+window.abrirDashboardMestre = async function (grupoId) {
+  document.getElementById("modalDashboardOverlay").style.display = "block";
+  document.getElementById("modalDashboard").style.display = "block";
+
+  const conteudo = document.getElementById("dashboardConteudo");
+  conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;">Carregando...</p>`;
+
+  window._dashboardUnsubs.forEach(unsub => unsub());
+  window._dashboardUnsubs = [];
+
+  const grupoSnap = await getDoc(doc(db, "grupos", grupoId));
+  if (!grupoSnap.exists()) return;
+  const g = grupoSnap.data();
+  const meuUid = window.usuarioAtual.uid;
+
+  const alvos = g.membros.filter(m => m.uid !== meuUid && m.fichaId);
+
+  if (alvos.length === 0) {
+    conteudo.innerHTML = `<p style="color:#d5cbd8;font-size:13px;text-align:center;padding:20px 0;font-style:italic;">Nenhum jogador vinculou uma ficha a esse grupo ainda.</p>`;
+    return;
+  }
+
+  conteudo.innerHTML = alvos.map(m => `
+    <div id="dashCard-${m.uid}" style="background:rgba(255,255,255,0.03);border:1px solid rgba(233,224,236,0.12);border-radius:12px;padding:12px;">
+      <p style="color:#d5cbd8;font-size:12px;">Carregando ${escapeHtml(m.nickname)}...</p>
+    </div>
+  `).join("");
+
+  alvos.forEach(m => {
+    const ref = doc(db, "usuarios", m.uid, "fichas", m.fichaId);
+    const unsub = onSnapshot(ref, snap => {
+      const card = document.getElementById(`dashCard-${m.uid}`);
+      if (!card) return;
+
+      if (!snap.exists()) {
+        card.innerHTML = `<p style="color:#e07a7a;font-size:12px;">Ficha de ${escapeHtml(m.nickname)} não encontrada.</p>`;
+        return;
+      }
+
+      const vidaMax = f.vidaMax || 1;
+const vidaAtual = f.vidaAtual ?? vidaMax;
+const vidaTemp = f.vidaTemp ?? 0;
+const pctTemp = Math.max(0, Math.min(100, (vidaTemp / vidaMax) * 100));
+const pctVida = Math.max(0, Math.min(100, (vidaAtual / vidaMax) * 100));
+const corVida = pctVida <= 25 ? "#8a2c22" : pctVida <= 60 ? "#983553" : "#4a6b32";
+
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+          <span style="font-weight:bold;font-size:14px;">${escapeHtml(f.nome || "Sem nome")}</span>
+          <span style="font-size:11px;color:#d5cbd8;">${escapeHtml(m.nickname)}</span>
+        </div>
+        <div style="font-size:12px;color:#d5cbd8;margin-bottom:8px;">${escapeHtml(f.classe || "")}${f.nivel ? " · Nv " + escapeHtml(String(f.nivel)) : ""} · CA ${escapeHtml(String(f.ca ?? "-"))}</div>
+
+        <div style="font-size:11px;color:#d5cbd8;margin-bottom:2px;">HP: ${vidaAtual} / ${vidaMax}</div>
+        <div style="height:8px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;margin-bottom:10px;">
+          <div style="height:100%;width:${pctVida}%;background:${pctVida <= 25 ? "#7B1E28" : "#4a7c3a"};"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:#d5cbd8;">
+          <div>Itens: ${(f.inventario || []).length}</div>
+          <div>Armas: ${(f.armas || []).length}</div>
+          <div>Vestimentas: ${(f.armaduras || []).length}</div>
+          <div>Poderes: ${(f.poderes || []).length}</div>
+        </div>
+      `;
+    }, err => {
+      console.error(err);
+      const card = document.getElementById(`dashCard-${m.uid}`);
+      if (card) card.innerHTML = `<p style="color:#e07a7a;font-size:12px;">Sem permissão pra ver essa ficha ainda.</p>`;
+    });
+
+    window._dashboardUnsubs.push(unsub);
+  });
+};
+
+window.fecharDashboardMestre = function () {
+  document.getElementById("modalDashboardOverlay").style.display = "none";
+  document.getElementById("modalDashboard").style.display = "none";
+  window._dashboardUnsubs.forEach(unsub => unsub());
+  window._dashboardUnsubs = [];
+};
+
+window.fecharDetalheGrupo = function () {
+  document.getElementById("modalGrupoDetalheOverlay").style.display = "none";
+  document.getElementById("modalGrupoDetalhe").style.display = "none";
+  window._grupoAtualId = null;
+};
+
+window.mostrarRenomearGrupo = function (nomeAtual) {
+  const div = document.getElementById("detalheGrupoRenomear");
+  div.style.display = "flex";
+  document.getElementById("renomearGrupoInput").value = nomeAtual;
+};
+
+window.salvarRenomearGrupo = async function () {
+  const novoNome = document.getElementById("renomearGrupoInput").value.trim();
+  if (!novoNome || !window._grupoAtualId) return;
+  try {
+    await updateDoc(doc(db, "grupos", window._grupoAtualId), { nome: novoNome });
+    await window.abrirDetalheGrupo(window._grupoAtualId);
+    carregarGrupos();
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro ao renomear: " + (e.code || e.message));
+  }
+};
+
+window.alternarPapelMembro = async function (uidAlvo) {
+  const grupoId = window._grupoAtualId;
+  if (!grupoId) return;
+  try {
+    const grupoRef = doc(db, "grupos", grupoId);
+    const snap = await getDoc(grupoRef);
+    const g = snap.data();
+    const novosMembros = g.membros.map(m =>
+      m.uid === uidAlvo ? { ...m, papel: m.papel === "mestre" ? "jogador" : "mestre" } : m
+    );
+    const novosMestresUids = novosMembros.filter(m => m.papel === "mestre").map(m => m.uid);
+    await updateDoc(grupoRef, { membros: novosMembros, mestresUids: novosMestresUids });
+    await window.abrirDetalheGrupo(grupoId);
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro: " + (e.code || e.message));
+  }
+};
+
+window.removerMembroGrupo = async function (uidAlvo) {
+  const grupoId = window._grupoAtualId;
+  if (!grupoId) return;
+  if (!(await confirmBonito("Remover esse membro do grupo?"))) return;
+  try {
+    const grupoRef = doc(db, "grupos", grupoId);
+    const snap = await getDoc(grupoRef);
+    const g = snap.data();
+    await updateDoc(grupoRef, {
+      membros: g.membros.filter(m => m.uid !== uidAlvo),
+      membrosUids: g.membrosUids.filter(u => u !== uidAlvo),
+      mestresUids: (g.mestresUids || []).filter(u => u !== uidAlvo)
+    });
+    await window.abrirDetalheGrupo(grupoId);
+    carregarGrupos();
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro: " + (e.code || e.message));
+  }
+};
+
+window.sairDoGrupo = async function () {
+  const grupoId = window._grupoAtualId;
+  const meuUid = window.usuarioAtual.uid;
+  if (!grupoId) return;
+  if (!(await confirmBonito("Sair desse grupo?"))) return;
+  try {
+    const grupoRef = doc(db, "grupos", grupoId);
+    const snap = await getDoc(grupoRef);
+    const g = snap.data();
+    await updateDoc(grupoRef, {
+      membros: g.membros.filter(m => m.uid !== meuUid),
+      membrosUids: g.membrosUids.filter(u => u !== meuUid),
+      mestresUids: (g.mestresUids || []).filter(u => u !== meuUid)
+    });
+    fecharDetalheGrupo();
+    carregarGrupos();
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro: " + (e.code || e.message));
+  }
+};
+
+window.excluirGrupo = async function () {
+  const grupoId = window._grupoAtualId;
+  if (!grupoId) return;
+  if (!(await confirmBonito("Excluir esse grupo pra sempre? Não dá pra desfazer."))) return;
+  try {
+    await deleteDoc(doc(db, "grupos", grupoId));
+    fecharDetalheGrupo();
+    carregarGrupos();
+  } catch (e) {
+    console.error(e);
+    alertBonito("Erro: " + (e.code || e.message));
+  }
+};
+
+function renderEtapasForm() {
+  const lista = document.getElementById("mundoMissaoEtapasList");
+  if (!lista) return;
+
+  lista.innerHTML = _etapasForm.map((e, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+      <span style="font-size:12px;color:#d5cbd8;flex:1;">${escapeHtml(e.nome)}</span>
+      <span onclick="removerEtapaForm(${i})" style="cursor:pointer;color:#8f2222;font-size:14px;">✕</span>
+    </div>`).join("");
+}
+
+function removerEtapaForm(i) {
+  _etapasForm.splice(i, 1);
+  renderEtapasForm();
+}
+
+// ===== INICIATIVA =====
+function abrirPainelIniciativa() {
+  // monta lista com monstros do combate
+  const nomesMonstros = combatesMestre.map((m, i) => ({
+    id: "monstro_" + i,
+    nome: m.nome,
+    iniciativa: m.iniciativa || 0,
+    tipo: "monstro"
+  }));
+
+  // jogadores salvos
+  const jogadores = JSON.parse(localStorage.getItem("iniciativaJogadores") || "[]");
+
+  iniciativaOrdem = [...jogadores, ...nomesMonstros];
+
+  renderPainelIniciativa();
+
+  document.getElementById("painelIniciativaOverlay").style.display = "block";
+  const painel = document.getElementById("painelIniciativa");
+  painel.style.display = "flex";
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      painel.classList.add("aberto");
+    });
+  });
+}
+
+function fecharPainelIniciativa() {
+  const painel = document.getElementById("painelIniciativa");
+  painel.classList.remove("aberto");
+  setTimeout(() => {
+    painel.style.display = "none";
+    document.getElementById("painelIniciativaOverlay").style.display = "none";
+  }, 300);
+}
+
+function renderPainelIniciativa() {
+  const lista = document.getElementById("iniciativaLista");
+  if (!lista) return;
+
+  // ordena por iniciativa decrescente
+  const ordenado = [...iniciativaOrdem].sort((a, b) => b.iniciativa - a.iniciativa);
+
+  lista.innerHTML = `
+    <div class="iniciativa-add-jogador">
+      <input id="inputNovoJogador" placeholder="Nome do jogador" />
+      <button onclick="adicionarJogadorIniciativa()">+</button>
+    </div>
+    <div class="iniciativa-separador">Ordenar por iniciativa</div>
+    ${ordenado.map((entry, i) => `
+      <div class="iniciativa-item ${iniciativaTurnoAtual === i ? "ativo" : ""}">
+        <span class="iniciativa-nome">${escapeHtml(entry.nome)}</span>
+        <input
+          class="iniciativa-input"
+          type="number"
+          value="${entry.iniciativa || ""}"
+          placeholder="0"
+          onchange="atualizarIniciativa('${entry.id}', this.value)"
+        />
+        ${entry.tipo === "jogador" ? `<button class="iniciativa-remover" onclick="removerJogadorIniciativa('${entry.id}')">✕</button>` : ""}
+      </div>
+    `).join("")}
+  `;
+}
+
+function adicionarJogadorIniciativa() {
+  const input = document.getElementById("inputNovoJogador");
+  const nome = input?.value.trim();
+  if (!nome) return;
+
+  const jogadores = JSON.parse(localStorage.getItem("iniciativaJogadores") || "[]");
+  const novo = { id: "jogador_" + Date.now(), nome, iniciativa: 0, tipo: "jogador" };
+  jogadores.push(novo);
+  localStorage.setItem("iniciativaJogadores", JSON.stringify(jogadores));
+
+  iniciativaOrdem = [...jogadores, ...combatesMestre.map((m, i) => ({
+    id: "monstro_" + i, nome: m.nome, iniciativa: m.iniciativa || 0, tipo: "monstro"
+  }))];
+
+  input.value = "";
+  renderPainelIniciativa();
+}
+
+function removerJogadorIniciativa(id) {
+  let jogadores = JSON.parse(localStorage.getItem("iniciativaJogadores") || "[]");
+  jogadores = jogadores.filter(j => j.id !== id);
+  localStorage.setItem("iniciativaJogadores", JSON.stringify(jogadores));
+
+  iniciativaOrdem = iniciativaOrdem.filter(e => e.id !== id);
+  renderPainelIniciativa();
+}
+
+function atualizarIniciativa(id, valor) {
+  const entry = iniciativaOrdem.find(e => e.id === id);
+  if (entry) entry.iniciativa = parseInt(valor) || 0;
+
+  // salva jogadores
+  const jogadores = iniciativaOrdem.filter(e => e.tipo === "jogador");
+  localStorage.setItem("iniciativaJogadores", JSON.stringify(jogadores));
+
+  // atualiza monstros
+  iniciativaOrdem.filter(e => e.tipo === "monstro").forEach(e => {
+    const i = parseInt(e.id.replace("monstro_", ""));
+    if (combatesMestre[i]) combatesMestre[i].iniciativa = e.iniciativa;
+  });
+
+  renderPainelIniciativa();
+}
+
+function proximoTurno() {
+  const ordenado = [...iniciativaOrdem].sort((a, b) => b.iniciativa - a.iniciativa);
+  iniciativaTurnoAtual = (iniciativaTurnoAtual + 1) % ordenado.length;
+  renderPainelIniciativa();
+}
+
+function flushSalvamentoPendente() {
+  if (window._debounceSalvar) {
+    clearTimeout(window._debounceSalvar);
+    window._debounceSalvar = null;
+    try { salvarPersonagens(); } catch (e) { console.error("Erro no flush:", e); }
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") flushSalvamentoPendente();
+});
+window.addEventListener("pagehide", flushSalvamentoPendente);
+
+if (window.Capacitor?.Plugins?.App) {
+  window.Capacitor.Plugins.App.addListener("appStateChange", ({ isActive }) => {
+    if (!isActive) flushSalvamentoPendente();
+  });
+}
